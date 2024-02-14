@@ -1,0 +1,31 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+    "setuptools_scm>=6.0",
+    "tomli",
+    "openai>1.2.0",
+    "tiktoken",
+    "backoff"
+]
+
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "easytl"
+version = "v0.0.1"
+authors = [
+  { name="Bikatr7", email="Tetralon07@gmail.com" },
+]
+description = "Easily translate into various languages using OpenAI"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Bikatr7/EasyTL"
+Issues = "https://github.com/Bikatr7/EasyTL/issues"
