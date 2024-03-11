@@ -3,21 +3,26 @@ requires = [
     "setuptools>=61.0",
     "wheel",
     "setuptools_scm>=6.0",
-    "tomli",
-    "openai>1.2.0",
-    "tiktoken",
-    "backoff"
+    "tomli"
 ]
 
 build-backend = "setuptools.build_meta"
 
 [project]
+dependencies = [
+    "google-generativeai==0.4.0",
+    "deepl==1.16.1",
+    "openai==1.13.3",
+    "backoff==2.2.1",
+    "tiktoken==0.6.0"
+]
+
 name = "easytl"
 version = "v0.0.1"
 authors = [
   { name="Bikatr7", email="Tetralon07@gmail.com" },
 ]
-description = "Easily translate into various languages using OpenAI"
+description = "Easily translate into various languages using OpenAI, DeepL, and Gemini APIs."
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
