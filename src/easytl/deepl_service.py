@@ -7,6 +7,8 @@ from deepl.translator import Translator
 class DeepLService:
 
     api_key:str
+    target_lang:str
+    source_lang:str
     translator:Translator
 
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
