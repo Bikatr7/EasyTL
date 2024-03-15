@@ -3,38 +3,42 @@ import typing
 
 ## third-party libraries
 from deepl.translator import Translator
-from deepl.api_data import Language, SplitSentences, Formality, GlossaryInfo
+from deepl.api_data import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
 
-    api_key:str
+    api_key:str = ""
+    
     translator:Translator
 
-    target_lang:str | Language | None
-    source_lang:str | Language | None
-    context:str | None
+    target_lang:str | Language = "EN"
+    source_lang:str | Language | None = None
+    context:str | None = None
     split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL"
-    preserve_formatting:bool | None
-    formality:typing.Literal["default", "more", "less", "prefer_more", "prefer_less"] | Formality | None = None
-    glossary:
+    preserve_formatting:bool | None = None
+    formality:typing.Literal["default", "more", "less", "prefer_more", "prefer_less"] | Formality | None = None 
+    glossary:str | GlossaryInfo | None = None
+    tag_handling:typing.Literal["xml", "html"] | None = None
+    outline_detection:bool | None = None
+    non_splitting_tags:str | typing.List[str] | None = None
+    splitting_tags:str | typing.List[str] | None = None
+    ignore_tags:str | typing.List[str] | None = None
 
 
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def translate(text:str, target_lang:str, source_lang:str) -> str:
+    def translate(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
         """
 
-        Translates the text to the target language.
+        Translates the given text to the target language.
 
         Parameters:
         text (string) : The text to translate.
-        target_lang (string) : The target language.
-        source_lang (string) : The source language.
 
         Returns:
-        translation (string) : The translated text.
+        translation (TextResult) : The translation result.
 
         """
 
@@ -45,9 +49,21 @@ class DeepLService:
 
         try:
 
-            translation = DeepLService.translator.translate_text(text, target_lang=target_lang, source_lang=source_lang)
+            translation = DeepLService.translator.translate_text(text,
+                                                                target_lang=DeepLService.target_lang,
+                                                                source_lang=DeepLService.source_lang,
+                                                                context=DeepLService.context,
+                                                                split_sentences=DeepLService.split_sentences,
+                                                                preserve_formatting=DeepLService.preserve_formatting,
+                                                                formality=DeepLService.formality,
+                                                                glossary=DeepLService.glossary,
+                                                                tag_handling=DeepLService.tag_handling,
+                                                                outline_detection=DeepLService.outline_detection,
+                                                                non_splitting_tags=DeepLService.non_splitting_tags,
+                                                                splitting_tags=DeepLService.splitting_tags,
+                                                                ignore_tags=DeepLService.ignore_tags)
 
-            return str(translation)
+            return translation
         
         except Exception as e:
             raise e
