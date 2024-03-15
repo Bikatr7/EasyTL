@@ -3,13 +3,21 @@ import typing
 
 ## third-party libraries
 from deepl.translator import Translator
+from deepl.api_data import Language, SplitSentences, Formality, GlossaryInfo
 
 class DeepLService:
 
     api_key:str
-    target_lang:str
-    source_lang:str
     translator:Translator
+
+    target_lang:str | Language | None
+    source_lang:str | Language | None
+    context:str | None
+    split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL"
+    preserve_formatting:bool | None
+    formality:typing.Literal["default", "more", "less", "prefer_more", "prefer_less"] | Formality | None = None
+    glossary:
+
 
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -29,6 +37,11 @@ class DeepLService:
         translation (string) : The translated text.
 
         """
+
+        isvalid, e = DeepLService.test_api_key_validity()
+
+        if(not isvalid and e):
+            raise e
 
         try:
 
