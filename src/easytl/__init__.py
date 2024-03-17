@@ -1,0 +1,1 @@
+from .easytl import deepl_translate
