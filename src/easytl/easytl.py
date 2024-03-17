@@ -9,7 +9,7 @@ from easytl.deepl_service import DeepLService
 from easytl.gemini_service import GeminiService
 from easytl.openai_service import OpenAIService
 
-from exceptions import DeepLException
+from .exceptions import DeepLException
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
