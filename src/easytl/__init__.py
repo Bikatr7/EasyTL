@@ -1,1 +1,3 @@
-from .easytl import deepl_translate
+from .easytl import EasyTL
+from .exceptions import DeepLException
+from classes import Language, SplitSentences, Formality, GlossaryInfo

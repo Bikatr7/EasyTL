@@ -44,20 +44,6 @@ class DeepLService:
 
         Sets the attributes of the DeepL client.
 
-        Parameters:
-        target_lang (string or Language) : The target language to translate to.
-        source_lang (string or Language or None) : The source language to translate from.
-        context (string or None) : The context of the text.
-        split_sentences (literal or SplitSentences or None) : The split sentences option.
-        preserve_formatting (bool or None) : The preserve formatting option.
-        formality (literal or Formality or None) : The formality option.
-        glossary (string or GlossaryInfo or None) : The glossary option.
-        tag_handling (literal or None) : The tag handling option.
-        outline_detection (bool or None) : The outline detection option.
-        non_splitting_tags (string or list - str or None) : The non-splitting tags option.
-        splitting_tags (string or list - str or None) : The splitting tags option.
-        ignore_tags (string or list - str or None) : The ignore tags option.
-
         """
 
         DeepLService.target_lang = target_lang
