@@ -127,7 +127,7 @@ class EasyTL:
         ignore_tags (string or list - str or None) : The ignore tags option.
 
         Returns:
-        translation (TextResult or list - TextResult) : The translation result.
+        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
 
