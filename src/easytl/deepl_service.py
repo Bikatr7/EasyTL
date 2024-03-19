@@ -3,7 +3,7 @@ import typing
 
 ## third-party libraries
 from deepl.translator import Translator
-from deepl.api_data import Language, SplitSentences, Formality, GlossaryInfo, TextResult
+from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
 
