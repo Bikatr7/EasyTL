@@ -139,3 +139,34 @@ class EasyTL:
         
         else:
             return [DeepLService.translate(t).text for t in text] # type: ignore
+        
+##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    @staticmethod
+    def translate(text: str, service: typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", **kwargs) -> typing.Union[typing.List[str], str]:
+        
+        """
+
+        Translates the given text to the target language using the specified service.
+
+        Please see the documentation for the specific translation function for the service you want to use.
+        
+        Parameters:
+        service (string) : The service to use for translation.
+        text (string) : The text to translate.
+        **kwargs : The keyword arguments to pass to the translation function.
+
+        Returns:
+        translation (TextResult or list - TextResult) : The translation result.
+
+        """
+
+        if(service == "deepl"):
+            return EasyTL.deepl_translate(text, **kwargs)
+
+        elif(service == "openai"):
+            raise NotImplementedError("OpenAI service is not yet implemented.")
+
+        else:
+            raise NotImplementedError("Gemini service is not yet implemented.")
+            
