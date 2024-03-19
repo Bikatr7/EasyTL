@@ -94,6 +94,10 @@ class DeepLService:
 
         if(not isvalid and e):
             raise e
+        
+        ## split sentences doesn't exactly match what deepl is expecting so..
+        if(isinstance(DeepLService.split_sentences, str)):
+            DeepLService.split_sentences = SplitSentences[DeepLService.split_sentences]
 
         try:
 
