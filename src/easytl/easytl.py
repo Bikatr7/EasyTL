@@ -74,6 +74,12 @@ class EasyTL:
                 assert isinstance(e, DeepLException), e
 
                 return False, e
+            
+        if(api_type == "gemini"):
+            raise NotImplementedError("Gemini service is not yet implemented.")
+        
+        if(api_type == "openai"):
+            raise NotImplementedError("OpenAI service is not yet implemented.")
 
         return True, None
         
