@@ -23,7 +23,7 @@ To get started with EasyTL, install the package via pip:
 pip install easytl
 ```
 
-Then, you can preprocess Japanese text by importing EasyTL and/or KatakanaUtil/Indexer:
+Then, you can translate Japanese text using DeepL by importing the global client.
 
 ```python
 from easytl import EasyTL
