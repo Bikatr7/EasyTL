@@ -7,6 +7,8 @@ import google.generativeai as genai
 
 class GeminiService:
 
+    default_translation_instructions:str = "Please translate the following text into English."
+
     model:str = "gemini-pro"
     prompt:str = ""
     temperature:float = 0.5
@@ -88,7 +90,9 @@ class GeminiService:
 
         """
 
-        GeminiService.client = genai.GenerativeModel(GeminiService.model)
+        GeminiService.client = genai.GenerativeModel(GeminiService.model,
+                                                     safety_settings=GeminiService.safety_settings)
+
         GeminiService.generation_config = GenerationConfig(candidate_count=GeminiService.candidate_count,
                                                            max_output_tokens=GeminiService.max_output_tokens,
                                                            stop_sequences=GeminiService.stop_sequences,
@@ -115,10 +119,10 @@ class GeminiService:
 
         return genai.GenerativeModel(GeminiService.model).count_tokens(prompt).total_tokens
 
-##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_translate_message_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def translate_message(translation_instructions:str, translation_prompt:str) -> str:
+    async def _translate_message_async(translation_instructions:str, translation_prompt:str) -> str:
 
         """
 
@@ -133,15 +137,64 @@ class GeminiService:
         """
 
         if(GeminiService.decorator_to_use is None):
-            return await GeminiService._translate_message(translation_instructions, translation_prompt)
+            return await GeminiService.__translate_message_async(translation_instructions, translation_prompt)
 
-        decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message)
+        decorated_function = GeminiService.decorator_to_use(GeminiService.__translate_message_async)
         return await decorated_function(translation_instructions, translation_prompt)
-
+    
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def _translate_message(translation_instructions:str, translation_prompt:str) -> str:
+    
+        """
+
+        Translates a prompt.
+
+        Parameters:
+        translation_prompt (object - ModelTranslationMessage) : The prompt to translate.
+
+        Returns:
+        output (string) : The translation.
+
+        """
+
+        if(GeminiService.decorator_to_use is None):
+            return GeminiService.__translate_message(translation_instructions, translation_prompt)
+
+        decorated_function = GeminiService.decorator_to_use(GeminiService.__translate_message)
+        return decorated_function(translation_instructions, translation_prompt)
+    
+##-------------------start-of-__translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def __translate_message(translation_instructions:str, translation_prompt:str) -> str:
+
+        """
+
+        Translates a prompt.
+
+        Parameters:
+        translation_prompt (string) : The prompt to translate.
+
+        Returns:
+        output (string) a string that gpt gives to us also known as the translation.
+
+        """
+
+        response = GeminiService.client.generate_content(
+            contents=translation_instructions + "\n" + translation_prompt,
+            generation_config=GeminiService.generation_config,
+            safety_settings=GeminiService.safety_settings,
+            stream=GeminiService.stream
+        )
+
+        return response.text
+
+##-------------------start-of-__translate_message_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def _translate_message(translation_instructions:str, translation_prompt:str) -> str:
+    async def __translate_message_async(translation_instructions:str, translation_prompt:str) -> str:
 
         """
 
