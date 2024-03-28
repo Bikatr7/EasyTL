@@ -79,7 +79,7 @@ class GeminiService:
 
         GeminiService.decorator_to_use = decorator
 
-##-------------------start-of-setup_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def redefine_client() -> None:
@@ -99,7 +99,16 @@ class GeminiService:
                                                             temperature=GeminiService.temperature,
                                                             top_p=GeminiService.top_p,
                                                             top_k=GeminiService.top_k)
-        
+
+##-------------------start-of-redefine_client_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def redefine_client_decorator(func):
+        def wrapper(*args, **kwargs):
+            GeminiService.redefine_client() 
+            return func(*args, **kwargs)
+        return wrapper
+            
 ##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -122,6 +131,7 @@ class GeminiService:
 ##-------------------start-of-_translate_message_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @redefine_client_decorator
     async def _translate_message_async(translation_instructions:str, translation_prompt:str) -> str:
 
         """
@@ -145,6 +155,7 @@ class GeminiService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
+    @redefine_client_decorator
     def _translate_message(translation_instructions:str, translation_prompt:str) -> str:
     
         """
@@ -220,6 +231,7 @@ class GeminiService:
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
+    @redefine_client_decorator
     async def test_api_key_validity() -> typing.Tuple[bool, typing.Union[Exception, None]]:
 
         """
