@@ -22,7 +22,7 @@ version = "v0.0.3"
 authors = [
   { name="Bikatr7", email="Tetralon07@gmail.com" },
 ]
-description = "Easily translate into various languages using OpenAI, DeepL, and Gemini APIs."
+description = "Wrapper for OpenAI, DeepL, and Gemini APIs for easy translation of text."
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
