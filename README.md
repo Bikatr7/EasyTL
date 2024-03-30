@@ -12,7 +12,7 @@
 
 ## EasyTL
 
-Easily translate into various languages using OpenAI, DeepL, and Gemini APIs.
+Wrapper for OpenAI, DeepL, and Gemini APIs for easy translation of text.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
@@ -28,15 +28,15 @@ Then, you can translate Japanese text using DeepL by importing the global client
 ```python
 from easytl import EasyTL
 
-## set your api keys
+## set your api key
 EasyTL.set_api_key("deepL", "your_api_key_here")
 
 ## you can also validate your api keys, translation functions will do this automatically
 EasyTL.validate_api_key("deepL")
 
-EasyTL.deepl_translate("私は日本語が話せます", "EN") ## Text to translate, language to translate to, only two "required" arguments but there are more.
+EasyTL.deepl_translate("私は日本語が話せます", "EN") ## Text to translate, language to translate to, only two "required" arguments but there are more optional arguments for additional functionality.
 
-## easytl also has a generic translate method, which defaults to deepl, requires a text, and kwargs for the translate method.
+## easytl also has a generic translate method, which defaults to deepl, requires text, and kwargs for the translate method.
 
 EasyTL.translate("私は日本語が話せます", target_lang="EN")
 
@@ -67,7 +67,7 @@ setuptools_scm>=6.0
 
 tomli
 
-google-generativeai==0.4.0
+google-generativeai==0.4.1
 
 deepl==1.16.1
 

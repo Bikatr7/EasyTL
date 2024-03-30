@@ -94,6 +94,7 @@ class EasyTL:
     def deepl_translate(text:typing.Union[str, typing.Iterable],
                         target_lang:str | Language = "EN",
                         override_previous_settings:bool = True,
+                        decorator:typing.Callable | None = None,
                         source_lang:str | Language | None = None,
                         context:str | None = None,
                         split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -116,22 +117,26 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         source_lang (string or Language or None) : The source language to translate from.
-        context (string or None) : The context of the text.
-        split_sentences (literal or SplitSentences or None) : The split sentences option. Controls how sentences are split.
-        preserve_formatting (bool or None) : The preserve formatting option.
-        formality (literal or Formality or None) : The formality option. 
-        glossary (string or GlossaryInfo or None) : The glossary option.
-        tag_handling (literal or None) : The tag handling option.
-        outline_detection (bool or None) : The outline detection option.
-        non_splitting_tags (string or list - str or None) : The non-splitting tags option.
-        splitting_tags (string or list - str or None) : The splitting tags option.
-        ignore_tags (string or list - str or None) : The ignore tags option.
+        context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
+        split_sentences (literal or SplitSentences or None) : How to split sentences.
+        preserve_formatting (bool or None) : Whether to preserve formatting.
+        formality (literal or Formality or None) : The formality level to use.
+        glossary (string or GlossaryInfo or None) : The glossary to use.
+        tag_handling (literal or None) : How to handle tags.
+        outline_detection (bool or None) : Whether to detect outlines.
+        non_splitting_tags (string or list or None) : Tags that should not be split.
+        splitting_tags (string or list or None) : Tags that should be split.
+        ignore_tags (string or list or None) : Tags that should be ignored.
 
         Returns:
         translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
+
+        if(decorator != None):
+            DeepLService._set_decorator(decorator)
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang, 
@@ -143,10 +148,10 @@ class EasyTL:
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
             
         if(isinstance(text, str)):
-            return DeepLService.translate(text).text # type: ignore
+            return DeepLService._translate_text(text).text # type: ignore
         
         else:
-            return [DeepLService.translate(t).text for t in text] # type: ignore
+            return [DeepLService._translate_text(t).text for t in text] # type: ignore
         
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -158,6 +163,8 @@ class EasyTL:
         Translates the given text to the target language using the specified service.
 
         Please see the documentation for the specific translation function for the service you want to use.
+
+        DeepL: deepl_translate()
         
         Parameters:
         service (string) : The service to use for translation.
