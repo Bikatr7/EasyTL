@@ -80,6 +80,35 @@ class GeminiService:
 
         GeminiService._decorator_to_use = decorator
 
+##-------------------start-of-_set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    @staticmethod
+    def _set_attributes(model:str="gemini-pro",
+                        text_to_translate:str="",
+                        temperature:float=0.5,
+                        top_p:float=0.9,
+                        top_k:int=40,
+                        candidate_count:int=1,
+                        stream:bool=False,
+                        stop_sequences:typing.List[str] | None=None,
+                        max_output_tokens:int | None=None) -> None:
+        
+        """
+
+        Sets the attributes for the Gemini service.
+
+        """
+
+        GeminiService._model = model
+        GeminiService._text_to_translate = text_to_translate
+        GeminiService._temperature = temperature
+        GeminiService._top_p = top_p
+        GeminiService._top_k = top_k
+        GeminiService._candidate_count = candidate_count
+        GeminiService._stream = stream
+        GeminiService._stop_sequences = stop_sequences
+        GeminiService._max_output_tokens = max_output_tokens
+        
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -294,7 +323,7 @@ class GeminiService:
 
             return _validity, _e
         
-##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def _get_decorator() -> typing.Union[typing.Callable, None]:

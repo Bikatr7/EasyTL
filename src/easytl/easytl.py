@@ -21,6 +21,8 @@ class EasyTL:
 
     Use test_api_key_validity() to test the validity of the API key for the specified API type. (Optional) Will be done automatically when calling translation functions.
 
+    Use translate() to translate text using the specified service. Or specify the service by calling the specific translation function. (e.g. deepl_translate())
+
     """
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,10 +41,10 @@ class EasyTL:
         """
 
         if(api_type == "deepl"):
-            DeepLService.set_api_key(api_key)
+            DeepLService._set_api_key(api_key)
 
         elif(api_type == "gemini"):
-            GeminiService.set_api_key(api_key)
+            GeminiService._set_api_key(api_key)
             
         elif(api_type == "openai"):
             OpenAIService.set_api_key(api_key)
@@ -66,7 +68,7 @@ class EasyTL:
         """
 
         if(api_type == "deepl"):
-            is_valid, e = DeepLService.test_api_key_validity()
+            is_valid, e = DeepLService._test_api_key_validity()
 
             if(is_valid == False):
 
@@ -132,7 +134,7 @@ class EasyTL:
         """
 
         if(override_previous_settings == True):
-            DeepLService.set_attributes(target_lang, 
+            DeepLService._set_attributes(target_lang, 
                                         source_lang, 
                                         context, 
                                         split_sentences,
