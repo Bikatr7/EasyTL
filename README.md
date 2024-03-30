@@ -82,11 +82,15 @@ tiktoken==0.6.0
 
 **License**<a name="license"></a>
 
-This project (EasyTL) is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE.md) file for details.
+This project, EasyTL, is licensed under the GNU Lesser General Public License v2.1 (LGPLv2.1) - see the LICENSE file for complete details.
 
-The GPL is a copyleft license that promotes the principles of open-source software. It ensures that any derivative works based on this project must also be distributed under the same GPL license. This license grants you the freedom to use, modify, and distribute the software.
+The LGPL is a permissive copyleft license that enables this software to be freely used, modified, and distributed. It is particularly designed for libraries, allowing them to be included in both open source and proprietary software. When using or modifying EasyTL, you can choose to release your work under the LGPLv2.1 to contribute back to the community or incorporate it into proprietary software as per the license's permissions.
 
-Please note that this information is a brief summary of the GPL. For a detailed understanding of your rights and obligations under this license, please refer to the [full license text](LICENSE.md).
+Under the LGPLv2.1, any modifications made to EasyTL's libraries must be shared under the same license, ensuring the open source nature of the library itself is maintained. However, it allows the wider work that includes the library to remain under different licensing terms, provided the terms of the LGPLv2.1 are met for the library.
+
+I encourage the use of EasyTL within all projects. This approach ensures a balance between open collaboration and the flexibility required for proprietary development.
+
+For a thorough explanation of the conditions and how they may apply to your use of the project, please review the full license text. This comprehensive documentation will offer guidance on your rights and obligations when utilizing LGPLv2.1 licensed software.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
