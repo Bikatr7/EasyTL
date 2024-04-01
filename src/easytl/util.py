@@ -50,7 +50,7 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
         "gemini_top_k",
     ##    "gemini_candidate_count",
     ##    "gemini_stream",
-        "gemini_stop_sequences",
+  ##      "gemini_stop_sequences",
         "gemini_max_output_tokens"
     ]
 
@@ -68,44 +68,43 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
         "gemini_top_p": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2),
         "gemini_top_k": lambda x: x is None or (isinstance(x, int) and x >= 0),
         "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
-        "gemini_stop_sequences": lambda x: x is None or all(isinstance(i, str) for i in x)
+##        "gemini_stop_sequences": lambda x: x is None or all(isinstance(i, str) for i in x)
     }
     
     try:
 
         ## assign to variables to reduce repetitive access    
         if(type == "openai"):
-            openai_settings = settings["openai settings"]
+
 
             ## ensure all keys are present
-            assert all(key in openai_settings for key in openai_keys)
+            assert all(key in settings for key in openai_keys)
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
-                if(key in openai_settings and not validate(openai_settings[key])):
+                if(key in settings and not validate(settings[key])):
                     raise ValueError(f"Invalid value for {key}")
                 
             ## force stop/logit_bias/stream into None
-            openai_settings["openai_stop"] = None
-            openai_settings["openai_logit_bias"] = None
-            openai_settings["openai_stream"] = False
+            settings["openai_stop"] = None
+            settings["openai_logit_bias"] = None
+            settings["openai_stream"] = False
 
             ## force n and candidate_count to 1
-            openai_settings["openai_n"] = 1
+            settings["openai_n"] = 1
 
         elif(type == "gemini"):
-            gemini_settings = settings["gemini settings"]
 
             ## ensure all keys are present
-            assert all(key in gemini_settings for key in gemini_keys)
+            assert all(key in settings for key in gemini_keys)
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
-                if (key in gemini_settings and not validate(gemini_settings[key])):
+                if (key in settings and not validate(settings[key])):
                     raise ValueError(f"Invalid value for {key}")
                 
-            gemini_settings["gemini_stream"] = False
-            gemini_settings["gemini_candidate_count"] = 1
+        ##    settings["gemini_stream"] = False
+      ##      settings["gemini_candidate_count"] = 1
         
     except Exception as e:
         raise InvalidEasyTLSettings(f"Invalid settings, Due to: {str(e)}")
@@ -146,9 +145,9 @@ def convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
         "gemini_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
         "gemini_top_p": {"type": float, "constraints": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2)},
         "gemini_top_k": {"type": int, "constraints": lambda x: x is None or x >= 0},
-        "gemini_candidate_count": {"type": int, "constraints": lambda x: x == 1},
+  ##      "gemini_candidate_count": {"type": int, "constraints": lambda x: x == 1},
       ##  "gemini_stream": {"type": bool, "constraints": lambda x: x is False},
-        "gemini_stop_sequences": {"type": typing.List[str], "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
+   ## "gemini_stop_sequences": {"type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
         "gemini_max_output_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
     }
 
@@ -160,7 +159,7 @@ def convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
     if("stream" in setting_name):
         value = string_to_bool(initial_value)
 
-    elif(initial_value.lower() in ["none","null"]):
+    elif(isinstance(initial_value, str) and initial_value.lower() in ["none","null"]):
         value = None
 
     if(setting_info["type"] is None):
