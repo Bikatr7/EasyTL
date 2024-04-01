@@ -245,6 +245,48 @@ class EasyTL:
             
             else:
                 raise Exception("Unexpected error occurred. Please try again.")
+            
+
+##-------------------start-of-gemini_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def gemini_translate(text:typing.Union[str, typing.Iterable],
+                        override_previous_settings:bool = True,
+                        decorator:typing.Callable | None = None,
+                        translation_instructions:str | None = None,
+                        model:str="gemini-pro",
+                        temperature:float=0.5,
+                        top_p:float=0.9,
+                        top_k:int=40,
+                        stop_sequences:typing.List[str] | None=None,
+                        max_output_tokens:int | None=None) -> str | typing.List[str]:
+        
+        """
+
+        Translates the given text using Gemini.
+
+        This function assumes that the API key has already been set.
+
+        Translation instructions default to translating the text to English. To change this, specify the instructions.
+
+        This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        translation_instructions (string or None) : The translation instructions to use.
+        model (string) : The model to use. 
+        temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
+        top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
+        top_k (int) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
+        stop_sequences (list or None) : The sequences to stop at.
+        max_output_tokens (int or None) : The maximum number of tokens to output.
+
+        Returns:
+        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+
+        """
 
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
