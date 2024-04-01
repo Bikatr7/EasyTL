@@ -249,7 +249,9 @@ class EasyTL:
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
-    def translate(text: str, service: typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", **kwargs) -> typing.Union[typing.List[str], str]:
+    def translate(text:str | typing.Iterable[str],
+                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
+                  **kwargs) -> typing.Union[typing.List[str], str]:
         
         """
 
@@ -281,7 +283,9 @@ class EasyTL:
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    async def translate_async(text: str, service: typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", **kwargs) -> typing.Union[typing.List[str], str]:
+    async def translate_async(text:str | typing.Iterable[str],
+                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
+                              **kwargs) -> typing.Union[typing.List[str], str]:
         
         """
 
