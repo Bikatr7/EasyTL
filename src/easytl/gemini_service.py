@@ -14,7 +14,6 @@ class GeminiService:
     _default_translation_instructions:str = "Please translate the following text into English."
 
     _model:str = "gemini-pro"
-    _text_to_translate:str = ""
     _temperature:float = 0.5
     _top_p:float = 0.9
     _top_k:int = 40
@@ -88,7 +87,6 @@ class GeminiService:
         
     @staticmethod
     def _set_attributes(model:str="gemini-pro",
-                        text_to_translate:str="",
                         temperature:float=0.5,
                         top_p:float=0.9,
                         top_k:int=40,
@@ -104,7 +102,6 @@ class GeminiService:
         """
 
         GeminiService._model = model
-        GeminiService._text_to_translate = text_to_translate
         GeminiService._temperature = temperature
         GeminiService._top_p = top_p
         GeminiService._top_k = top_k
@@ -205,11 +202,11 @@ class GeminiService:
         decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text_async)
         return await decorated_function(translation_instructions, text_to_translate)
     
-##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
     @_redefine_client_decorator
-    def _translate_message(text_to_translate:str, translation_instructions:typing.Optional[str]) -> str:
+    def _translate_text(text_to_translate:str, translation_instructions:typing.Optional[str]) -> str:
 
         """
 
