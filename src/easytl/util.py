@@ -4,24 +4,26 @@
 
 ## built-in libraries
 import typing
+import tiktoken
 
 ## custom modules
 from easytl.exceptions import InvalidEasyTLSettings
+from easytl.gemini_service import GeminiService
 
-##-------------------start-of-string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def string_to_bool(string:str) -> bool:
+def _string_to_bool(string:str) -> bool:
 
     return string.lower() in ['true', '1', 'yes', 'y', 't']
 
-##-------------------start-of-convert_iterable_to_str()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_convert_iterable_to_str()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def convert_iterable_to_str(iterable:typing.Iterable) -> str:
+def _convert_iterable_to_str(iterable:typing.Iterable) -> str:
     return "".join(map(str, iterable))
 
-##-------------------start-of-validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gemini","openai"]) -> None:
+def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["gemini","openai"]) -> None:
 
     """
 
@@ -29,7 +31,7 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
 
     """
 
-    openai_keys = [
+    _openai_keys = [
         "openai_model",
         "openai_system_message",
         "openai_temperature",
@@ -43,7 +45,7 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
         "openai_frequency_penalty"
     ]
 
-    gemini_keys = [
+    _gemini_keys = [
         "gemini_model",
         "gemini_temperature",
         "gemini_top_p",
@@ -54,7 +56,7 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
         "gemini_max_output_tokens"
     ]
 
-    validation_rules = {
+    _validation_rules = {
 
         "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS,
         "openai_system_message": lambda x: x not in ["", "None", None],
@@ -74,16 +76,16 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
     try:
 
         ## assign to variables to reduce repetitive access    
-        if(type == "openai"):
+        if(_type == "openai"):
 
 
             ## ensure all keys are present
-            assert all(key in settings for key in openai_keys)
+            assert all(_key in settings for _key in _openai_keys)
 
-            ## validate each key using the validation rules
-            for key, validate in validation_rules.items():
-                if(key in settings and not validate(settings[key])):
-                    raise ValueError(f"Invalid value for {key}")
+            ## validate each _key using the validation rules
+            for _key, _validate in _validation_rules.items():
+                if(_key in settings and not _validate(settings[_key])):
+                    raise ValueError(f"Invalid _value for {_key}")
                 
             ## force stop/logit_bias/stream into None
             settings["openai_stop"] = None
@@ -93,15 +95,15 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
             ## force n and candidate_count to 1
             settings["openai_n"] = 1
 
-        elif(type == "gemini"):
+        elif(_type == "gemini"):
 
             ## ensure all keys are present
-            assert all(key in settings for key in gemini_keys)
+            assert all(_key in settings for _key in _gemini_keys)
 
-            ## validate each key using the validation rules
-            for key, validate in validation_rules.items():
-                if (key in settings and not validate(settings[key])):
-                    raise ValueError(f"Invalid value for {key}")
+            ## _validate each _key using the validation rules
+            for _key, _validate in _validation_rules.items():
+                if (_key in settings and not _validate(settings[_key])):
+                    raise ValueError(f"Invalid _value for {_key}")
                 
         ##    settings["gemini_stream"] = False
       ##      settings["gemini_candidate_count"] = 1
@@ -109,13 +111,13 @@ def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gem
     except Exception as e:
         raise InvalidEasyTLSettings(f"Invalid settings, Due to: {str(e)}")
 
-##-------------------start-of-convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
+def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
 
     """
 
-    Converts the input string to the correct type based on the setting name.
+    Converts the input string to the correct _type based on the setting name.
 
     Parameters:
     setting_name (str) : The name of the setting to convert.
@@ -126,63 +128,210 @@ def convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
 
     """
 
-    value = initial_value
+    _value = initial_value
     
-    type_expectations = {
-        "openai_model": {"type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS},
-        "openai_system_message": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
-        "openai_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
-        "openai_top_p": {"type": float, "constraints": lambda x: 0 <= x <= 2},
-        "openai_n": {"type": int, "constraints": lambda x: x == 1},
-        "openai_stream": {"type": bool, "constraints": lambda x: x is False},
-        "openai_stop": {"type": None, "constraints": lambda x: x is None},
-        "openai_logit_bias": {"type": None, "constraints": lambda x: x is None},
-        "openai_max_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
-        "openai_presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
-        "openai_frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
-        "gemini_model": {"type": str, "constraints": lambda x: x in ALLOWED_GEMINI_MODELS},
-       ## "gemini_prompt": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
-        "gemini_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
-        "gemini_top_p": {"type": float, "constraints": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2)},
-        "gemini_top_k": {"type": int, "constraints": lambda x: x is None or x >= 0},
-  ##      "gemini_candidate_count": {"type": int, "constraints": lambda x: x == 1},
-      ##  "gemini_stream": {"type": bool, "constraints": lambda x: x is False},
-   ## "gemini_stop_sequences": {"type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
-        "gemini_max_output_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
+    _type_expectations = {
+        "openai_model": {"_type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS},
+        "openai_system_message": {"_type": str, "constraints": lambda x: x not in ["", "None", None]},
+        "openai_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
+        "openai_top_p": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
+        "openai_n": {"_type": int, "constraints": lambda x: x == 1},
+        "openai_stream": {"_type": bool, "constraints": lambda x: x is False},
+        "openai_stop": {"_type": None, "constraints": lambda x: x is None},
+        "openai_logit_bias": {"_type": None, "constraints": lambda x: x is None},
+        "openai_max_tokens": {"_type": int, "constraints": lambda x: x is None or isinstance(x, int)},
+        "openai_presence_penalty": {"_type": float, "constraints": lambda x: -2 <= x <= 2},
+        "openai_frequency_penalty": {"_type": float, "constraints": lambda x: -2 <= x <= 2},
+        "gemini_model": {"_type": str, "constraints": lambda x: x in ALLOWED_GEMINI_MODELS},
+       ## "gemini_prompt": {"_type": str, "constraints": lambda x: x not in ["", "None", None]},
+        "gemini_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
+        "gemini_top_p": {"_type": float, "constraints": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2)},
+        "gemini_top_k": {"_type": int, "constraints": lambda x: x is None or x >= 0},
+  ##      "gemini_candidate_count": {"_type": int, "constraints": lambda x: x == 1},
+      ##  "gemini_stream": {"_type": bool, "constraints": lambda x: x is False},
+   ## "gemini_stop_sequences": {"_type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
+        "gemini_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or isinstance(x, int)},
     }
 
-    if(setting_name not in type_expectations):
+    if(setting_name not in _type_expectations):
         raise ValueError("Invalid setting name")
 
-    setting_info = type_expectations[setting_name]
+    _setting_info = _type_expectations[setting_name]
 
     if("stream" in setting_name):
-        value = string_to_bool(initial_value)
+        _value = _string_to_bool(initial_value)
 
     elif(isinstance(initial_value, str) and initial_value.lower() in ["none","null"]):
-        value = None
+        _value = None
 
-    if(setting_info["type"] is None):
-        converted_value = None
+    if(_setting_info["_type"] is None):
+        _converted_value = None
 
-    elif(setting_info["type"] == int) or (setting_info["type"] == float):
+    elif(_setting_info["_type"] == int) or (_setting_info["_type"] == float):
 
-        if(value is None or value == ''):
-            converted_value = None
+        if(_value is None or _value == ''):
+            _converted_value = None
             
-        elif(setting_info["type"] == int):
-            converted_value = int(value)
+        elif(_setting_info["_type"] == int):
+            _converted_value = int(_value)
 
         else:
-            converted_value = float(value)
+            _converted_value = float(_value)
 
     else:
-        converted_value = setting_info["type"](value)
+        _converted_value = _setting_info["_type"](_value)
 
-    if("constraints" in setting_info and not setting_info["constraints"](converted_value)):
+    if("constraints" in _setting_info and not _setting_info["constraints"](_converted_value)):
         raise ValueError(f"{setting_name} out of range")
 
-    return converted_value
+    return _converted_value
+
+##-------------------start-of-_estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@staticmethod
+def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None = None) -> typing.Tuple[int, float, str]:
+
+    """
+
+    Attempts to estimate cost.
+
+    Parameters:
+    text (str | typing.Iterable) : the text to translate.
+    model (string) : the model used to translate the text.
+    price_case (int) : the price case used to calculate the cost.
+
+    Returns:
+    _num_tokens (int) : the number of tokens used.
+    _min_cost (float) : the minimum cost of translation.
+    model (string) : the model used to translate the text.
+
+    """
+
+    assert model in ALLOWED_OPENAI_MODELS or model in ALLOWED_GEMINI_MODELS, f"""EasyTL does not support : {model}"""
+
+    ## default models are first, then the rest are sorted by price case
+    if(price_case is None):
+
+        if(model == "gpt-3.5-turbo"):
+            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106 as it is the most recent version of gpt-3.5-turbo.")
+            return _estimate_cost(text, model="gpt-3.5-turbo-1106", price_case=2)
+        
+        elif(model == "gpt-4"):
+            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-1106-preview as it is the most recent version of gpt-4.")
+            return _estimate_cost(text, model="gpt-4-1106-preview", price_case=4)
+        
+        elif(model == "gpt-4-turbo-preview"):
+            print("Warning: gpt-4-turbo-preview may change over time. Returning num tokens assuming gpt-4-0125-preview as it is the most recent version of gpt-4-turbo-preview.")
+            return _estimate_cost(text, model="gpt-4-0125-preview", price_case=4)
+        
+        elif(model == "gpt-3.5-turbo-0613"):
+            print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
+            return _estimate_cost(text, model=model, price_case=1)
+
+        elif(model == "gpt-3.5-turbo-0301"):
+            print("Warning: gpt-3.5-turbo-0301 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter.")
+            return _estimate_cost(text, model=model, price_case=1)
+        
+        elif(model == "gpt-3.5-turbo-1106"):
+            return _estimate_cost(text, model=model, price_case=2)
+        
+        elif(model == "gpt-3.5-turbo-0125"):
+            return _estimate_cost(text, model=model, price_case=7)
+        
+        elif(model == "gpt-3.5-turbo-16k-0613"):
+            print("Warning: gpt-3.5-turbo-16k-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
+            return _estimate_cost(text, model=model, price_case=3)
+        
+        elif(model == "gpt-4-1106-preview"):
+            return _estimate_cost(text, model=model, price_case=4)
+        
+        elif(model == "gpt-4-0125-preview"):
+            return _estimate_cost(text, model=model, price_case=4)
+        
+        elif(model == "gpt-4-0314"):
+            print("Warning: gpt-4-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
+            return _estimate_cost(text, model=model, price_case=5)
+        
+        elif(model == "gpt-4-0613"):
+            return _estimate_cost(text, model=model, price_case=5)
+        
+        elif(model == "gpt-4-32k-0314"):
+            print("Warning: gpt-4-32k-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-32k-0613.")
+            return _estimate_cost(text, model=model, price_case=6)
+        
+        elif(model == "gpt-4-32k-0613"):
+            return _estimate_cost(text, model=model, price_case=6)
+        
+        elif(model == "gemini-pro"):
+            print(f"Warning: gemini-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=8)
+        
+        elif(model == "gemini-pro-vision"):
+            print("Warning: gemini-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+            return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
+        
+        elif(model == "gemini-ultra"):
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gemini-1.0-pro"):
+            print(f"Warning: gemini-1.0-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gemini-1.0-pro-vision"):
+            print("Warning: gemini-1.0-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gemini-1.0-pro-latest"):
+            print(f"Warning: gemini-1.0-pro-latest may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=8)
+        
+        elif(model == "gemini-1.0-pro-vision-latest"):
+            print("Warning: gemini-1.0-pro-vision-latest may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+            return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
+        
+        elif(model == "gemini-1.5-pro-latest"):
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gemini-1.0-ultra-latest"):
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gemini-1.0-pro-001"):
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gemini-1.0-pro-vision-001"):
+            return _estimate_cost(text, model=model, price_case=8)
+        
+    else:
+
+        _cost_details = MODEL_COSTS.get(model)
+
+        if(not _cost_details):
+            raise ValueError(f"Cost details not found for model: {model}.")
+
+        ## break down the text into a string than into tokens
+        text = ''.join(text)
+
+        _LLM_TYPE = "openai" if model in ALLOWED_OPENAI_MODELS else "gemini"
+
+
+        if(_LLM_TYPE == "openai"):
+            _encoding = tiktoken.encoding_for_model(model)
+            _num_tokens = len(_encoding.encode(text))
+
+        else:
+            _num_tokens = GeminiService.count_tokens(text)
+
+        _input_cost = _cost_details["_input_cost"]
+        _output_cost = _cost_details["_output_cost"]
+
+        _min_cost_for_input = (_num_tokens / 1000) * _input_cost
+        _min_cost_for_output = (_num_tokens / 1000) * _output_cost
+        _min_cost = _min_cost_for_input + _min_cost_for_output
+
+        return _num_tokens, _min_cost, model
+    
+    ## _type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point, which it shouldn't
+    raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -216,3 +365,31 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-pro-vision",
     "gemini-ultra"
 ]
+
+MODEL_COSTS = {
+    "gpt-3.5-turbo": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
+    "gpt-4": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-4-turbo-preview": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-3.5-turbo-0613": {"price_case": 1, "_input_cost": 0.0015, "_output_cost": 0.0020},
+    "gpt-3.5-turbo-0301": {"price_case": 1, "_input_cost": 0.0015, "_output_cost": 0.0020},
+    "gpt-3.5-turbo-1106": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
+    "gpt-3.5-turbo-0125": {"price_case": 7, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gpt-3.5-turbo-16k-0613": {"price_case": 3, "_input_cost": 0.0030, "_output_cost": 0.0040},
+    "gpt-4-1106-preview": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-4-0125-preview": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-4-0314": {"price_case": 5, "_input_cost": 0.03, "_output_cost": 0.06},
+    "gpt-4-0613": {"price_case": 5, "_input_cost": 0.03, "_output_cost": 0.06},
+    "gpt-4-32k-0314": {"price_case": 6, "_input_cost": 0.06, "_output_cost": 0.012},
+    "gpt-4-32k-0613": {"price_case": 6, "_input_cost": 0.06, "_output_cost": 0.012},
+    "gemini-1.0-pro-001": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-vision-001": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-vision": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-vision-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.5-pro-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-ultra-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-pro": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-pro-vision": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-ultra": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0}
+}
