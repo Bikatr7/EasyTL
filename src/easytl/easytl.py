@@ -452,6 +452,8 @@ class EasyTL:
 
         DeepL: deepl_translate()
         
+        Gemini: gemini_translate()
+
         Parameters:
         service (string) : The service to use for translation.
         text (string) : The text to translate.
@@ -469,7 +471,7 @@ class EasyTL:
             raise NotImplementedError("OpenAI service is not yet implemented.")
 
         else:
-            raise NotImplementedError("Gemini service is not yet implemented.")
+           return EasyTL.gemini_translate(text, **kwargs)
         
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -483,10 +485,14 @@ class EasyTL:
         Asynchronous version of translate().
         
         Translates the given text to the target language using the specified service.
+        This function assumes that the API key has already been set.
+        translate_async() will generally be faster for iterables. Order is preserved.
 
         Please see the documentation for the specific translation function for the service you want to use.
 
         DeepL: deepl_translate_async()
+
+        Gemini: gemini_translate_async()
 
         Parameters:
         service (string) : The service to use for translation.
@@ -505,4 +511,4 @@ class EasyTL:
             raise NotImplementedError("OpenAI service is not yet implemented.")
 
         else:
-            raise NotImplementedError("Gemini service is not yet implemented.")
+            return await EasyTL.gemini_translate_async(text, **kwargs)
