@@ -6,7 +6,7 @@ import asyncio
 from deepl.translator import Translator
 from deepl.util import auth_key_is_free_account
 
-from .util import convert_iterable_to_str
+from .util import _convert_iterable_to_str
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
@@ -266,15 +266,15 @@ class DeepLService:
         ## $25.00 per 1,000,000 characters if paid account, otherwise free under 500,000 characters per month.
         ## We cannot check quota, due to api limitations.
 
-        text = convert_iterable_to_str(text)
+        text = _convert_iterable_to_str(text)
 
         if(auth_key_is_free_account(api_key)):
-            cost = 0.0
-            message = "Free account. No cost. EasyTL cannot check quota, due to api limitations."
+            _cost = 0.0
+            _message = "Free account. No cost. EasyTL cannot check quota, due to api limitations."
 
         else:
-            number_of_characters = len(text)
-            cost = (number_of_characters/1000000)*25.0
-            message = f"Paid account. Cost is ${cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00."
+            _number_of_characters = len(text)
+            _cost = (_number_of_characters/1000000)*25.0
+            _message = f"Paid account. Cost is ${_cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00."
 
-        return cost, message
+        return _cost, _message
