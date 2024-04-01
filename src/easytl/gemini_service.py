@@ -7,6 +7,8 @@ import typing
 
 ## third party libraries
 from google.generativeai import GenerationConfig
+from google.generativeai.types import GenerateContentResponse, AsyncGenerateContentResponse
+
 import google.generativeai as genai
 
 class GeminiService:
@@ -177,7 +179,7 @@ class GeminiService:
 
     @staticmethod
     @_redefine_client_decorator
-    async def _translate_text_async(text_to_translate:str, translation_instructions:typing.Optional[str]) -> str:
+    async def _translate_text_async(text_to_translate:str, translation_instructions:typing.Optional[str]) -> AsyncGenerateContentResponse:
 
         """
 
@@ -205,7 +207,7 @@ class GeminiService:
     
     @staticmethod
     @_redefine_client_decorator
-    def _translate_text(text_to_translate:str, translation_instructions:typing.Optional[str]) -> str:
+    def _translate_text(text_to_translate:str, translation_instructions:typing.Optional[str]) -> GenerateContentResponse:
 
         """
 
@@ -232,7 +234,7 @@ class GeminiService:
 ##-------------------start-of-__translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def __translate_text(translation_instructions:str, text_to_translate:str) -> str:
+    def __translate_text(translation_instructions:str, text_to_translate:str) -> GenerateContentResponse:
 
         """
 
@@ -243,7 +245,7 @@ class GeminiService:
         text_to_translate (string) : The text to translate.
 
         Returns:
-        output (string) : The translation.
+        output (
 
         """
 
@@ -254,12 +256,12 @@ class GeminiService:
             stream=GeminiService._stream
         )
         
-        return _response.text
+        return _response
 
 ##-------------------start-of-__translate_message_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(translation_instructions:str, text_to_translate:str) -> str:
+    async def __translate_text_async(translation_instructions:str, text_to_translate:str) -> AsyncGenerateContentResponse:
 
         """
 
@@ -281,7 +283,7 @@ class GeminiService:
             stream=GeminiService._stream
         )
         
-        return _response.text
+        return _response
     
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
