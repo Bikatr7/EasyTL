@@ -4,6 +4,7 @@
 
 ## built-in libraries
 import typing
+import asyncio
 
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo
@@ -228,12 +229,23 @@ class EasyTL:
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
             
         if(isinstance(text, str)):
-            return await DeepLService._async_translate_text(text).text # type: ignore
-        
-        else:
-            return await [DeepLService._translate_text(t).text for t in text] # type: ignore
+            result = DeepLService._async_translate_text(text)
 
-        
+            if(hasattr(result, "text")):
+                return result.text # type: ignore
+            
+            else:
+                raise Exception("Unexpected error occurred. Please try again.")
+            
+        elif(isinstance(text, typing.Iterable)):
+            results = asyncio.gather(*[DeepLService._async_translate_text(t) for t in text])
+
+            if(all(hasattr(r, "text") for r in results)):
+                return [r.text for r in result] # type: ignore
+            
+            else:
+                raise Exception("Unexpected error occurred. Please try again.")
+
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
@@ -265,4 +277,37 @@ class EasyTL:
 
         else:
             raise NotImplementedError("Gemini service is not yet implemented.")
-            
+        
+##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    async def translate_async(text: str, service: typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", **kwargs) -> typing.Union[typing.List[str], str]:
+        
+        """
+
+        Asynchronous version of translate().
+        
+        Translates the given text to the target language using the specified service.
+
+        Please see the documentation for the specific translation function for the service you want to use.
+
+        DeepL: deepl_translate_async()
+
+        Parameters:
+        service (string) : The service to use for translation.
+        text (string) : The text to translate.
+        **kwargs : The keyword arguments to pass to the translation function.
+
+        Returns:
+        translation (TextResult or list - TextResult) : The translation result.
+
+        """
+
+        if(service == "deepl"):
+            return await EasyTL.deepl_translate_async(text, **kwargs)
+
+        elif(service == "openai"):
+            raise NotImplementedError("OpenAI service is not yet implemented.")
+
+        else:
+            raise NotImplementedError("Gemini service is not yet implemented.")
