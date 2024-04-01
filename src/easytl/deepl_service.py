@@ -1,5 +1,6 @@
 ## built-in libraries
 import typing
+import asyncio
 
 ## third-party libraries
 from deepl.translator import Translator
@@ -77,6 +78,44 @@ class DeepLService:
         DeepLService._splitting_tags = splitting_tags
         DeepLService._ignore_tags = ignore_tags
 
+##-------------------start-of-_prepare_translation_parameters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def _prepare_translation_parameters(text: str):
+
+        """
+
+        Prepares the parameters for the translation.
+
+        """
+
+        _is_valid, _e = DeepLService._test_api_key_validity()
+
+        if(not _is_valid and _e):
+            raise _e
+
+        if(isinstance(DeepLService._split_sentences, str)):
+            DeepLService._split_sentences = SplitSentences[DeepLService._split_sentences]
+
+        params = {
+            "text": text,
+            "target_lang": DeepLService._target_lang,
+            "source_lang": DeepLService._source_lang,
+            "context": DeepLService._context,
+            "split_sentences": DeepLService._split_sentences,
+            "preserve_formatting": DeepLService._preserve_formatting,
+            "formality": DeepLService._formality,
+            "glossary": DeepLService._glossary,
+            "tag_handling": DeepLService._tag_handling,
+            "outline_detection": DeepLService._outline_detection,
+            "non_splitting_tags": DeepLService._non_splitting_tags,
+            "splitting_tags": DeepLService._splitting_tags,
+            "ignore_tags": DeepLService._ignore_tags,
+        }
+
+        return params
+
+
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -94,48 +133,48 @@ class DeepLService:
 
         """
 
-        _is_valid, _e = DeepLService._test_api_key_validity()
-
-        if(not _is_valid and _e):
-            raise _e
-        
-        ## split sentences doesn't exactly match what deepl is expecting so..
-        if(isinstance(DeepLService._split_sentences, str)):
-            DeepLService._split_sentences = SplitSentences[DeepLService._split_sentences]
+        params = DeepLService._prepare_translation_parameters(text)
 
         try:
 
             if(DeepLService._decorator_to_use is None):
-                return DeepLService._translator.translate_text(text,
-                                                                target_lang=DeepLService._target_lang,
-                                                                source_lang=DeepLService._source_lang,
-                                                                context=DeepLService._context,
-                                                                split_sentences=DeepLService._split_sentences,
-                                                                preserve_formatting=DeepLService._preserve_formatting,
-                                                                formality=DeepLService._formality,
-                                                                glossary=DeepLService._glossary,
-                                                                tag_handling=DeepLService._tag_handling,
-                                                                outline_detection=DeepLService._outline_detection,
-                                                                non_splitting_tags=DeepLService._non_splitting_tags,
-                                                                splitting_tags=DeepLService._splitting_tags,
-                                                                ignore_tags=DeepLService._ignore_tags)
+                return DeepLService._translator.translate_text(**params)
+            
+            else:
+                decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text)
+                return decorated_function(**params)
+            
+        except Exception as _e:
+            raise _e
+        
+##-------------------start-of-_async_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    @staticmethod
+    async def _async_translate_text(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
-            decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text)
+        """
 
-            return decorated_function(text,
-                                        target_lang=DeepLService._target_lang,
-                                        source_lang=DeepLService._source_lang,
-                                        context=DeepLService._context,
-                                        split_sentences=DeepLService._split_sentences,
-                                        preserve_formatting=DeepLService._preserve_formatting,
-                                        formality=DeepLService._formality,
-                                        glossary=DeepLService._glossary,
-                                        tag_handling=DeepLService._tag_handling,
-                                        outline_detection=DeepLService._outline_detection,
-                                        non_splitting_tags=DeepLService._non_splitting_tags,
-                                        splitting_tags=DeepLService._splitting_tags,
-                                        ignore_tags=DeepLService._ignore_tags)
-    
+        Translates the given text to the target language asynchronously.
+
+        Parameters:
+        text (string) : The text to translate.
+
+        Returns:
+        translation (TextResult) : The translation result.
+
+        """
+
+        params = DeepLService._prepare_translation_parameters(text)
+
+        try:
+            if(DeepLService._decorator_to_use is None):
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
+            
+            else:
+                decorated_function = DeepLService._decorator_to_use(DeepLService._async_translate_text)
+                return await decorated_function(**params)
+            
         except Exception as _e:
             raise _e
 

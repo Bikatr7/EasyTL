@@ -165,6 +165,75 @@ class EasyTL:
         else:
             return [DeepLService._translate_text(t).text for t in text] # type: ignore
         
+##-------------------start-of-deepl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def deepl_translate_async(text:typing.Union[str, typing.Iterable],
+                            target_lang:str | Language = "EN",
+                            override_previous_settings:bool = True,
+                            decorator:typing.Callable | None = None,
+                            source_lang:str | Language | None = None,
+                            context:str | None = None,
+                            split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
+                            preserve_formatting:bool | None = None,
+                            formality:typing.Literal["default", "more", "less", "prefer_more", "prefer_less"] | Formality | None = None,
+                            glossary:str | GlossaryInfo | None = None,
+                            tag_handling:typing.Literal["xml", "html"] | None = None,
+                            outline_detection:bool | None = None,
+                            non_splitting_tags:str | typing.List[str] | None = None,
+                            splitting_tags:str | typing.List[str] | None = None,
+                            ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str]:
+        
+        """
+
+        Asynchronous version of deepl_translate().
+        Code is the same as deepl_translate() but with async/await keywords.
+        
+        Translates the given text to the target language using DeepL.
+
+        This function assumes that the API key has already been set.
+        
+        Parameters:
+        text (string or iterable) : The text to translate.
+        target_lang (string or Language) : The target language to translate to.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        source_lang (string or Language or None) : The source language to translate from.
+        context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
+        split_sentences (literal or SplitSentences or None) : How to split sentences.
+        preserve_formatting (bool or None) : Whether to preserve formatting.
+        formality (literal or Formality or None) : The formality level to use.
+        glossary (string or GlossaryInfo or None) : The glossary to use.
+        tag_handling (literal or None) : How to handle tags.
+        outline_detection (bool or None) : Whether to detect outlines.
+        non_splitting_tags (string or list or None) : Tags that should not be split.
+        splitting_tags (string or list or None) : Tags that should be split.
+        ignore_tags (string or list or None) : Tags that should be ignored.
+
+        Returns:
+        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+
+        """
+
+        if(decorator != None):
+            DeepLService._set_decorator(decorator)
+
+        if(override_previous_settings == True):
+            DeepLService._set_attributes(target_lang, 
+                                        source_lang, 
+                                        context, 
+                                        split_sentences,
+                                        preserve_formatting, 
+                                        formality, 
+                                        glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
+            
+        if(isinstance(text, str)):
+            return await DeepLService._async_translate_text(text).text # type: ignore
+        
+        else:
+            return await [DeepLService._translate_text(t).text for t in text] # type: ignore
+
+        
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
