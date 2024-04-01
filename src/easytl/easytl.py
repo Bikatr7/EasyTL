@@ -240,11 +240,7 @@ class EasyTL:
             
         elif isinstance(text, typing.Iterable):
             _tasks = [DeepLService._async_translate_text(t) for t in text]
-            _results = []
-
-            for _future in asyncio.as_completed(_tasks):
-                _result = await _future
-                _results.append(_result)
+            _results = await asyncio.gather(*_tasks)
 
             if(all(hasattr(_r, "text") for _r in _results)):
                 return [_r.text for _r in results]  # type: ignore
@@ -426,11 +422,8 @@ class EasyTL:
             
         elif(isinstance(text, typing.Iterable)):
             _tasks = [GeminiService._translate_text_async(_t, translation_instructions) for _t in text]
-            _results = []
 
-            for _future in asyncio.as_completed(_tasks):
-                _result = await _future
-                _results.append(_result)
+            _results = await asyncio.gather(*_tasks)
 
             if(all(hasattr(_r, "text") for _r in _results)):
                 return [_r.text for _r in _results]  # type: ignore
