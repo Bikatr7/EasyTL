@@ -8,9 +8,19 @@ from deepl.exceptions import DeepLException
 ## google generic exception
 from google.api_core.exceptions import GoogleAPIError
 
+class EasyTLException(Exception):
+
+    """
+
+    EasyTLException is the base exception class for all exceptions in the EasyTL package.
+
+    """
+
+    pass
+
 ##-------------------start-of-InvalidAPIKeyException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class InvalidAPIKeyException(Exception):
+class InvalidAPIKeyException(EasyTLException):
 
     """
 
@@ -28,3 +38,24 @@ class InvalidAPIKeyException(Exception):
         """
 
         self.message = f"The API key is invalid for the model {model_name}."
+
+##-------------------start-of-InvalidEasyTLSettings--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class InvalidEasyTLSettings(EasyTLException):
+
+    """
+
+    InvalidEasyTLSettings is an exception that is raised when the settings provided to the EasyTL class are invalid
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display when the exception is raised.
+
+        """
+
+        self.message = message
