@@ -4,6 +4,9 @@ import asyncio
 
 ## third-party libraries
 from deepl.translator import Translator
+from deepl.util import auth_key_is_free_account
+
+from .util import convert_iterable_to_str
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
@@ -240,3 +243,38 @@ class DeepLService:
         """
 
         return DeepLService._decorator_to_use
+    
+##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def _calculate_cost(text:str | typing.Iterable, api_key:str) -> typing.Tuple[float, str]:
+
+        """
+
+        Calculates the cost of the translation.
+        For security reasons, EasyTL does not store your api key. You need to provide it every time you calculate the cost.
+
+        Parameters:
+        text (string) : The text to calculate the cost for.
+        api_key (string) : The API key to use for the calculation.
+
+        Returns:
+        cost (float) : The cost of the translation.
+
+        """
+
+        ## $25.00 per 1,000,000 characters if paid account, otherwise free under 500,000 characters per month.
+        ## We cannot check quota, due to api limitations.
+
+        text = convert_iterable_to_str(text)
+
+        if(auth_key_is_free_account(api_key)):
+            cost = 0.0
+            message = "Free account. No cost. EasyTL cannot check quota, due to api limitations."
+
+        else:
+            number_of_characters = len(text)
+            cost = (number_of_characters/1000000)*25.0
+            message = f"Paid account. Cost is ${cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00."
+
+        return cost, message
