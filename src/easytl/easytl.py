@@ -149,6 +149,8 @@ class EasyTL:
 
         """
 
+        EasyTL.test_api_key_validity("deepl")
+
         if(decorator != None):
             DeepLService._set_decorator(decorator)
 
@@ -216,6 +218,8 @@ class EasyTL:
         translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
+
+        EasyTL.test_api_key_validity("deepl")
 
         if(decorator != None):
             DeepLService._set_decorator(decorator)
@@ -289,6 +293,8 @@ class EasyTL:
 
         """
 
+        EasyTL.test_api_key_validity("gemini")
+
         _settings = {
         "gemini_model": "",
         "gemini_temperature": "",
@@ -299,10 +305,14 @@ class EasyTL:
         }
 
         _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _ignored_params = ["gemini_stop_sequences"]
 
-        for _key, _value in locals().items():
-            if(_key not in _non_gemini_params):
-                _settings[_key] = convert_to_correct_type(_key, _value)
+        assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "text must be a string or an iterable of strings."
+
+        for _key in _settings.keys():
+            param_name = _key.replace("gemini_", "")
+            if param_name in locals() and _key not in _non_gemini_params and _key not in _ignored_params:
+                _settings[_key] = convert_to_correct_type(_key, locals()[param_name])
 
         validate_easytl_translation_settings(_settings, "gemini")
 
@@ -381,6 +391,8 @@ class EasyTL:
 
         """
 
+        EasyTL.test_api_key_validity("gemini")
+
         _settings = {
         "gemini_model": "",
         "gemini_temperature": "",
@@ -391,12 +403,14 @@ class EasyTL:
         }
 
         _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _ignored_params = ["gemini_stop_sequences"]
 
-        for _key, _value in locals().items():
-            if(_key not in _non_gemini_params):
-                _settings[_key] = convert_to_correct_type(_key, _value)
+        assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "text must be a string or an iterable of strings."
 
-        validate_easytl_translation_settings(_settings, "gemini")
+        for _key in _settings.keys():
+            param_name = _key.replace("gemini_", "")
+            if param_name in locals() and _key not in _non_gemini_params and _key not in _ignored_params:
+                _settings[_key] = convert_to_correct_type(_key, locals()[param_name])
 
         if(decorator != None):
             GeminiService._set_decorator(decorator)

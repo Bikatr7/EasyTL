@@ -19,7 +19,7 @@ def string_to_bool(string:str) -> bool:
 def convert_iterable_to_str(iterable:typing.Iterable) -> str:
     return "".join(map(str, iterable))
 
-##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def validate_easytl_translation_settings(settings:dict, type:typing.Literal["gemini","openai"]) -> None:
 
