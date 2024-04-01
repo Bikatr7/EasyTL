@@ -10,11 +10,13 @@ import asyncio
 from .classes import Language, SplitSentences, Formality, GlossaryInfo
 
 ## custom modules
-from easytl.deepl_service import DeepLService
-from easytl.gemini_service import GeminiService
-from easytl.openai_service import OpenAIService
+from .deepl_service import DeepLService
+from .gemini_service import GeminiService
+from .openai_service import OpenAIService
 
 from .exceptions import DeepLException, GoogleAPIError
+
+from .util import convert_to_correct_type, convert_iterable_to_str, validate_easytl_translation_settings
 
 class EasyTL:
 
@@ -99,7 +101,6 @@ class EasyTL:
         return True, None
         
         ## need to add the other services here
-        ## but before that, need to convert said services to have non-asynchronous methods, as to not force the user to use async/await
 
 ##-------------------start-of-deepl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -287,6 +288,41 @@ class EasyTL:
         translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
+
+        settings = {
+        "gemini_model": "",
+        "gemini_temperature": "",
+        "gemini_top_p": "",
+        "gemini_top_k": "",
+        "gemini_stop_sequences": "",
+        "gemini_max_output_tokens": ""
+        }
+
+        non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+
+        for key, value in locals().items():
+            if(key not in non_gemini_params):
+                settings[key] = convert_to_correct_type(key, value)
+
+        validate_easytl_translation_settings(settings, "gemini")
+
+        if(decorator != None):
+            GeminiService._set_decorator(decorator)
+
+        if(override_previous_settings == True):
+            GeminiService._set_attributes(model=model,
+                                          temperature=temperature,
+                                          top_p=top_p,
+                                          top_k=top_k,
+                                          candidate_count=1,
+                                          stream=False,
+                                          stop_sequences=stop_sequences,
+                                          max_output_tokens=max_output_tokens)
+
+        if(isinstance(text, typing.Iterable)):
+            text = convert_iterable_to_str(text)
+
+        return GeminiService._translate_text(text_to_translate=text, translation_instructions=translation_instructions)
 
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
