@@ -1,3 +1,7 @@
+## Copyright Bikatr7 (https://github.com/Bikatr7)
+## Use of this source code is governed by a GNU Lesser General Public License v2.1
+## license that can be found in the LICENSE file.
+
 ## built-in libraries
 import typing
 
@@ -9,7 +13,7 @@ from easytl.deepl_service import DeepLService
 from easytl.gemini_service import GeminiService
 from easytl.openai_service import OpenAIService
 
-from .exceptions import DeepLException
+from .exceptions import DeepLException, GoogleAPIError
 
 class EasyTL:
 
@@ -68,17 +72,25 @@ class EasyTL:
         """
 
         if(api_type == "deepl"):
-            is_valid, e = DeepLService._test_api_key_validity()
+            _is_valid, _e = DeepLService._test_api_key_validity()
 
-            if(is_valid == False):
+            if(_is_valid == False):
 
                 ## make sure issue is due to DeepL and not the fault of easytl, cause it needs to be raised if it is
-                assert isinstance(e, DeepLException), e
+                assert isinstance(_e, DeepLException), _e
 
-                return False, e
+                return False, _e
             
         if(api_type == "gemini"):
-            raise NotImplementedError("Gemini service is not yet implemented.")
+            
+            _is_valid, _e = GeminiService._test_api_key_validity()
+
+            if(_is_valid == False):
+
+                ## make sure issue is due to Gemini and not the fault of easytl, cause it needs to be raised if it is
+                assert isinstance(_e, GoogleAPIError), _e
+
+                return False, _e
         
         if(api_type == "openai"):
             raise NotImplementedError("OpenAI service is not yet implemented.")
