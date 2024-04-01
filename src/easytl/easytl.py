@@ -16,7 +16,7 @@ from .openai_service import OpenAIService
 
 from .exceptions import DeepLException, GoogleAPIError
 
-from .util import convert_to_correct_type, convert_iterable_to_str, validate_easytl_translation_settings
+from .util import convert_to_correct_type, validate_easytl_translation_settings
 
 class EasyTL:
 
@@ -189,9 +189,9 @@ class EasyTL:
         """
 
         Asynchronous version of deepl_translate().
-        Code is the same as deepl_translate() but with async/await keywords.
         
         Translates the given text to the target language using DeepL.
+        Will generally be faster for iterables. Order is preserved.
 
         This function assumes that the API key has already been set.
         
@@ -230,24 +230,28 @@ class EasyTL:
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
             
         if(isinstance(text, str)):
-            result = DeepLService._async_translate_text(text)
+            _result = DeepLService._async_translate_text(text)
 
-            if(hasattr(result, "text")):
-                return result.text # type: ignore
+            if(hasattr(_result, "text")):
+                return _result.text # type: ignore
             
             else:
                 raise Exception("Unexpected error occurred. Please try again.")
             
-        elif(isinstance(text, typing.Iterable)):
-            results = asyncio.gather(*[DeepLService._async_translate_text(t) for t in text])
+        elif isinstance(text, typing.Iterable):
+            _tasks = [DeepLService._async_translate_text(t) for t in text]
+            _results = []
 
-            if(all(hasattr(r, "text") for r in results)):
-                return [r.text for r in result] # type: ignore
+            for _future in asyncio.as_completed(_tasks):
+                _result = await _future
+                _results.append(_result)
+
+            if(all(hasattr(_r, "text") for _r in _results)):
+                return [_r.text for _r in results]  # type: ignore
             
             else:
                 raise Exception("Unexpected error occurred. Please try again.")
             
-
 ##-------------------start-of-gemini_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -289,7 +293,7 @@ class EasyTL:
 
         """
 
-        settings = {
+        _settings = {
         "gemini_model": "",
         "gemini_temperature": "",
         "gemini_top_p": "",
@@ -298,13 +302,13 @@ class EasyTL:
         "gemini_max_output_tokens": ""
         }
 
-        non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
 
-        for key, value in locals().items():
-            if(key not in non_gemini_params):
-                settings[key] = convert_to_correct_type(key, value)
+        for _key, _value in locals().items():
+            if(_key not in _non_gemini_params):
+                _settings[_key] = convert_to_correct_type(_key, _value)
 
-        validate_easytl_translation_settings(settings, "gemini")
+        validate_easytl_translation_settings(_settings, "gemini")
 
         if(decorator != None):
             GeminiService._set_decorator(decorator)
@@ -319,10 +323,119 @@ class EasyTL:
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens)
 
-        if(isinstance(text, typing.Iterable)):
-            text = convert_iterable_to_str(text)
+        if(isinstance(text, str)):
+            _result = GeminiService._translate_text(text, translation_instructions)
 
-        return GeminiService._translate_text(text_to_translate=text, translation_instructions=translation_instructions)
+            if(hasattr(_result, "text")):
+                return _result.text
+            
+            else:
+                raise Exception("Unexpected error occurred. Please try again.")
+        
+        elif(isinstance(text, typing.Iterable)):
+            
+            _results = [GeminiService._translate_text(t, translation_instructions) for t in text]
+
+            if(all(hasattr(_r, "text") for _r in _results)):
+                return [_r.text for _r in _results]
+            
+        raise Exception("Unexpected state reached in gemini_translate.")
+
+##-------------------start-of-gemini_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    async def gemini_translate_async(text:typing.Union[str, typing.Iterable],
+                                    override_previous_settings:bool = True,
+                                    decorator:typing.Callable | None = None,
+                                    translation_instructions:str | None = None,
+                                    model:str="gemini-pro",
+                                    temperature:float=0.5,
+                                    top_p:float=0.9,
+                                    top_k:int=40,
+                                    stop_sequences:typing.List[str] | None=None,
+                                    max_output_tokens:int | None=None) -> str | typing.List[str]:
+        
+        """
+
+        Asynchronous version of gemini_translate().
+        Will generally be faster for iterables. Order is preserved.
+
+        Translates the given text using Gemini.
+
+        This function assumes that the API key has already been set.
+
+        Translation instructions default to translating the text to English. To change this, specify the instructions.
+
+        This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        translation_instructions (string or None) : The translation instructions to use.
+        model (string) : The model to use.
+        temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
+        top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
+        top_k (int) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
+        stop_sequences (list or None) : The sequences to stop at.
+        max_output_tokens (int or None) : The maximum number of tokens to output.
+
+        Returns:
+        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+
+        """
+
+        _settings = {
+        "gemini_model": "",
+        "gemini_temperature": "",
+        "gemini_top_p": "",
+        "gemini_top_k": "",
+        "gemini_stop_sequences": "",
+        "gemini_max_output_tokens": ""
+        }
+
+        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+
+        for _key, _value in locals().items():
+            if(_key not in _non_gemini_params):
+                _settings[_key] = convert_to_correct_type(_key, _value)
+
+        validate_easytl_translation_settings(_settings, "gemini")
+
+        if(decorator != None):
+            GeminiService._set_decorator(decorator)
+
+        if(override_previous_settings == True):
+            GeminiService._set_attributes(model=model,
+                                          temperature=temperature,
+                                          top_p=top_p,
+                                          top_k=top_k,
+                                          candidate_count=1,
+                                          stream=False,
+                                          stop_sequences=stop_sequences,
+                                          max_output_tokens=max_output_tokens)
+            
+        if(isinstance(text, str)):
+            _result = GeminiService._translate_text_async(text, translation_instructions)
+
+            if(hasattr(_result, "text")):
+                return _result.text # type: ignore
+            
+            else:
+                raise Exception("Unexpected error occurred. Please try again.")
+            
+        elif(isinstance(text, typing.Iterable)):
+            _tasks = [GeminiService._translate_text_async(_t, translation_instructions) for _t in text]
+            _results = []
+
+            for _future in asyncio.as_completed(_tasks):
+                _result = await _future
+                _results.append(_result)
+
+            if(all(hasattr(_r, "text") for _r in _results)):
+                return [_r.text for _r in _results]  # type: ignore
+            
+        raise Exception("Unexpected state reached in gemini_translate_async.")
 
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
