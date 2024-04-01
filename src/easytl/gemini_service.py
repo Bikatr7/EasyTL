@@ -193,14 +193,13 @@ class GeminiService:
 
         """
 
-        if(translation_instructions is None):
-            translation_instructions = GeminiService._default_translation_instructions
+        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
 
         if(GeminiService._decorator_to_use is None):
             return await GeminiService.__translate_text_async(translation_instructions, text_to_translate)
 
-        decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text_async)
-        return await decorated_function(translation_instructions, text_to_translate)
+        _decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text_async)
+        return await _decorated_function(translation_instructions, text_to_translate)
     
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -222,14 +221,13 @@ class GeminiService:
 
         """
 
-        if(translation_instructions is None):
-            translation_instructions = GeminiService._default_translation_instructions
+        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
 
         if(GeminiService._decorator_to_use is None):
             return GeminiService.__translate_text(translation_instructions, text_to_translate)
 
-        decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text)
-        return decorated_function(translation_instructions, text_to_translate)
+        _decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text)
+        return _decorated_function(translation_instructions, text_to_translate)
     
 ##-------------------start-of-__translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -250,14 +248,12 @@ class GeminiService:
         """
 
         _response = GeminiService._client.generate_content(
-            contents=translation_instructions + "\n" + text_to_translate,
+            f"{translation_instructions}\n{text_to_translate}",
             generation_config=GeminiService._generation_config,
             safety_settings=GeminiService._safety_settings,
             stream=GeminiService._stream
         )
         
-        ## may need to add some error handling here later for if the response is not successful
-
         return _response.text
 
 ##-------------------start-of-__translate_message_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -279,14 +275,12 @@ class GeminiService:
         """
 
         _response = await GeminiService._client.generate_content_async(
-            contents=translation_instructions + "\n" + text_to_translate,
+            contents=[f"{translation_instructions}\n{text_to_translate}"],
             generation_config=GeminiService._generation_config,
             safety_settings=GeminiService._safety_settings,
             stream=GeminiService._stream
         )
         
-        ## may need to add some error handling here later for if the response is not successful
-
         return _response.text
     
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -313,7 +307,6 @@ class GeminiService:
 
             GeminiService._client.generate_content(
                 "Respond to this with 1",generation_config=_generation_config
-
             )
 
             _validity = True
