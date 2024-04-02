@@ -44,7 +44,7 @@ class OpenAIService:
 
         """
 
-        Sets the API key for the OpenAI _async_client.
+        Sets the API key for the OpenAI client.
 
         Parameters:
         api_key (string) : The API key to set.
@@ -52,6 +52,7 @@ class OpenAIService:
         """
 
         OpenAIService._async_client.api_key = api_key
+        OpenAIService._sync_client.api_key = api_key
 
 ##-------------------start-of-set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,6 +69,39 @@ class OpenAIService:
         """
 
         OpenAIService.decorator_to_use = decorator
+
+##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    @staticmethod
+    def set_attributes(model:str = _default_model,
+                        system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions,
+                        temperature:float = 0.3,
+                        logit_bias:typing.Dict[str, float] | None = None,
+                        top_p:float = 1.0,
+                        n:int = 1,
+                        stream:bool = False,
+                        stop:typing.List[str] | None = None,
+                        max_tokens:int | None = None,
+                        presence_penalty:float = 0.0,
+                        frequency_penalty:float = 0.0) -> None:
+    
+            """
+    
+            Sets the attributes for the OpenAI service.
+    
+            """
+    
+            OpenAIService._model = model
+            OpenAIService._system_message = system_message
+            OpenAIService._temperature = temperature
+            OpenAIService._logit_bias = logit_bias
+            OpenAIService._top_p = top_p
+            OpenAIService._n = n
+            OpenAIService._stream = stream
+            OpenAIService._stop = stop
+            OpenAIService._max_tokens = max_tokens
+            OpenAIService._presence_penalty = presence_penalty
+            OpenAIService._frequency_penalty = frequency_penalty
 
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -143,7 +177,7 @@ class OpenAIService:
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    async def test_api_key_validity() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+    def test_api_key_validity() -> typing.Tuple[bool, typing.Union[Exception, None]]:
 
         """
 
@@ -155,23 +189,23 @@ class OpenAIService:
 
         """
 
-        validity = False
+        _validity = False
 
         try:
 
-            await OpenAIService._async_client.chat.completions.create(
-                _model="gpt-3.5-turbo",
+            OpenAIService._sync_client.chat.completions.create(
+                model="gpt-3.5-turbo",
                 messages=[{"role":"user","content":"This is a test."}],
                 max_tokens=1
-            ) ## type: ignore we'll deal with this later
+            ) 
 
-            validity = True
+            _validity = True
 
-            return validity, None
+            return _validity, None
 
         except Exception as e:
 
-            return validity, e
+            return _validity, e
         
 ##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
