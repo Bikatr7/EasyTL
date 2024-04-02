@@ -14,25 +14,28 @@ from .classes import SystemTranslationMessage, Message
 
 class OpenAIService:
 
-    ## sync session
-    sync_client = OpenAI(max_retries=0, api_key="DummyKey")
+    _default_model:str = "gpt-3.5-turbo"
+    _default_translation_instructions:typing.Union[SystemTranslationMessage, str] = SystemTranslationMessage("Please translate the following text into English.")
 
-    ## async session
-    async_client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
+    _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
 
-    model:str
-    system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = None
-    temperature:float
-    top_p:float
-    n:int
-    stream:bool
-    stop:typing.List[str] | None
-    logit_bias:typing.Dict[str, float] | None
-    max_tokens:int | None
-    presence_penalty:float
-    frequency_penalty:float
+    _model:str = _default_model
+    _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
+    _temperature:float
+    _logit_bias:typing.Dict[str, float] | None
+    _top_p:float
+    _n:int
+    _stream:bool
+    _stop:typing.List[str] | None
+    _max_tokens:int | None
+    _presence_penalty:float
+    _frequency_penalty:float
 
-    decorator_to_use:typing.Union[typing.Callable, None] = None
+
+    _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
+    _async_client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
+
+    _decorator_to_use:typing.Union[typing.Callable, None] = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -41,14 +44,14 @@ class OpenAIService:
 
         """
 
-        Sets the API key for the OpenAI async_client.
+        Sets the API key for the OpenAI _async_client.
 
         Parameters:
         api_key (string) : The API key to set.
 
         """
 
-        OpenAIService.async_client.api_key = api_key
+        OpenAIService._async_client.api_key = api_key
 
 ##-------------------start-of-set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -109,26 +112,26 @@ class OpenAIService:
 
         """
 
-        if(OpenAIService.async_client.api_key == "DummyKey"):
+        if(OpenAIService._async_client.api_key == "DummyKey"):
             raise InvalidAPIKeyException("OpenAI")
 
         ## logit bias is currently excluded due to a lack of need, and the fact that i am lazy
 
-        response = await OpenAIService.async_client.chat.completions.create(
-            model=OpenAIService.model,
+        response = await OpenAIService._async_client.chat.completions.create(
+            _model=OpenAIService._model,
             messages=[
                 translation_instructions.to_dict(),
                 translation_prompt.to_dict()
             ],  # type: ignore
 
-            temperature = OpenAIService.temperature,
-            top_p = OpenAIService.top_p,
-            n = OpenAIService.n,
-            stream = OpenAIService.stream,
-            stop = OpenAIService.stop,
-            presence_penalty = OpenAIService.presence_penalty,
-            frequency_penalty = OpenAIService.frequency_penalty,
-            max_tokens = OpenAIService.max_tokens       
+            temperature = OpenAIService._temperature,
+            top_p = OpenAIService._top_p,
+            n = OpenAIService._n,
+            stream = OpenAIService._stream,
+            stop = OpenAIService._stop,
+            presence_penalty = OpenAIService._presence_penalty,
+            frequency_penalty = OpenAIService._frequency_penalty,
+            max_tokens = OpenAIService._max_tokens       
 
         )
 
@@ -156,11 +159,11 @@ class OpenAIService:
 
         try:
 
-            await OpenAIService.async_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+            await OpenAIService._async_client.chat.completions.create(
+                _model="gpt-3.5-turbo",
                 messages=[{"role":"user","content":"This is a test."}],
                 max_tokens=1
-            )
+            ) ## type: ignore we'll deal with this later
 
             validity = True
 
