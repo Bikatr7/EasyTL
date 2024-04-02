@@ -14,22 +14,22 @@ from .classes import SystemTranslationMessage, Message
 
 class OpenAIService:
 
-    _default_model:str = "gpt-3.5-turbo"
+    _default_model:str = "gpt-4"
     _default_translation_instructions:typing.Union[SystemTranslationMessage, str] = SystemTranslationMessage("Please translate the following text into English.")
 
     _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
 
     _model:str = _default_model
     _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
-    _temperature:float
+    _temperature:float = 0.3
     _logit_bias:typing.Dict[str, float] | None
-    _top_p:float
-    _n:int
-    _stream:bool
-    _stop:typing.List[str] | None
-    _max_tokens:int | None
-    _presence_penalty:float
-    _frequency_penalty:float
+    _top_p:float = 1.0
+    _n:int = 1
+    _stream:bool = False
+    _stop:typing.List[str] | None = None
+    _max_tokens:int | None = None
+    _presence_penalty:float = 0.0
+    _frequency_penalty:float = 0.0
 
 
     _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
