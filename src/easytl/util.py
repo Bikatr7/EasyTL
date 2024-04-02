@@ -335,6 +335,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
     "gpt-4",
@@ -352,6 +353,7 @@ ALLOWED_OPENAI_MODELS  = [
     "gpt-4-0125-preview"
 ]
 
+## https://ai.google.dev/models/gemini
 ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-001",
     "gemini-1.0-pro-vision-001",
@@ -366,6 +368,7 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-ultra"
 ]
 
+## Costs are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-02
 MODEL_COSTS = {
     "gpt-3.5-turbo": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
     "gpt-4": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
