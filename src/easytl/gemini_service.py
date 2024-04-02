@@ -376,7 +376,7 @@ class GeminiService:
         
         _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
 
-        _message = "As of EasyTL Toolkit.CURRENT_VERSION, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n"
+        _message = f"As of EasyTL {CURRENT_VERSION} Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n"
         
         _message += f"Estimated number of tokens: {_num_tokens}\n"
         _message += f"Estimated Minimum Cost: {_cost}\n"

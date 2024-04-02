@@ -271,6 +271,6 @@ class DeepLService:
 
         _number_of_characters = len(text)
         _cost = (_number_of_characters/1000000)*25.0
-        _message = f"Paid account. Cost is ${_cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00. If you have a free account, you can translate up to 500,000 characters per month for free."
+        _message = f"Cost is ${_cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00. If you have a free account, you can translate up to 500,000 characters per month for free."
 
         return _cost, _message
