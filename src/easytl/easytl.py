@@ -16,7 +16,7 @@ from .openai_service import OpenAIService
 
 from .exceptions import DeepLException, GoogleAPIError
 
-from .util import convert_to_correct_type, validate_easytl_translation_settings
+from .util import _convert_to_correct_type, _validate_easytl_translation_settings
 
 class EasyTL:
 
@@ -234,7 +234,7 @@ class EasyTL:
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
             
         if(isinstance(text, str)):
-            _result = DeepLService._async_translate_text(text)
+            _result = await DeepLService._async_translate_text(text)
 
             if(hasattr(_result, "text")):
                 return _result.text # type: ignore
@@ -247,7 +247,7 @@ class EasyTL:
             _results = await asyncio.gather(*_tasks)
 
             if(all(hasattr(_r, "text") for _r in _results)):
-                return [_r.text for _r in results]  # type: ignore
+                return [_r.text for _r in _results]  # type: ignore
             
             else:
                 raise Exception("Unexpected error occurred. Please try again.")
@@ -312,9 +312,9 @@ class EasyTL:
         for _key in _settings.keys():
             param_name = _key.replace("gemini_", "")
             if param_name in locals() and _key not in _non_gemini_params and _key not in _ignored_params:
-                _settings[_key] = convert_to_correct_type(_key, locals()[param_name])
+                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
 
-        validate_easytl_translation_settings(_settings, "gemini")
+        _validate_easytl_translation_settings(_settings, "gemini")
 
         if(decorator != None):
             GeminiService._set_decorator(decorator)
@@ -410,7 +410,7 @@ class EasyTL:
         for _key in _settings.keys():
             param_name = _key.replace("gemini_", "")
             if param_name in locals() and _key not in _non_gemini_params and _key not in _ignored_params:
-                _settings[_key] = convert_to_correct_type(_key, locals()[param_name])
+                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
 
         if(decorator != None):
             GeminiService._set_decorator(decorator)
@@ -426,7 +426,7 @@ class EasyTL:
                                           max_output_tokens=max_output_tokens)
             
         if(isinstance(text, str)):
-            _result = GeminiService._translate_text_async(text, translation_instructions)
+            _result = await GeminiService._translate_text_async(text, translation_instructions)
 
             if(hasattr(_result, "text")):
                 return _result.text # type: ignore
@@ -519,3 +519,36 @@ class EasyTL:
 
         else:
             return await EasyTL.gemini_translate_async(text, **kwargs)
+        
+##-------------------start-of-calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    @staticmethod
+    def calculate_cost(text:str | typing.Iterable[str],
+                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl",
+                       model:typing.Optional[str] = None,
+                       translation_instructions:typing.Optional[str] = None
+                       ) -> typing.Tuple[float, str]:
+        
+        """
+
+        Calculates the cost of translating the given text using the specified service.
+
+        For LLMs, the cost is based on the default model unless specified.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        service (string) : The service to use for translation.
+
+        Returns:
+        cost (float) : The cost of translating the text.
+
+        """
+
+        if(service == "deepl"):
+            return DeepLService._calculate_cost(text)
+        
+        elif(service == "openai"):
+            raise NotImplementedError("OpenAI service is not yet implemented.")
+
+        else:
+            return GeminiService._calculate_cost(text, translation_instructions, model)

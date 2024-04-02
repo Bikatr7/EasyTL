@@ -247,12 +247,11 @@ class DeepLService:
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def _calculate_cost(text:str | typing.Iterable, api_key:str) -> typing.Tuple[float, str]:
+    def _calculate_cost(text:str | typing.Iterable) -> typing.Tuple[float, str]:
 
         """
 
         Calculates the cost of the translation.
-        For security reasons, EasyTL does not store your api key. You need to provide it every time you calculate the cost.
 
         Parameters:
         text (string) : The text to calculate the cost for.
@@ -266,15 +265,12 @@ class DeepLService:
         ## $25.00 per 1,000,000 characters if paid account, otherwise free under 500,000 characters per month.
         ## We cannot check quota, due to api limitations.
 
-        text = _convert_iterable_to_str(text)
+        if(isinstance(text, typing.Iterable)):
+            text = _convert_iterable_to_str(text)
 
-        if(auth_key_is_free_account(api_key)):
-            _cost = 0.0
-            _message = "Free account. No cost. EasyTL cannot check quota, due to api limitations."
 
-        else:
-            _number_of_characters = len(text)
-            _cost = (_number_of_characters/1000000)*25.0
-            _message = f"Paid account. Cost is ${_cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00."
+        _number_of_characters = len(text)
+        _cost = (_number_of_characters/1000000)*25.0
+        _message = f"Paid account. Cost is ${_cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00. If you have a free account, you can translate up to 500,000 characters per month for free."
 
         return _cost, _message
