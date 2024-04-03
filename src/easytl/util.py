@@ -21,6 +21,20 @@ def _string_to_bool(string:str) -> bool:
 def _convert_iterable_to_str(iterable:typing.Iterable) -> str:
     return "".join(map(str, iterable))
 
+##-------------------start-of-is_iterable_of_strings()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _is_iterable_of_strings(value):
+
+    if(isinstance(value, str)):
+        return False
+    
+    try:
+        _iterator = iter(value)
+    except TypeError:
+        return False
+    
+    return all(isinstance(_item, str) for _item in _iterator)
+
 ##-------------------start-of-_validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["gemini","openai"]) -> None:
