@@ -10,7 +10,8 @@ from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
 from .exceptions import InvalidAPIKeyException
-from .classes import SystemTranslationMessage, Message
+from .classes import SystemTranslationMessage, Message, ModelTranslationMessage
+from .util import _is_iterable_of_strings
 
 class OpenAIService:
 
@@ -102,6 +103,47 @@ class OpenAIService:
             OpenAIService._max_tokens = max_tokens
             OpenAIService._presence_penalty = presence_penalty
             OpenAIService._frequency_penalty = frequency_penalty
+
+##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def build_translation_batches(text:typing.Union[str, typing.Iterable[str]], instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = _default_translation_instructions) -> typing.Union[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage], typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]]:
+
+        """
+
+        Builds translations batches dict for the specified service.
+
+        """
+
+        i = 0
+
+        if(isinstance(instructions, str)):
+            instructions = SystemTranslationMessage(instructions)
+
+        elif(isinstance(instructions, SystemTranslationMessage)):
+            instructions = instructions
+
+        else:
+            raise ValueError("Invalid type for instructions. Must either be a string or a pre-built SystemTranslationMessage object.")
+
+        if(isinstance(text, str)):
+
+            prompt = ModelTranslationMessage(content=text)
+
+            return prompt, instructions
+        
+        elif(_is_iterable_of_strings(text)):
+                
+            translation_batches = []
+
+            for item in text:
+                prompt = ModelTranslationMessage(content=item)
+                translation_batches.append((prompt, instructions))
+
+            return translation_batches
+        
+        else:
+            raise ValueError("Invalid type for text. Must either be a string or an iterable of strings.")
 
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
