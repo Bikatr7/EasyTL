@@ -6,6 +6,7 @@
 import typing
 import asyncio
 
+
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo
 
@@ -14,9 +15,9 @@ from .deepl_service import DeepLService
 from .gemini_service import GeminiService
 from .openai_service import OpenAIService
 
-from .exceptions import DeepLException, GoogleAPIError
+from .exceptions import DeepLException, GoogleAPIError, EasyTLException
 
-from .util import _convert_to_correct_type, _validate_easytl_translation_settings
+from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings
 
 class EasyTL:
 
@@ -105,7 +106,7 @@ class EasyTL:
 ##-------------------start-of-deepl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def deepl_translate(text:typing.Union[str, typing.Iterable],
+    def deepl_translate(text:typing.Union[str, typing.Iterable[str]],
                         target_lang:str | Language = "EN",
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
@@ -166,13 +167,16 @@ class EasyTL:
         if(isinstance(text, str)):
             return DeepLService._translate_text(text).text # type: ignore
         
-        else:
+        elif(_is_iterable_of_strings(text)):
             return [DeepLService._translate_text(t).text for t in text] # type: ignore
+        
+        else:
+            raise ValueError("text must be a string or an iterable of strings.")
         
 ##-------------------start-of-deepl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def deepl_translate_async(text:typing.Union[str, typing.Iterable],
+    async def deepl_translate_async(text:typing.Union[str, typing.Iterable[str]],
                             target_lang:str | Language = "EN",
                             override_previous_settings:bool = True,
                             decorator:typing.Callable | None = None,
@@ -236,26 +240,33 @@ class EasyTL:
         if(isinstance(text, str)):
             _result = await DeepLService._async_translate_text(text)
 
+            assert not isinstance(_result, list), "Unexpected error occurred. Please try again."
+
             if(hasattr(_result, "text")):
-                return _result.text # type: ignore
+                return _result.text 
             
             else:
-                raise Exception("Unexpected error occurred. Please try again.")
+                raise EasyTLException("Result does not have a 'text' attribute due to an unexpected error.")
             
-        elif isinstance(text, typing.Iterable):
+        elif(_is_iterable_of_strings(text)):
             _tasks = [DeepLService._async_translate_text(t) for t in text]
             _results = await asyncio.gather(*_tasks)
+            
+            assert isinstance(_results, list), "Unexpected error occurred. Please try again."
 
             if(all(hasattr(_r, "text") for _r in _results)):
-                return [_r.text for _r in _results]  # type: ignore
+                return [_r.text for _r in _results] # type: ignore
             
             else:
-                raise Exception("Unexpected error occurred. Please try again.")
+                raise EasyTLException("Result does not have a 'text' attribute due to an unexpected error.")
+            
+        else:
+            raise ValueError("text must be a string or an iterable of strings.")
             
 ##-------------------start-of-gemini_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def gemini_translate(text:typing.Union[str, typing.Iterable],
+    def gemini_translate(text:typing.Union[str, typing.Iterable[str]],
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
                         translation_instructions:str | None = None,
@@ -336,21 +347,24 @@ class EasyTL:
                 return _result.text
             
             else:
-                raise Exception("Unexpected error occurred. Please try again.")
+                raise EasyTLException("Result does not have a 'text' attribute due to an unexpected error.")
         
-        elif(isinstance(text, typing.Iterable)):
+        elif(_is_iterable_of_strings(text)):
             
             _results = [GeminiService._translate_text(t, translation_instructions) for t in text]
 
             if(all(hasattr(_r, "text") for _r in _results)):
                 return [_r.text for _r in _results]
             
-        raise Exception("Unexpected state reached in gemini_translate.")
+        else:
+            raise ValueError("text must be a string or an iterable of strings.")
+        
+        raise EasyTLException("Unexpected state reached in gemini_translate.")
 
 ##-------------------start-of-gemini_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    async def gemini_translate_async(text:typing.Union[str, typing.Iterable],
+    async def gemini_translate_async(text:typing.Union[str, typing.Iterable[str]],
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
                                     translation_instructions:str | None = None,
@@ -429,18 +443,21 @@ class EasyTL:
             _result = await GeminiService._translate_text_async(text, translation_instructions)
 
             if(hasattr(_result, "text")):
-                return _result.text # type: ignore
+                return _result.text 
             
             else:
                 raise Exception("Unexpected error occurred. Please try again.")
             
-        elif(isinstance(text, typing.Iterable)):
+        elif(_is_iterable_of_strings(text)):
             _tasks = [GeminiService._translate_text_async(_t, translation_instructions) for _t in text]
 
             _results = await asyncio.gather(*_tasks)
 
             if(all(hasattr(_r, "text") for _r in _results)):
-                return [_r.text for _r in _results]  # type: ignore
+                return [_r.text for _r in _results]  
+            
+        else:
+            raise ValueError("text must be a string or an iterable of strings.")
             
         raise Exception("Unexpected state reached in gemini_translate_async.")
 
@@ -477,8 +494,11 @@ class EasyTL:
         elif(service == "openai"):
             raise NotImplementedError("OpenAI service is not yet implemented.")
 
-        else:
+        elif(service == "gemini"):
            return EasyTL.gemini_translate(text, **kwargs)
+        
+        else:
+            raise ValueError("Invalid service specified.")
         
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -517,8 +537,11 @@ class EasyTL:
         elif(service == "openai"):
             raise NotImplementedError("OpenAI service is not yet implemented.")
 
-        else:
+        elif(service == "gemini"):
             return await EasyTL.gemini_translate_async(text, **kwargs)
+        
+        else:
+            raise ValueError("Invalid service specified.")
         
 ##-------------------start-of-calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -550,5 +573,8 @@ class EasyTL:
         elif(service == "openai"):
             raise NotImplementedError("OpenAI service is not yet implemented.")
 
-        else:
+        elif(service == "gemini"):
             return GeminiService._calculate_cost(text, translation_instructions, model)
+        
+        else:
+            raise ValueError("Invalid service specified.")
