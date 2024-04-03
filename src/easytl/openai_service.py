@@ -41,7 +41,7 @@ class OpenAIService:
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def set_api_key(api_key:str) -> None:
+    def _set_api_key(api_key:str) -> None:
 
         """
 
@@ -58,7 +58,7 @@ class OpenAIService:
 ##-------------------start-of-set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def set_decorator(decorator:typing.Callable) -> None:
+    def _set_decorator(decorator:typing.Callable) -> None:
 
         """
 
@@ -69,7 +69,7 @@ class OpenAIService:
 
         """
 
-        OpenAIService.decorator_to_use = decorator
+        OpenAIService._decorator_to_use = decorator
 
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -107,7 +107,9 @@ class OpenAIService:
 ##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def build_translation_batches(text:typing.Union[str, typing.Iterable[str]], instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = _default_translation_instructions) -> typing.Union[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage], typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]]:
+    def build_translation_batches(text:typing.Union[str, typing.Iterable[str]], 
+                                  instructions:typing.Optional[typing.Union[str, SystemTranslationMessage]] = _default_translation_instructions
+                                  ) -> typing.Union[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage], typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]]:
 
         """
 
@@ -128,19 +130,19 @@ class OpenAIService:
 
         if(isinstance(text, str)):
 
-            prompt = ModelTranslationMessage(content=text)
+            _prompt = ModelTranslationMessage(content=text)
 
-            return prompt, instructions
+            return _prompt, instructions
         
         elif(_is_iterable_of_strings(text)):
                 
-            translation_batches = []
+            _translation_batches = []
 
-            for item in text:
-                prompt = ModelTranslationMessage(content=item)
-                translation_batches.append((prompt, instructions))
+            for _item in text:
+                _prompt = ModelTranslationMessage(content=_item)
+                _translation_batches.append((_prompt, instructions))
 
-            return translation_batches
+            return _translation_batches
         
         else:
             raise ValueError("Invalid type for text. Must either be a string or an iterable of strings.")
@@ -219,7 +221,7 @@ class OpenAIService:
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def test_api_key_validity() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+    def _test_api_key_validity() -> typing.Tuple[bool, typing.Union[Exception, None]]:
 
         """
 
@@ -245,14 +247,14 @@ class OpenAIService:
 
             return _validity, None
 
-        except Exception as e:
+        except Exception as _e:
 
-            return _validity, e
+            return _validity, _e
         
 ##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_decorator() -> typing.Union[typing.Callable, None]:
+    def _get_decorator() -> typing.Union[typing.Callable, None]:
 
         """
 
@@ -263,4 +265,4 @@ class OpenAIService:
 
         """
 
-        return OpenAIService.decorator_to_use
+        return OpenAIService._decorator_to_use
