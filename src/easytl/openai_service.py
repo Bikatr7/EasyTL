@@ -225,7 +225,7 @@ class OpenAIService:
         """
 
         response = await OpenAIService._async_client.chat.completions.create(
-            _model=OpenAIService._model,
+            model=OpenAIService._model,
             messages=[
                 instruction.to_dict(),
                 prompt.to_dict()
