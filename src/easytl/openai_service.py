@@ -107,9 +107,10 @@ class OpenAIService:
 ##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def build_translation_batches(text:typing.Union[str, typing.Iterable[str]], 
-                                  instructions:typing.Optional[typing.Union[str, SystemTranslationMessage]] = _default_translation_instructions
-                                  ) -> typing.Union[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage], typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]]:
+    def build_translation_batches(text: typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
+                                instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = _default_translation_instructions
+                                ) -> typing.Union[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage], typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]]:
+
 
         """
 
@@ -117,65 +118,81 @@ class OpenAIService:
 
         """
 
-        i = 0
-
         if(isinstance(instructions, str)):
             instructions = SystemTranslationMessage(instructions)
 
-        elif(isinstance(instructions, SystemTranslationMessage)):
-            instructions = instructions
-
-        else:
+        elif(not isinstance(instructions, SystemTranslationMessage)):
             raise ValueError("Invalid type for instructions. Must either be a string or a pre-built SystemTranslationMessage object.")
 
-        if(isinstance(text, str)):
+        if(isinstance(text, str) or isinstance(text, ModelTranslationMessage)):
+            if(isinstance(text, str)):
+                _prompt = ModelTranslationMessage(content=text)
+            else:
+                _prompt = text
 
-            _prompt = ModelTranslationMessage(content=text)
-
-            return _prompt, instructions
+            return (_prompt, instructions)
         
-        elif(_is_iterable_of_strings(text)):
-                
-            _translation_batches = []
+        elif(isinstance(text, typing.Iterable)):
 
+            _translation_batches = []
             for _item in text:
-                _prompt = ModelTranslationMessage(content=_item)
+
+                if(isinstance(_item, str)):
+                    _prompt = ModelTranslationMessage(content=_item)
+
+                elif(isinstance(_item, ModelTranslationMessage)):
+                    _prompt = _item
+                else:
+                    raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
+                
                 _translation_batches.append((_prompt, instructions))
 
             return _translation_batches
         
         else:
-            raise ValueError("Invalid type for text. Must either be a string or an iterable of strings.")
+            raise ValueError("Invalid type for text. Must either be a string, ModelTranslationMessage, or an iterable of strings/ModelTranslationMessage.")
 
-##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def translate_message(translation_instructions:Message, translation_prompt:Message) -> str:
-
-        """
+    async def _translate_text(translation_instructions: typing.Optional[typing.Union[SystemTranslationMessage, str]],
+                                translation_prompt: typing.Union[typing.Union[ModelTranslationMessage, str], typing.Iterable[typing.Union[ModelTranslationMessage, str]]]
+                                ) -> str:
         
-        Translates a system and user message.
+        if(translation_instructions is None):
+            translation_instructions = OpenAIService._default_translation_instructions
 
-        Parameters:
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
-        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
+        translation_batches = OpenAIService.build_translation_batches(translation_prompt, translation_instructions) # type: ignore
 
-        Returns:
-        output (string) a string that gpt gives to us also known as the translation.
-
-        """
-
-        if(OpenAIService.decorator_to_use == None):
+        if(OpenAIService._decorator_to_use is None):
             return await OpenAIService._translate_message(translation_instructions, translation_prompt)
 
-        decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message)
+        decorated_function = OpenAIService._decorator_to_use(OpenAIService._translate_message)
+        return await decorated_function(translation_instructions, translation_prompt)
+    
+##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def _translate_text_async(translation_instructions: typing.Optional[typing.Union[SystemTranslationMessage, str]],
+                                translation_prompt: typing.Union[typing.Union[ModelTranslationMessage, str], typing.Iterable[typing.Union[ModelTranslationMessage, str]]]
+                                ) -> str:
+        
+        if(translation_instructions is None):
+            translation_instructions = OpenAIService._default_translation_instructions
+
+        translation_batches = OpenAIService.build_translation_batches(translation_prompt, translation_instructions) # type: ignore
+
+        if(OpenAIService._decorator_to_use is None):
+            return await OpenAIService._translate_message(translation_instructions, translation_prompt)
+
+        decorated_function = OpenAIService._decorator_to_use(OpenAIService._translate_message)
         return await decorated_function(translation_instructions, translation_prompt)
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
     @staticmethod
-    async def _translate_message(translation_instructions:Message, translation_prompt:Message) -> str:
+    async def __translate_text(translation_instructions:Message, translation_prompt:Message) -> str:
 
         """
 
@@ -187,6 +204,43 @@ class OpenAIService:
 
         Returns:
         output (string) a string that gpt gives to us also known as the translation.
+
+        """
+
+        if(OpenAIService._async_client.api_key == "DummyKey"):
+            raise InvalidAPIKeyException("OpenAI")
+
+        ## logit bias is currently excluded due to a lack of need, and the fact that i am lazy
+
+        response = await OpenAIService._async_client.chat.completions.create(
+            _model=OpenAIService._model,
+            messages=[
+                translation_instructions.to_dict(),
+                translation_prompt.to_dict()
+            ],  # type: ignore
+
+            temperature = OpenAIService._temperature,
+            top_p = OpenAIService._top_p,
+            n = OpenAIService._n,
+            stream = OpenAIService._stream,
+            stop = OpenAIService._stop,
+            presence_penalty = OpenAIService._presence_penalty,
+            frequency_penalty = OpenAIService._frequency_penalty,
+            max_tokens = OpenAIService._max_tokens       
+
+        )
+
+        ## if anyone knows how to type hint this please let me know
+        output = response.choices[0].message.content
+        
+        return output
+    
+##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def __translate_text_async(translation_instructions:Message, translation_prompt:Message) -> str:
+
+        """
 
         """
 
