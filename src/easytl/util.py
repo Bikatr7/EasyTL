@@ -74,7 +74,6 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
 
     _openai_keys = [
         "openai_model",
-        "openai_system_message",
         "openai_temperature",
         "openai_top_p",
       #  "openai_n",
