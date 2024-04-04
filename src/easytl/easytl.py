@@ -586,7 +586,7 @@ class EasyTL:
         Please see the documentation for the specific translation function for the service you want to use.
 
         DeepL: deepl_translate()
-        
+        OpenAI: openai_translate()
         Gemini: gemini_translate()
 
         Parameters:
@@ -603,7 +603,7 @@ class EasyTL:
             return EasyTL.deepl_translate(text, **kwargs)
 
         elif(service == "openai"):
-            raise NotImplementedError("OpenAI service is not yet implemented.")
+            return EasyTL.openai_translate(text, **kwargs)
 
         elif(service == "gemini"):
            return EasyTL.gemini_translate(text, **kwargs)
