@@ -193,7 +193,7 @@ class OpenAIService:
 
         """
 
-        response = await OpenAIService._sync_client.chat.completions.create(
+        response = OpenAIService._sync_client.chat.completions.create(
             _model=OpenAIService._model,
             messages=[
                 instructions.to_dict(),
