@@ -45,15 +45,22 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
 
     """
 
+    ## Commented out keys are not used in the current version of EasyTL, but are kept.
+    ## Stuff like stop, logit_bias, and n/candidate_count are not in use because there is simply no need for them in EasyTL.
+    ## Stream may be used in the future, but is not used in the current version of EasyTL.
+    ## They are typically hardcoded by EasyTL.
+
+    ## The exception is openai_stop, and gemini_stop_sequences, which aren't validated here but still used and given to the model.
+
     _openai_keys = [
         "openai_model",
         "openai_system_message",
         "openai_temperature",
         "openai_top_p",
-        "openai_n",
-        "openai_stream",
-        "openai_stop",
-        "openai_logit_bias",
+      #  "openai_n",
+    #    "openai_stream",
+     #   "openai_stop",
+      ##  "openai_logit_bias",
         "openai_max_tokens",
         "openai_presence_penalty",
         "openai_frequency_penalty"
@@ -73,11 +80,11 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
     _validation_rules = {
 
         "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS,
-        "openai_system_message": lambda x: x not in ["", "None", None],
         "openai_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
         "openai_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
         "openai_max_tokens": lambda x: x is None or isinstance(x, int) and x > 0,
         "openai_presence_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
+        "openai_frequency_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
         "gemini_model": lambda x: isinstance(x, str) and x in ALLOWED_GEMINI_MODELS,
         "gemini_prompt": lambda x: x not in ["", "None", None],
         "gemini_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
@@ -101,13 +108,9 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
                 if(_key in settings and not _validate(settings[_key])):
                     raise ValueError(f"Invalid _value for {_key}")
                 
-            ## force stop/logit_bias/stream into None
-            settings["openai_stop"] = None
-            settings["openai_logit_bias"] = None
-            settings["openai_stream"] = False
-
-            ## force n and candidate_count to 1
-            settings["openai_n"] = 1
+      ##      settings["openai_logit_bias"] = None
+       ##     settings["openai_stream"] = False
+   ##         settings["openai_n"] = 1
 
         elif(_type == "gemini"):
 
