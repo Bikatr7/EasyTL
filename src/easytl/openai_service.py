@@ -22,7 +22,7 @@ class OpenAIService:
 
     _model:str = _default_model
     _temperature:float = 0.3
-    _logit_bias:typing.Dict[str, float] | None
+    _logit_bias:typing.Dict[str, int] | None
     _top_p:float = 1.0
     _n:int = 1
     _stream:bool = False
@@ -75,7 +75,7 @@ class OpenAIService:
     @staticmethod
     def _set_attributes(model:str = _default_model,
                         temperature:float = 0.3,
-                        logit_bias:typing.Dict[str, float] | None = None,
+                        logit_bias:typing.Dict[str, int] | None = None,
                         top_p:float = 1.0,
                         n:int = 1,
                         stream:bool = False,
@@ -194,11 +194,10 @@ class OpenAIService:
         """
 
         response = OpenAIService._sync_client.chat.completions.create(
-            _model=OpenAIService._model,
             messages=[
                 instructions.to_dict(),
                 prompt.to_dict()
-            ],  
+            ],  # type: ignore
 
             model=OpenAIService._model,
             temperature=OpenAIService._temperature,
@@ -211,8 +210,8 @@ class OpenAIService:
             frequency_penalty=OpenAIService._frequency_penalty,
             max_tokens=OpenAIService._max_tokens
             
-        ) # type: ignore
-
+        ) 
+        
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -225,11 +224,10 @@ class OpenAIService:
         """
 
         response = await OpenAIService._async_client.chat.completions.create(
-            model=OpenAIService._model,
             messages=[
                 instruction.to_dict(),
                 prompt.to_dict()
-            ],  
+            ],  # type: ignore
 
             model=OpenAIService._model,
             temperature=OpenAIService._temperature,
@@ -242,7 +240,7 @@ class OpenAIService:
             frequency_penalty=OpenAIService._frequency_penalty,
             max_tokens=OpenAIService._max_tokens
             
-        ) # type: ignore
+        ) 
 
         return response
 
