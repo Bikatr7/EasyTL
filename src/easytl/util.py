@@ -7,8 +7,10 @@ import typing
 import tiktoken
 
 ## custom modules
-from easytl.exceptions import InvalidEasyTLSettings
-from easytl.gemini_service import GeminiService
+import google.generativeai as genai
+
+## custom modules
+from .exceptions import InvalidEasyTLSettings
 
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -34,6 +36,24 @@ def _is_iterable_of_strings(value):
         return False
     
     return all(isinstance(_item, str) for _item in _iterator)
+
+##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def count_tokens(text:str) -> int:
+
+    """
+
+    Counts the number of tokens in the given text.
+
+    Parameters:
+    text (string) : The text to count tokens in.
+
+    Returns:
+    total_tokens (int) : The number of tokens in the text.
+
+    """
+
+    return genai.GenerativeModel("gemini-pro").count_tokens(text).total_tokens
 
 ##-------------------start-of-_validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -336,7 +356,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             _num_tokens = len(_encoding.encode(text))
 
         else:
-            _num_tokens = GeminiService.count_tokens(text)
+            _num_tokens = count_tokens(text)
 
         _input_cost = _cost_details["_input_cost"]
         _output_cost = _cost_details["_output_cost"]

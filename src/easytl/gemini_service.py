@@ -161,25 +161,6 @@ class GeminiService:
         
         return wrapper
             
-##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def count_tokens(text:str) -> int:
-
-        """
-
-        Counts the number of tokens in the given text.
-
-        Parameters:
-        text (string) : The text to count tokens in.
-
-        Returns:
-        total_tokens (int) : The number of tokens in the text.
-
-        """
-
-        return genai.GenerativeModel(GeminiService._model).count_tokens(text).total_tokens
-
 ##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
