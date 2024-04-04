@@ -55,7 +55,7 @@ class EasyTL:
             GeminiService._set_api_key(api_key)
             
         elif(api_type == "openai"):
-            OpenAIService.set_api_key(api_key)
+            OpenAIService._set_api_key(api_key)
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
