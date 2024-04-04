@@ -8,6 +8,9 @@ from deepl.exceptions import DeepLException
 ## google generic exception
 from google.api_core.exceptions import GoogleAPIError
 
+## openai generic exception
+from openai import OpenAIError
+
 class EasyTLException(Exception):
 
     """

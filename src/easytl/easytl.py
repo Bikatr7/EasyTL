@@ -15,7 +15,7 @@ from .deepl_service import DeepLService
 from .gemini_service import GeminiService
 from .openai_service import OpenAIService
 
-from .exceptions import DeepLException, GoogleAPIError, EasyTLException
+from .exceptions import DeepLException, GoogleAPIError,OpenAIError, EasyTLException
 
 from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings
 
@@ -97,12 +97,20 @@ class EasyTL:
                 return False, _e
         
         if(api_type == "openai"):
-            raise NotImplementedError("OpenAI service is not yet implemented.")
+            
+            _is_valid, _e = OpenAIService._test_api_key_validity()
+
+            if(_is_valid == False):
+
+                ## make sure issue is due to OpenAI and not the fault of easytl, cause it needs to be raised if it is
+                assert isinstance(_e, OpenAIError), _e
+
+                return False, _e
+            
+        assert api_type in ["deepl", "gemini", "openai"], ValueError("Invalid API type specified.")
 
         return True, None
         
-        ## need to add the other services here
-
 ##-------------------start-of-deepl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
