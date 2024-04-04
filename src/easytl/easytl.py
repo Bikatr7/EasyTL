@@ -531,46 +531,23 @@ class EasyTL:
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty)
             
-        _translation_batches = OpenAIService.build_translation_batches(text, translation_instructions)
+        translation_batches = OpenAIService.build_translation_batches(text, translation_instructions)
+        
+        translations = []
 
-        if(len(_translation_batches) == 2):
-            _text, _translation_instructions = _translation_batches
-
-            assert not isinstance(_translation_instructions, tuple), EasyTLException("Unexpected error occurred. Please try again.")
-            assert not isinstance(_text, tuple), EasyTLException("Unexpected error occurred. Please try again.")
+        for _text, _translation_instructions in translation_batches:
 
             _result = OpenAIService._translate_text(_translation_instructions, _text)
 
             translation = _result.choices[0].message.content
-            
+
             if(translation is None):
                 raise EasyTLException("Unexpected error occurred. Please try again.")
-
-            return translation
-
-        elif(len(_translation_batches) % 2 == 0):
-            _translations = []
-
-            for i in range(0, len(_translation_batches), 2):
-                _text, _translation_instructions = _translation_batches[i], _translation_batches[i + 1]
-
-                assert not isinstance(_translation_instructions, tuple), EasyTLException("Unexpected error occurred. Please try again.")
-                assert not isinstance(_text, tuple), EasyTLException("Unexpected error occurred. Please try again.")
-
-                _result = OpenAIService._translate_text(_translation_instructions, _text)
-
-                translation = _result.choices[0].message.content
-
-                if(translation is None):
-                    raise EasyTLException("Unexpected error occurred. Please try again.")
-
-                _translations.append(translation)
-
-            return _translations
-
             
-        else:
-            raise EasyTLException("Unexpected error occurred. Please try again.")
+            translations.append(translation)
+        
+        ## If originally a single text was provided, return a single translation instead of a list
+        return translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
         
 ##-------------------start-of-openai_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -629,56 +606,24 @@ class EasyTL:
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty)
-            
+
         _translation_batches = OpenAIService.build_translation_batches(text, translation_instructions)
 
-        if(len(_translation_batches) == 2):
-            _text, _translation_instructions = _translation_batches
+        _translation_tasks = []
 
-            assert not isinstance(_translation_instructions, tuple), EasyTLException("Unexpected error occurred. Please try again.")
-            assert not isinstance(_text, tuple), EasyTLException("Unexpected error occurred. Please try again.")
+        for _text, _translation_instructions in _translation_batches:
+            _task = OpenAIService._translate_text_async(_translation_instructions, _text)
+            _translation_tasks.append(_task)
 
-            _result = await OpenAIService._translate_text_async(_translation_instructions, _text)
+        _results = await asyncio.gather(*_translation_tasks)
 
-            translation = _result.choices[0].message.content
+        _results:typing.List[ChatCompletion] = _results
 
-            if(translation is None):
-                raise EasyTLException("Unexpected error occurred. Please try again.")
+        _translations = [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
 
-            return translation
-        
-        elif(len(_translation_batches) % 2 == 0):
-
-            _translation_tasks = []
-
-            for i in range(0, len(_translation_batches), 2):
-                _text, _translation_instructions = _translation_batches[i], _translation_batches[i + 1]
-
-                assert not isinstance(_translation_instructions, tuple), EasyTLException("Unexpected error occurred. Please try again.")
-                assert not isinstance(_text, tuple), EasyTLException("Unexpected error occurred. Please try again.")
-
-                _task = OpenAIService._translate_text_async(_translation_instructions, _text)
-                _translation_tasks.append(_task)
-
-            _results = await asyncio.gather(*_translation_tasks)
-
-            _translations = []
-            for _result in _results:
-
-                _result:ChatCompletion = _result
-
-                translation = _result.choices[0].message.content
-
-                if(translation is None):
-                    raise EasyTLException("Translation failed or returned no content.")
-                
-                _translations.append(translation)
-
-            return _translations
-        
-        else:
-            raise EasyTLException("Unexpected error occurred. Please try again.")
-        
+        # If the original input was a single text (not an iterable of texts), return a single translation instead of a list
+        return _translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else _translations[0]
+            
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
