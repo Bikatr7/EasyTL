@@ -73,8 +73,7 @@ class OpenAIService:
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
-    def set_attributes(model:str = _default_model,
-                        system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions,
+    def _set_attributes(model:str = _default_model,
                         temperature:float = 0.3,
                         logit_bias:typing.Dict[str, float] | None = None,
                         top_p:float = 1.0,
@@ -92,7 +91,6 @@ class OpenAIService:
             """
     
             OpenAIService._model = model
-            OpenAIService._system_message = system_message
             OpenAIService._temperature = temperature
             OpenAIService._logit_bias = logit_bias
             OpenAIService._top_p = top_p
@@ -155,7 +153,7 @@ class OpenAIService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def _translate_text(translation_instructions: typing.Optional[SystemTranslationMessage],
+    def _translate_text(translation_instructions: typing.Optional[SystemTranslationMessage],
                                 translation_prompt: ModelTranslationMessage
                                 ) -> ChatCompletion:
         
@@ -164,10 +162,10 @@ class OpenAIService:
 
 
         if(OpenAIService._decorator_to_use is None):
-            return await OpenAIService.__translate_text(translation_instructions, translation_prompt)
+            return OpenAIService.__translate_text(translation_instructions, translation_prompt)
 
         decorated_function = OpenAIService._decorator_to_use(OpenAIService.__translate_text)
-        return await decorated_function(translation_instructions, translation_prompt)
+        return decorated_function(translation_instructions, translation_prompt)
     
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -188,7 +186,7 @@ class OpenAIService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
+    def __translate_text(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
 
         """
 
