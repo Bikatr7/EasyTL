@@ -105,50 +105,32 @@ class OpenAIService:
 
     @staticmethod
     def build_translation_batches(text: typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
-                                instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = _default_translation_instructions
-                                ) -> typing.Union[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage], typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]]:
-
-
-        """
-
-        Builds translations batches dict for the specified service.
-
-        """
-
+                                instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = None) -> typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]:
+        
         if(isinstance(instructions, str)):
             instructions = SystemTranslationMessage(instructions)
 
         elif(not isinstance(instructions, SystemTranslationMessage)):
             raise ValueError("Invalid type for instructions. Must either be a string or a pre-built SystemTranslationMessage object.")
 
-        if(isinstance(text, str) or isinstance(text, ModelTranslationMessage)):
+        translation_batches = []
+        
+        if(isinstance(text, (str, ModelTranslationMessage))):
             if(isinstance(text, str)):
-                _prompt = ModelTranslationMessage(content=text)
-            else:
-                _prompt = text
+                text = ModelTranslationMessage(content=text)
+            translation_batches.append((text, instructions))
 
-            return (_prompt, instructions)
-        
         elif(isinstance(text, typing.Iterable)):
-
-            _translation_batches = []
-            for _item in text:
-
-                if(isinstance(_item, str)):
-                    _prompt = ModelTranslationMessage(content=_item)
-
-                elif(isinstance(_item, ModelTranslationMessage)):
-                    _prompt = _item
-                else:
+            for item in text:
+                if(isinstance(item, str)):
+                    item = ModelTranslationMessage(content=item)
+                elif(not isinstance(item, ModelTranslationMessage)):
                     raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
-                
-                _translation_batches.append((_prompt, instructions))
-
-            return _translation_batches
-        
+                translation_batches.append((item, instructions))
         else:
             raise ValueError("Invalid type for text. Must either be a string, ModelTranslationMessage, or an iterable of strings/ModelTranslationMessage.")
-
+        
+        return translation_batches
 
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
