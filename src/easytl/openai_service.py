@@ -11,6 +11,7 @@ from openai.types.chat.chat_completion import ChatCompletion
 
 ## custom modules
 from .classes import SystemTranslationMessage, ModelTranslationMessage
+from .util import _convert_iterable_to_str, _estimate_cost
 
 class OpenAIService:
 
@@ -295,3 +296,43 @@ class OpenAIService:
         """
 
         return OpenAIService._decorator_to_use
+    
+##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def _calculate_cost(text:str | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[float, str]:
+
+        """
+
+        Calculates the cost of the translation.
+
+        Parameters:
+        text (string) : The text to calculate the cost for.
+        api_key (string) : The API key to use for the calculation.
+
+        Returns:
+        cost (float) : The cost of the translation.
+
+        """
+
+        if(isinstance(text, typing.Iterable)):
+            text = _convert_iterable_to_str(text)
+
+        if(translation_instructions is None):
+            translation_instructions = OpenAIService._default_translation_instructions.content
+
+        if(isinstance(translation_instructions, typing.Iterable)):
+            translation_instructions = _convert_iterable_to_str(translation_instructions)
+
+        if(model is None):
+            model = OpenAIService._default_model
+
+        ## not exactly how the text will be formatted, but it's close enough for the purposes of estimating the cost as tokens should be the same
+        total_text_to_estimate = f"{translation_instructions}\n{text}"
+        
+        _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
+
+        _message = f"Estimated number of tokens: {_num_tokens}\n"
+        _message += f"Estimated Minimum Cost: {_cost}\n"
+
+        return _cost, _message        

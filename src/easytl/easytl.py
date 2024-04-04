@@ -579,7 +579,7 @@ class EasyTL:
             return DeepLService._calculate_cost(text)
         
         elif(service == "openai"):
-            raise NotImplementedError("OpenAI service is not yet implemented.")
+            return OpenAIService._calculate_cost(text, translation_instructions, model)
 
         elif(service == "gemini"):
             return GeminiService._calculate_cost(text, translation_instructions, model)
