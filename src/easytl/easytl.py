@@ -736,7 +736,7 @@ class EasyTL:
         Please see the documentation for the specific translation function for the service you want to use.
 
         DeepL: deepl_translate_async()
-
+        OpenAI: openai_translate_async()
         Gemini: gemini_translate_async()
 
         Parameters:
@@ -753,7 +753,7 @@ class EasyTL:
             return await EasyTL.deepl_translate_async(text, **kwargs)
 
         elif(service == "openai"):
-            raise NotImplementedError("OpenAI service is not yet implemented.")
+            return await EasyTL.openai_translate_async(text, **kwargs)
 
         elif(service == "gemini"):
             return await EasyTL.gemini_translate_async(text, **kwargs)
