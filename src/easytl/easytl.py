@@ -531,7 +531,7 @@ class EasyTL:
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty)
             
-        translation_batches = OpenAIService.build_translation_batches(text, translation_instructions)
+        translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
         
         translations = []
 
@@ -607,7 +607,7 @@ class EasyTL:
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty)
 
-        _translation_batches = OpenAIService.build_translation_batches(text, translation_instructions)
+        _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
 
         _translation_tasks = []
 

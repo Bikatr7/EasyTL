@@ -37,9 +37,9 @@ def _is_iterable_of_strings(value):
     
     return all(isinstance(_item, str) for _item in _iterator)
 
-##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def count_tokens(text:str) -> int:
+def _count_tokens(text:str) -> int:
 
     """
 
@@ -355,7 +355,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             _num_tokens = len(_encoding.encode(text))
 
         else:
-            _num_tokens = count_tokens(text)
+            _num_tokens = _count_tokens(text)
 
         _input_cost = _cost_details["_input_cost"]
         _output_cost = _cost_details["_output_cost"]
