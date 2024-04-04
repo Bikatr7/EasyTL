@@ -13,7 +13,7 @@ from .classes import Language, SplitSentences, Formality, GlossaryInfo
 ## custom modules
 from .deepl_service import DeepLService
 from .gemini_service import GeminiService
-from .openai_service import OpenAIService
+from .openai_service import OpenAIService, ChatCompletion
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage
 from .exceptions import DeepLException, GoogleAPIError,OpenAIError, EasyTLException
@@ -325,13 +325,13 @@ class EasyTL:
         }
 
         _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
-        _ignored_params = ["gemini_stop_sequences"]
+        _custom_validation_params = ["gemini_stop_sequences"]
 
         assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "text must be a string or an iterable of strings."
 
         for _key in _settings.keys():
             param_name = _key.replace("gemini_", "")
-            if param_name in locals() and _key not in _non_gemini_params and _key not in _ignored_params:
+            if(param_name in locals() and _key not in _non_gemini_params and _key not in _custom_validation_params):
                 _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
 
         _validate_easytl_translation_settings(_settings, "gemini")
@@ -426,13 +426,13 @@ class EasyTL:
         }
 
         _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
-        _ignored_params = ["gemini_stop_sequences"]
+        _custom_validation_params = ["gemini_stop_sequences"]
 
         assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "stop_sequences must be a string or an iterable of strings."
 
         for _key in _settings.keys():
             param_name = _key.replace("gemini_", "")
-            if param_name in locals() and _key not in _non_gemini_params and _key not in _ignored_params:
+            if(param_name in locals() and _key not in _non_gemini_params and _key not in _custom_validation_params):
                 _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
 
         _validate_easytl_translation_settings(_settings, "gemini")
@@ -506,13 +506,13 @@ class EasyTL:
         }
 
         _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
-        _ignored_params = ["openai_stop"]
+        _custom_validation_params = ["openai_stop"]
     
         assert stop is None or isinstance(stop, str) or (hasattr(stop, '__iter__') and all(isinstance(i, str) for i in stop)), "stop must be a string or an iterable of strings."
 
         for _key in _settings.keys():
             param_name = _key.replace("openai_", "")
-            if param_name in locals() and _key not in _non_openai_params and _key not in _ignored_params:
+            if(param_name in locals() and _key not in _non_openai_params and _key not in _custom_validation_params):
                 _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
 
         _validate_easytl_translation_settings(_settings, "openai")
@@ -571,7 +571,114 @@ class EasyTL:
             
         else:
             raise EasyTLException("Unexpected error occurred. Please try again.")
+        
+##-------------------start-of-openai_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    @staticmethod
+    async def openai_translate_async(text:typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
+                                    override_previous_settings:bool = True,
+                                    decorator:typing.Callable | None = None,
+                                    translation_instructions:str | SystemTranslationMessage | None = None,
+                                    model:str="gpt-4",
+                                    temperature:float=0.3,
+                                    top_p:float=1.0,
+                                    stop:typing.List[str] | None=None,
+                                    max_tokens:int | None=None,
+                                    presence_penalty:float=0.0,
+                                    frequency_penalty:float=0.0
+                                    ) -> str | typing.List[str]:
+        
+        """
+
+        """
+
+        EasyTL.test_api_key_validity("openai")
+
+        _settings = {
+        "openai_model": "",
+        "openai_temperature": "",
+        "openai_top_p": "",
+        "openai_stop": "",
+        "openai_max_tokens": "",
+        "openai_presence_penalty": "",
+        "openai_frequency_penalty": ""
+        }
+
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _custom_validation_params = ["openai_stop"]
+
+        assert stop is None or isinstance(stop, str) or (hasattr(stop, '__iter__') and all(isinstance(i, str) for i in stop)), "stop must be a string or an iterable of strings."
+
+        for _key in _settings.keys():
+            param_name = _key.replace("openai_", "")
+            if(param_name in locals() and _key not in _non_openai_params and _key not in _custom_validation_params):
+                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
+
+        _validate_easytl_translation_settings(_settings, "openai")
+
+        if(decorator != None):
+            OpenAIService._set_decorator(decorator)
+
+        if(override_previous_settings == True):
+            OpenAIService._set_attributes(model=model,
+                                        temperature=temperature,
+                                        logit_bias=None,
+                                        top_p=top_p,
+                                        n=1,
+                                        stop=stop,
+                                        max_tokens=max_tokens,
+                                        presence_penalty=presence_penalty,
+                                        frequency_penalty=frequency_penalty)
+            
+        _translation_batches = OpenAIService.build_translation_batches(text, translation_instructions)
+
+        if(len(_translation_batches) == 2):
+            _text, _translation_instructions = _translation_batches
+
+            assert not isinstance(_translation_instructions, tuple), EasyTLException("Unexpected error occurred. Please try again.")
+            assert not isinstance(_text, tuple), EasyTLException("Unexpected error occurred. Please try again.")
+
+            _result = await OpenAIService._translate_text_async(_translation_instructions, _text)
+
+            translation = _result.choices[0].message.content
+
+            if(translation is None):
+                raise EasyTLException("Unexpected error occurred. Please try again.")
+
+            return translation
+        
+        elif(len(_translation_batches) % 2 == 0):
+
+            _translation_tasks = []
+
+            for i in range(0, len(_translation_batches), 2):
+                _text, _translation_instructions = _translation_batches[i], _translation_batches[i + 1]
+
+                assert not isinstance(_translation_instructions, tuple), EasyTLException("Unexpected error occurred. Please try again.")
+                assert not isinstance(_text, tuple), EasyTLException("Unexpected error occurred. Please try again.")
+
+                _task = OpenAIService._translate_text_async(_translation_instructions, _text)
+                _translation_tasks.append(_task)
+
+            _results = await asyncio.gather(*_translation_tasks)
+
+            _translations = []
+            for _result in _results:
+
+                _result:ChatCompletion = _result
+
+                translation = _result.choices[0].message.content
+
+                if(translation is None):
+                    raise EasyTLException("Translation failed or returned no content.")
+                
+                _translations.append(translation)
+
+            return _translations
+        
+        else:
+            raise EasyTLException("Unexpected error occurred. Please try again.")
+        
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
