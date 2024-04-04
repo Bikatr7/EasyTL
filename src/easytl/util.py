@@ -149,13 +149,13 @@ def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
     
     _type_expectations = {
         "openai_model": {"_type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS},
-        "openai_system_message": {"_type": str, "constraints": lambda x: x not in ["", "None", None]},
+       ## "openai_system_message": {"_type": str, "constraints": lambda x: x not in ["", "None", None]},
         "openai_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
         "openai_top_p": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
-        "openai_n": {"_type": int, "constraints": lambda x: x == 1},
-        "openai_stream": {"_type": bool, "constraints": lambda x: x is False},
-        "openai_stop": {"_type": None, "constraints": lambda x: x is None},
-        "openai_logit_bias": {"_type": None, "constraints": lambda x: x is None},
+       ## "openai_n": {"_type": int, "constraints": lambda x: x == 1},
+    ##    "openai_stream": {"_type": bool, "constraints": lambda x: x is False},
+      ##  "openai_stop": {"_type": None, "constraints": lambda x: x is None},
+    ##    "openai_logit_bias": {"_type": None, "constraints": lambda x: x is None},
         "openai_max_tokens": {"_type": int, "constraints": lambda x: x is None or isinstance(x, int)},
         "openai_presence_penalty": {"_type": float, "constraints": lambda x: -2 <= x <= 2},
         "openai_frequency_penalty": {"_type": float, "constraints": lambda x: -2 <= x <= 2},
