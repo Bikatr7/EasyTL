@@ -7,21 +7,19 @@ import typing
 
 ## third-party libraries
 from openai import AsyncOpenAI, OpenAI
+from openai.types.chat.chat_completion import ChatCompletion
 
 ## custom modules
-from .exceptions import InvalidAPIKeyException
-from .classes import SystemTranslationMessage, Message, ModelTranslationMessage
-from .util import _is_iterable_of_strings
+from .classes import SystemTranslationMessage, ModelTranslationMessage
 
 class OpenAIService:
 
     _default_model:str = "gpt-4"
-    _default_translation_instructions:typing.Union[SystemTranslationMessage, str] = SystemTranslationMessage("Please translate the following text into English.")
+    _default_translation_instructions:SystemTranslationMessage = SystemTranslationMessage("Please translate the following text into English.")
 
     _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
 
     _model:str = _default_model
-    _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
     _temperature:float = 0.3
     _logit_bias:typing.Dict[str, float] | None
     _top_p:float = 1.0
@@ -156,122 +154,99 @@ class OpenAIService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def _translate_text(translation_instructions: typing.Optional[typing.Union[SystemTranslationMessage, str]],
-                                translation_prompt: typing.Union[typing.Union[ModelTranslationMessage, str], typing.Iterable[typing.Union[ModelTranslationMessage, str]]]
-                                ) -> str:
+    async def _translate_text(translation_instructions: typing.Optional[SystemTranslationMessage],
+                                translation_prompt: ModelTranslationMessage
+                                ) -> ChatCompletion:
         
         if(translation_instructions is None):
             translation_instructions = OpenAIService._default_translation_instructions
 
-        translation_batches = OpenAIService.build_translation_batches(translation_prompt, translation_instructions) # type: ignore
 
         if(OpenAIService._decorator_to_use is None):
-            return await OpenAIService._translate_message(translation_instructions, translation_prompt)
+            return await OpenAIService.__translate_text(translation_instructions, translation_prompt)
 
-        decorated_function = OpenAIService._decorator_to_use(OpenAIService._translate_message)
+        decorated_function = OpenAIService._decorator_to_use(OpenAIService.__translate_text)
         return await decorated_function(translation_instructions, translation_prompt)
     
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def _translate_text_async(translation_instructions: typing.Optional[typing.Union[SystemTranslationMessage, str]],
-                                translation_prompt: typing.Union[typing.Union[ModelTranslationMessage, str], typing.Iterable[typing.Union[ModelTranslationMessage, str]]]
-                                ) -> str:
+    async def _translate_text_async(translation_instructions: typing.Optional[SystemTranslationMessage],
+                                translation_prompt: ModelTranslationMessage
+                                ) -> ChatCompletion:
         
         if(translation_instructions is None):
             translation_instructions = OpenAIService._default_translation_instructions
 
-        translation_batches = OpenAIService.build_translation_batches(translation_prompt, translation_instructions) # type: ignore
-
         if(OpenAIService._decorator_to_use is None):
-            return await OpenAIService._translate_message(translation_instructions, translation_prompt)
-
-        decorated_function = OpenAIService._decorator_to_use(OpenAIService._translate_message)
+            return await OpenAIService.__translate_text_async(translation_instructions, translation_prompt)
+        
+        decorated_function = OpenAIService._decorator_to_use(OpenAIService.__translate_text_async)
         return await decorated_function(translation_instructions, translation_prompt)
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text(translation_instructions:Message, translation_prompt:Message) -> str:
+    async def __translate_text(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
 
         """
 
-        Translates a system and user message.
-
-        Parameters:
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
-        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
-
-        Returns:
-        output (string) a string that gpt gives to us also known as the translation.
 
         """
 
-        if(OpenAIService._async_client.api_key == "DummyKey"):
-            raise InvalidAPIKeyException("OpenAI")
-
-        ## logit bias is currently excluded due to a lack of need, and the fact that i am lazy
-
-        response = await OpenAIService._async_client.chat.completions.create(
+        response = await OpenAIService._sync_client.chat.completions.create(
             _model=OpenAIService._model,
             messages=[
-                translation_instructions.to_dict(),
-                translation_prompt.to_dict()
-            ],  # type: ignore
+                instructions.to_dict(),
+                prompt.to_dict()
+            ],  
 
-            temperature = OpenAIService._temperature,
-            top_p = OpenAIService._top_p,
-            n = OpenAIService._n,
-            stream = OpenAIService._stream,
-            stop = OpenAIService._stop,
-            presence_penalty = OpenAIService._presence_penalty,
-            frequency_penalty = OpenAIService._frequency_penalty,
-            max_tokens = OpenAIService._max_tokens       
+            model=OpenAIService._model,
+            temperature=OpenAIService._temperature,
+            logit_bias=OpenAIService._logit_bias,
+            top_p=OpenAIService._top_p,
+            n=OpenAIService._n,
+            stream=OpenAIService._stream,
+            stop=OpenAIService._stop,
+            presence_penalty=OpenAIService._presence_penalty,
+            frequency_penalty=OpenAIService._frequency_penalty,
+            max_tokens=OpenAIService._max_tokens
+            
+        ) # type: ignore
 
-        )
-
-        ## if anyone knows how to type hint this please let me know
-        output = response.choices[0].message.content
-        
-        return output
+        return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(translation_instructions:Message, translation_prompt:Message) -> str:
+    async def __translate_text_async(instruction:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
 
         """
 
         """
-
-        if(OpenAIService._async_client.api_key == "DummyKey"):
-            raise InvalidAPIKeyException("OpenAI")
-
-        ## logit bias is currently excluded due to a lack of need, and the fact that i am lazy
 
         response = await OpenAIService._async_client.chat.completions.create(
             _model=OpenAIService._model,
             messages=[
-                translation_instructions.to_dict(),
-                translation_prompt.to_dict()
-            ],  # type: ignore
+                instruction.to_dict(),
+                prompt.to_dict()
+            ],  
 
-            temperature = OpenAIService._temperature,
-            top_p = OpenAIService._top_p,
-            n = OpenAIService._n,
-            stream = OpenAIService._stream,
-            stop = OpenAIService._stop,
-            presence_penalty = OpenAIService._presence_penalty,
-            frequency_penalty = OpenAIService._frequency_penalty,
-            max_tokens = OpenAIService._max_tokens       
+            model=OpenAIService._model,
+            temperature=OpenAIService._temperature,
+            logit_bias=OpenAIService._logit_bias,
+            top_p=OpenAIService._top_p,
+            n=OpenAIService._n,
+            stream=OpenAIService._stream,
+            stop=OpenAIService._stop,
+            presence_penalty=OpenAIService._presence_penalty,
+            frequency_penalty=OpenAIService._frequency_penalty,
+            max_tokens=OpenAIService._max_tokens
+            
+        ) # type: ignore
 
-        )
+        return response
 
-        ## if anyone knows how to type hint this please let me know
-        output = response.choices[0].message.content
-        
-        return output
-    
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
