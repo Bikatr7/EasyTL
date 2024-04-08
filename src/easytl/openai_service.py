@@ -11,7 +11,7 @@ from openai.types.chat.chat_completion import ChatCompletion
 
 ## custom modules
 from .classes import SystemTranslationMessage, ModelTranslationMessage
-from .util import _convert_iterable_to_str, _estimate_cost
+from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
 
 class OpenAIService:
 
@@ -107,30 +107,41 @@ class OpenAIService:
     def _build_translation_batches(text: typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
                                 instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = None) -> typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]:
         
+        """
+        
+        Builds the translation batches for the OpenAI service.
+
+        Parameters:
+        text (string | iterable[string] | ModelTranslationMessage | iterable[ModelTranslationMessage]) : The text to translate.
+        instructions (string | SystemTranslationMessage) : The instructions to use for the translation.
+
+        Returns:
+        translation_batches (list[tuple[ModelTranslationMessage, SystemTranslationMessage]]) : The translation batches.
+
+        """
+
+        
         if(isinstance(instructions, str)):
             instructions = SystemTranslationMessage(instructions)
 
         elif(not isinstance(instructions, SystemTranslationMessage)):
             raise ValueError("Invalid type for instructions. Must either be a string or a pre-built SystemTranslationMessage object.")
 
-        translation_batches = []
-        
-        if(isinstance(text, (str, ModelTranslationMessage))):
-            if(isinstance(text, str)):
-                text = ModelTranslationMessage(content=text)
-            translation_batches.append((text, instructions))
+        if(isinstance(text, str)):
+            text = [ModelTranslationMessage(content=text)]
 
+        elif(isinstance(text, ModelTranslationMessage)):
+            text = [text]
+        
         elif(isinstance(text, typing.Iterable)):
-            for item in text:
-                if(isinstance(item, str)):
-                    item = ModelTranslationMessage(content=item)
-                elif(not isinstance(item, ModelTranslationMessage)):
-                    raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
-                translation_batches.append((item, instructions))
+            text = [ModelTranslationMessage(content=item) if isinstance(item, str) else item for item in text]
         else:
             raise ValueError("Invalid type for text. Must either be a string, ModelTranslationMessage, or an iterable of strings/ModelTranslationMessage.")
         
-        return translation_batches
+        if(any(not isinstance(item, ModelTranslationMessage) for item in text)):
+            raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
+        
+        return [(item, instructions) for item in text]
 
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -139,9 +150,21 @@ class OpenAIService:
                                 translation_prompt: ModelTranslationMessage
                                 ) -> ChatCompletion:
         
+        """
+        
+        Synchronously translates the text using the OpenAI API.
+
+        Parameters:
+        translation_instructions (SystemTranslationMessage) : The instructions to use for the translation.
+        translation_prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (ChatCompletion) : The response from the API.
+
+        """
+        
         if(translation_instructions is None):
             translation_instructions = OpenAIService._default_translation_instructions
-
 
         if(OpenAIService._decorator_to_use is None):
             return OpenAIService.__translate_text(translation_instructions, translation_prompt)
@@ -155,6 +178,19 @@ class OpenAIService:
     async def _translate_text_async(translation_instructions: typing.Optional[SystemTranslationMessage],
                                 translation_prompt: ModelTranslationMessage
                                 ) -> ChatCompletion:
+        
+        """
+
+        Asynchronously translates the text using the OpenAI API.
+
+        Parameters:
+        translation_instructions (SystemTranslationMessage) : The instructions to use for the translation.
+        translation_prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (ChatCompletion) : The response from the API.
+
+        """
         
         if(translation_instructions is None):
             translation_instructions = OpenAIService._default_translation_instructions
@@ -172,6 +208,14 @@ class OpenAIService:
 
         """
 
+        Synchronously translates the text using the OpenAI API.
+
+        Parameters:
+        instructions (SystemTranslationMessage) : The instructions to use for the translation.
+        prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (ChatCompletion) : The response from the API.
 
         """
 
@@ -179,7 +223,7 @@ class OpenAIService:
             messages=[
                 instructions.to_dict(),
                 prompt.to_dict()
-            ],  # type: ignore
+            ], # type: ignore
 
             model=OpenAIService._model,
             temperature=OpenAIService._temperature,
@@ -202,6 +246,15 @@ class OpenAIService:
     async def __translate_text_async(instruction:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
 
         """
+
+        Asynchronously translates the text using the OpenAI API.
+
+        Parameters:
+        instruction (SystemTranslationMessage) : The instructions to use for the translation.
+        prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (ChatCompletion) : The response from the API.
 
         """
 
@@ -285,19 +338,29 @@ class OpenAIService:
         Calculates the cost of the translation.
 
         Parameters:
-        text (string) : The text to calculate the cost for.
-        api_key (string) : The API key to use for the calculation.
+        text (string | iterable) : The text to translate.
+        translation_instructions (string) : The instructions to use for the translation.
+        model (string) : The model to use for the translation.
 
         Returns:
+        num_tokens (int) : The number of tokens.
         cost (float) : The cost of the translation.
+        model (string) : The model used for the translation.
 
         """
 
-        if(isinstance(text, typing.Iterable)):
-            text = _convert_iterable_to_str(text)
-
         if(translation_instructions is None):
             translation_instructions = OpenAIService._default_translation_instructions.content
+
+        if(isinstance(text, typing.Iterable)):
+
+            if(not _is_iterable_of_strings(text)):
+                raise ValueError("The text must be a string or an iterable of strings.")
+
+            ## since instructions are paired with the text, we need to repeat the instructions for index
+            translation_instructions = translation_instructions * len(text) # type: ignore
+
+            text = _convert_iterable_to_str(text)
 
         if(isinstance(translation_instructions, typing.Iterable)):
             translation_instructions = _convert_iterable_to_str(translation_instructions)
@@ -309,6 +372,5 @@ class OpenAIService:
         total_text_to_estimate = f"{translation_instructions}\n{text}"
         
         _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
-
 
         return _num_tokens, _cost, model   

@@ -6,7 +6,6 @@
 import typing
 import asyncio
 
-
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo
 
@@ -30,7 +29,9 @@ class EasyTL:
 
     Use test_api_key_validity() to test the validity of the API key for the specified API type. (Optional) Will be done automatically when calling translation functions.
 
-    Use translate() to translate text using the specified service. Or specify the service by calling the specific translation function. (e.g. deepl_translate())
+    Use translate() to translate text using the specified service. Or specify the service by calling the specific translation function. (e.g. openai_translate())
+
+    Use calculate_cost() to calculate the cost of translating text using the specified service. (Optional)
 
     """
 
@@ -44,7 +45,7 @@ class EasyTL:
         Sets the API key for the specified API type.
 
         Parameters:
-        api_type (string) : The API type to set the key for.
+        api_type (literal["deepl", "gemini", "openai"]) : The API type to set the key for.
         api_key (string) : The API key to set.
 
         """
@@ -68,7 +69,7 @@ class EasyTL:
         Tests the validity of the API key for the specified API type.
 
         Parameters:
-        api_type (string) : The API type to test the key for.
+        api_type (literal["deepl", "gemini", "openai"]) : The API type to test the key for.
 
         Returns:
         (bool) : Whether the API key is valid.
@@ -140,7 +141,7 @@ class EasyTL:
         Parameters:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
-        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
@@ -213,7 +214,7 @@ class EasyTL:
         Parameters:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
-        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
@@ -298,7 +299,7 @@ class EasyTL:
 
         Parameters:
         text (string or iterable) : The text to translate.
-        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         translation_instructions (string or None) : The translation instructions to use.
         model (string) : The model to use. 
@@ -399,7 +400,7 @@ class EasyTL:
 
         Parameters:
         text (string or iterable) : The text to translate.
-        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to this function.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         translation_instructions (string or None) : The translation instructions to use.
         model (string) : The model to use.
@@ -490,6 +491,29 @@ class EasyTL:
         
         """
 
+        Translates the given text to the target language using OpenAI.
+
+        This function assumes that the API key has already been set.
+
+        Translation instructions default to translating the text to English. To change this, specify the instructions.
+
+        This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use.
+        model (string) : The model to use.
+        temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
+        top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
+        stop (list or None) : The sequences to stop at.
+        max_tokens (int or None) : The maximum number of tokens to output.
+        presence_penalty (float) : The presence penalty to use.
+        frequency_penalty (float) : The frequency penalty to use.
+
+        Returns:
+        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
 
@@ -566,6 +590,31 @@ class EasyTL:
                                     ) -> str | typing.List[str]:
         
         """
+
+        Asynchronous version of openai_translate().
+        Will generally be faster for iterables. Order is preserved.
+
+        This function assumes that the API key has already been set.
+
+        Translation instructions default to translating the text to English. To change this, specify the instructions.
+
+        This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use.
+        model (string) : The model to use.
+        temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
+        top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
+        stop (list or None) : The sequences to stop at.
+        max_tokens (int or None) : The maximum number of tokens to output.
+        presence_penalty (float) : The presence penalty to use.
+        frequency_penalty (float) : The frequency penalty to use.
+
+        Returns:
+        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
 

@@ -32,6 +32,7 @@ def _is_iterable_of_strings(value):
     
     try:
         _iterator = iter(value)
+        
     except TypeError:
         return False
     
@@ -57,11 +58,15 @@ def _count_tokens(text:str) -> int:
 
 ##-------------------start-of-_validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["gemini","openai"]) -> None:
+def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["gemini","openai"]) -> None:
 
     """
 
     Validates the Kijiku Rules.json file.
+
+    Parameters:
+    settings (dict) : The settings to validate.
+    type (typing.Literal["gemini","openai"]) : The type of settings to validate.
 
     """
 
@@ -70,7 +75,7 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
     ## Stream may be used in the future, but is not used in the current version of EasyTL.
     ## They are typically hardcoded by EasyTL.
 
-    ## The exception is openai_stop, and gemini_stop_sequences, which aren't validated here but still used and given to the model.
+    ## The exception is openai_stop, and gemini_stop_sequences, which aren't validated here, rather in easytl.py, but still used and given to the model.
 
     _openai_keys = [
         "openai_model",
@@ -116,7 +121,7 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
     try:
 
         ## assign to variables to reduce repetitive access    
-        if(_type == "openai"):
+        if(type == "openai"):
 
 
             ## ensure all keys are present
@@ -131,7 +136,7 @@ def _validate_easytl_translation_settings(settings:dict, _type:typing.Literal["g
        ##     settings["openai_stream"] = False
    ##         settings["openai_n"] = 1
 
-        elif(_type == "gemini"):
+        elif(type == "gemini"):
 
             ## ensure all keys are present
             assert all(_key in settings for _key in _gemini_keys)
