@@ -325,7 +325,7 @@ class GeminiService:
     
     @staticmethod
     @_redefine_client_decorator
-    def _calculate_cost(text:str | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[float, str]:
+    def _calculate_cost(text:str | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[int, float, str]:
 
         """
 
@@ -362,4 +362,4 @@ class GeminiService:
         _message += f"Estimated number of tokens: {_num_tokens}\n"
         _message += f"Estimated Minimum Cost: {_cost}\n"
 
-        return _cost, _message        
+        return _num_tokens, _cost, _message        

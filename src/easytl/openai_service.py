@@ -278,7 +278,7 @@ class OpenAIService:
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def _calculate_cost(text:str | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[float, str]:
+    def _calculate_cost(text:str | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[int, float, str]:
 
         """
 
@@ -313,4 +313,4 @@ class OpenAIService:
         _message = f"Estimated number of tokens: {_num_tokens}\n"
         _message += f"Estimated Minimum Cost: {_cost}\n"
 
-        return _cost, _message        
+        return _num_tokens, _cost, _message        

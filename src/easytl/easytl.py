@@ -713,7 +713,7 @@ class EasyTL:
                        service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl",
                        model:typing.Optional[str] = None,
                        translation_instructions:typing.Optional[str] = None
-                       ) -> typing.Tuple[float, str]:
+                       ) -> typing.Tuple[int, float, str]:
         
         """
 
