@@ -721,12 +721,20 @@ class EasyTL:
 
         For LLMs, the cost is based on the default model unless specified.
 
+        Model and Translation Instructions are ignored for DeepL.
+
+        For deepl, number of tokens is the number of characters, the returned model is always "deepl"
+
         Parameters:
         text (string or iterable) : The text to translate.
         service (string) : The service to use for translation.
+        model (string or None) : The model to use for translation. If None, the default model is used.
+        translation_instructions (string or None) : The translation instructions to use.
 
         Returns:
+        num_tokens (int) : The number of tokens/characters in the text.
         cost (float) : The cost of translating the text.
+        model (string) : The model used for translation.
 
         """
 

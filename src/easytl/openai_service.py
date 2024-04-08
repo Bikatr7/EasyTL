@@ -310,7 +310,5 @@ class OpenAIService:
         
         _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
 
-        _message = f"Estimated number of tokens: {_num_tokens}\n"
-        _message += f"Estimated Minimum Cost: {_cost}\n"
 
-        return _num_tokens, _cost, _message        
+        return _num_tokens, _cost, model   

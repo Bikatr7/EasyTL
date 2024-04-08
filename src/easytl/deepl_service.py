@@ -255,7 +255,6 @@ class DeepLService:
 
         Parameters:
         text (string) : The text to calculate the cost for.
-        api_key (string) : The API key to use for the calculation.
 
         Returns:
         cost (float) : The cost of the translation.
@@ -271,6 +270,6 @@ class DeepLService:
 
         _number_of_characters = len(text)
         _cost = (_number_of_characters/1000000)*25.0
-        _message = f"Cost is ${_cost}. EasyTL cannot check quota, due to api limitations. 1,000,000 characters cost $25.00. If you have a free account, you can translate up to 500,000 characters per month for free."
+        _model = "deepl"
 
-        return _number_of_characters, _cost, _message
+        return _number_of_characters, _cost, _model
