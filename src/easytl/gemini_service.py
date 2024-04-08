@@ -12,8 +12,7 @@ from google.generativeai.types import GenerateContentResponse, AsyncGenerateCont
 import google.generativeai as genai
 
 ## custom modules
-from .util import _estimate_cost, _convert_iterable_to_str
-from .version import VERSION as CURRENT_VERSION
+from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings
 
 class GeminiService:
 
@@ -177,7 +176,7 @@ class GeminiService:
         translation_instructions (string) : The instructions for the translation.
 
         Returns:
-        output (string) : The translation.
+        AsyncGenerateContentResponse : The translation.
 
         """
 
@@ -205,7 +204,7 @@ class GeminiService:
         translation_instructions (string) : The instructions for the translation.
 
         Returns:
-        output (string) : The translation.
+        GenerateContentResponse : The translation.
 
         """
 
@@ -231,7 +230,7 @@ class GeminiService:
         text_to_translate (string) : The text to translate.
 
         Returns:
-        output (
+        _response (GenerateContentResponse) : The translation.
 
         """
 
@@ -258,7 +257,7 @@ class GeminiService:
         text_to_translate (string) : The text to translate.
 
         Returns:
-        output (string) : The translation.
+        _response (AsyncGenerateContentResponse) : The translation.
 
         """
 
@@ -332,19 +331,29 @@ class GeminiService:
         Calculates the cost of the translation.
 
         Parameters:
-        text (string) : The text to calculate the cost for.
-        api_key (string) : The API key to use for the calculation.
+        text (string | iterable) : The text to translate.
+        translation_instructions (string) : The instructions for the translation.
+        model (string) : The model to use for the translation.
 
         Returns:
+        num_tokens (int) : The number of tokens in the text.
         cost (float) : The cost of the translation.
+        model (string) : The model used for the translation.
 
         """
 
-        if(isinstance(text, typing.Iterable)):
-            text = _convert_iterable_to_str(text)
-
         if(translation_instructions is None):
             translation_instructions = GeminiService._default_translation_instructions
+
+        if(isinstance(text, typing.Iterable)):
+
+            if(not _is_iterable_of_strings(text)):
+                raise ValueError("The text must be a string or an iterable of strings.")
+
+            ## since instructions are paired with the text, we need to repeat the instructions for index
+            translation_instructions = translation_instructions * len(text) # type: ignore
+
+            text = _convert_iterable_to_str(text)
 
         if(isinstance(translation_instructions, typing.Iterable)):
             translation_instructions = _convert_iterable_to_str(translation_instructions)
@@ -355,6 +364,6 @@ class GeminiService:
         ## not exactly how the text will be formatted, but it's close enough for the purposes of estimating the cost as tokens should be the same
         total_text_to_estimate = f"{translation_instructions}\n{text}"
         
-        _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
+        _num_tokens, _cost, model = _estimate_cost(total_text_to_estimate, model)
 
         return _num_tokens, _cost, model  
