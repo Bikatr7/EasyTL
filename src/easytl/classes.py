@@ -27,6 +27,9 @@ class Message:
             'role': self.role,
             'content': self.content
         }
+    
+    def __str__(self) -> str:
+        return self.content
 
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
