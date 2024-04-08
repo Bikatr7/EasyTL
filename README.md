@@ -32,13 +32,21 @@ from easytl import EasyTL
 EasyTL.set_api_key("deepL", "your_api_key_here")
 
 ## you can also validate your api keys, translation functions will do this automatically
-EasyTL.validate_api_key("deepL")
+is_valid, e = EasyTL.validate_api_key("deepL")
 
-EasyTL.deepl_translate("私は日本語が話せます", "EN") ## Text to translate, language to translate to, only two "required" arguments but there are more optional arguments for additional functionality.
+translated_text = EasyTL.deepl_translate("私は日本語が話せます", "EN") ## Text to translate, language to translate to, only two "required" arguments but there are more optional arguments for additional functionality.
 
-## easytl also has a generic translate method, which defaults to deepl, requires text, and kwargs for the translate method.
+## easytl also has a generic translate method, which defaults to deepl, requires text, and kwargs for the translate method it uses.
 
-EasyTL.translate("私は日本語が話せます", target_lang="EN")
+translated_text = EasyTL.translate("私は日本語が話せます", target_lang="EN")
+
+## There is also a calculate cost method.
+## for deepl, model is deepl
+num_characters, cost, model = EasyTL.calculate_cost("私は日本語が話せます", "deepL") ## Text to translate, service to use
+
+## or for llms
+## last 2 arguments are optional, defaults to gpt-4 and "Translate to English"
+num_tokens, cost, model = EasyTL.calculate_cost("私は日本語が話せます", "openai", "gpt-4", "Translate to English") ## Text to translate, service to use, model to use, prompt to use
 
 ```
 
