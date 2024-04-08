@@ -11,6 +11,11 @@ from google.api_core.exceptions import GoogleAPIError
 ## openai generic exception
 from openai import OpenAIError
 
+## service specific exceptions
+from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from deepl.exceptions import AuthorizationException, QuotaExceededException
+from google.auth.exceptions import GoogleAuthError
+
 class EasyTLException(Exception):
 
     """

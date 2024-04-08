@@ -7,6 +7,10 @@ from .version import VERSION as __version__  # noqa
 __author__ = "Bikatr7 <Tetralon07@gmail.com>"
 
 from .easytl import EasyTL
-from .exceptions import DeepLException, GoogleAPIError, OpenAIError, EasyTLException, InvalidAPIKeyException, InvalidEasyTLSettings
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, ModelTranslationMessage, SystemTranslationMessage, Message
 from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
+
+from .exceptions import DeepLException, GoogleAPIError, OpenAIError, EasyTLException, InvalidAPIKeyException, InvalidEasyTLSettings
+from .exceptions import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from .exceptions import AuthorizationException, QuotaExceededException
+from .exceptions import GoogleAuthError
