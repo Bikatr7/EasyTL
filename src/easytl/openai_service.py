@@ -107,30 +107,41 @@ class OpenAIService:
     def _build_translation_batches(text: typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
                                 instructions: typing.Optional[typing.Union[str, SystemTranslationMessage]] = None) -> typing.List[typing.Tuple[ModelTranslationMessage, SystemTranslationMessage]]:
         
+        """
+        
+        Builds the translation batches for the OpenAI service.
+
+        Parameters:
+        text (string | iterable[string] | ModelTranslationMessage | iterable[ModelTranslationMessage]) : The text to translate.
+        instructions (string | SystemTranslationMessage) : The instructions to use for the translation.
+
+        Returns:
+        translation_batches (list[tuple[ModelTranslationMessage, SystemTranslationMessage]]) : The translation batches.
+
+        """
+
+        
         if(isinstance(instructions, str)):
             instructions = SystemTranslationMessage(instructions)
 
         elif(not isinstance(instructions, SystemTranslationMessage)):
             raise ValueError("Invalid type for instructions. Must either be a string or a pre-built SystemTranslationMessage object.")
 
-        translation_batches = []
-        
-        if(isinstance(text, (str, ModelTranslationMessage))):
-            if(isinstance(text, str)):
-                text = ModelTranslationMessage(content=text)
-            translation_batches.append((text, instructions))
+        if(isinstance(text, str)):
+            text = [ModelTranslationMessage(content=text)]
 
+        elif(isinstance(text, ModelTranslationMessage)):
+            text = [text]
+        
         elif(isinstance(text, typing.Iterable)):
-            for item in text:
-                if(isinstance(item, str)):
-                    item = ModelTranslationMessage(content=item)
-                elif(not isinstance(item, ModelTranslationMessage)):
-                    raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
-                translation_batches.append((item, instructions))
+            text = [ModelTranslationMessage(content=item) if isinstance(item, str) else item for item in text]
         else:
             raise ValueError("Invalid type for text. Must either be a string, ModelTranslationMessage, or an iterable of strings/ModelTranslationMessage.")
         
-        return translation_batches
+        if(any(not isinstance(item, ModelTranslationMessage) for item in text)):
+            raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
+        
+        return [(item, instructions) for item in text]
 
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
