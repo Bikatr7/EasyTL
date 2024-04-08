@@ -4,7 +4,6 @@ import asyncio
 
 ## third-party libraries
 from deepl.translator import Translator
-from deepl.util import auth_key_is_free_account
 
 from .util import _convert_iterable_to_str
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
@@ -84,11 +83,14 @@ class DeepLService:
 ##-------------------start-of-_prepare_translation_parameters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def _prepare_translation_parameters(text: str):
+    def _prepare_translation_parameters(text:str):
 
         """
 
         Prepares the parameters for the translation.
+
+        Parameters:
+        text (string) : The text to translate.
 
         """
 
@@ -118,7 +120,6 @@ class DeepLService:
 
         return params
 
-
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -132,7 +133,7 @@ class DeepLService:
         text (string) : The text to translate.
 
         Returns:
-        translation (TextResult) : The translation result.
+        translation (TextResult or list of TextResult) : The translation result.
 
         """
 
@@ -163,7 +164,7 @@ class DeepLService:
         text (string) : The text to translate.
 
         Returns:
-        translation (TextResult) : The translation result.
+        translation (TextResult or list of TextResult) : The translation result.
 
         """
 
