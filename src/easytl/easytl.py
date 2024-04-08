@@ -555,7 +555,7 @@ class EasyTL:
     async def openai_translate_async(text:typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
-                                    translation_instructions:str | SystemTranslationMessage | ModelTranslationMessage | None = None,
+                                    translation_instructions:str | SystemTranslationMessage | None = None,
                                     model:str="gpt-4",
                                     temperature:float=0.3,
                                     top_p:float=1.0,
