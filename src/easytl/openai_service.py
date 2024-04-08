@@ -354,7 +354,7 @@ class OpenAIService:
 
         if(isinstance(text, typing.Iterable)):
 
-            if(not _is_iterable_of_strings(text)):
+            if(not isinstance(text,str) and not _is_iterable_of_strings(text)):
                 raise ValueError("The text must be a string or an iterable of strings.")
 
             ## since instructions are paired with the text, we need to repeat the instructions for index
