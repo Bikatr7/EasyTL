@@ -254,40 +254,60 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
     if(price_case is None):
 
         if(model == "gpt-3.5-turbo"):
-            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106 as it is the most recent version of gpt-3.5-turbo.")
-            return _estimate_cost(text, model="gpt-3.5-turbo-1106", price_case=2)
+            print("Warning: gpt-3.5-turbo may change over time. Estimating cost assuming gpt-3.5-turbo-0125 as it is the most recent version of gpt-3.5-turbo.")
+            return _estimate_cost(text, model="gpt-3.5-turbo-0125")
+        
+        elif(model == "gpt-3.5-turbo-16k"):
+            print("Warning: gpt-3.5-turbo-16k may change over time. Estimating cost assuming gpt-3.5-turbo-16k-0613 as it is the most recent version of gpt-3.5-turbo-16k.")
+            return _estimate_cost(text, model="gpt-3.5-turbo-16k-0613")
         
         elif(model == "gpt-4"):
-            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-1106-preview as it is the most recent version of gpt-4.")
-            return _estimate_cost(text, model="gpt-4-1106-preview", price_case=4)
+            print("Warning: gpt-4 may change over time. Estimating cost assuming gpt-4-0613 as it is the most recent version of gpt-4.")
+            return _estimate_cost(text, model="gpt-4-0613")
         
+        elif(model == "gpt-4-32k"):
+            print("Warning: gpt-4-32k may change over time. Estimating cost assuming gpt-4-32k-0613 as it is the most recent version of gpt-4-32k.")
+            return _estimate_cost(text, model="gpt-4-32k-0613")
+        
+        elif(model == "gpt-4-turbo"):
+            print("Warning: gpt-4-turbo may change over time. Estimating cost assuming gpt-4-turbo-2024-04-09 as it is the most recent version of gpt-4-turbo.")
+            return _estimate_cost(text, model="gpt-4-turbo-2024-04-09")
+                
         elif(model == "gpt-4-turbo-preview"):
-            print("Warning: gpt-4-turbo-preview may change over time. Returning num tokens assuming gpt-4-0125-preview as it is the most recent version of gpt-4-turbo-preview.")
-            return _estimate_cost(text, model="gpt-4-0125-preview", price_case=4)
+            print("Warning: gpt-4-turbo-preview may change over time. Estimating cost assuming gpt-4-0125-preview as it is the most recent version of gpt-4-turbo-preview.")
+            return _estimate_cost(text, model="gpt-4-0125-preview")
+        
+        elif(model == "gpt-4-vision-preview"):
+            print("Warning: gpt-4-vision-preview may change over time. Estimating cost assuming gpt-4-1106-vision-preview as it is the most recent version of gpt-4-1106-vision-preview.")
+            return _estimate_cost(text, model="gpt-4-1106-vision-preview")
         
         elif(model == "gpt-3.5-turbo-0613"):
-            print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
+            print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-0125.")
             return _estimate_cost(text, model=model, price_case=1)
 
         elif(model == "gpt-3.5-turbo-0301"):
-            print("Warning: gpt-3.5-turbo-0301 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter.")
+            print("Warning: gpt-3.5-turbo-0301 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-0125 unless you are specifically trying to break the filter.")
             return _estimate_cost(text, model=model, price_case=1)
         
         elif(model == "gpt-3.5-turbo-1106"):
+            print("Warning: gpt-3.5-turbo-1106 is outdated, consider switching to gpt-3.5-turbo-0125.")
             return _estimate_cost(text, model=model, price_case=2)
         
         elif(model == "gpt-3.5-turbo-0125"):
             return _estimate_cost(text, model=model, price_case=7)
-        
+            
         elif(model == "gpt-3.5-turbo-16k-0613"):
             print("Warning: gpt-3.5-turbo-16k-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
             return _estimate_cost(text, model=model, price_case=3)
         
         elif(model == "gpt-4-1106-preview"):
-            return _estimate_cost(text, model=model, price_case=4)
+            return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gpt-4-0125-preview"):
-            return _estimate_cost(text, model=model, price_case=4)
+            return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gpt-4-1106-vision-preview"):
+            return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gpt-4-0314"):
             print("Warning: gpt-4-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
@@ -295,7 +315,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gpt-4-0613"):
             return _estimate_cost(text, model=model, price_case=5)
-        
+                
         elif(model == "gpt-4-32k-0314"):
             print("Warning: gpt-4-32k-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-32k-0613.")
             return _estimate_cost(text, model=model, price_case=6)
@@ -304,30 +324,29 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             return _estimate_cost(text, model=model, price_case=6)
         
         elif(model == "gemini-pro"):
-            print(f"Warning: gemini-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+            print(f"Warning: gemini-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
             return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=8)
         
         elif(model == "gemini-pro-vision"):
-            print("Warning: gemini-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+            print("Warning: gemini-pro-vision may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
             return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
         
         elif(model == "gemini-ultra"):
             return _estimate_cost(text, model=model, price_case=8)
-        
         elif(model == "gemini-1.0-pro"):
-            print(f"Warning: gemini-1.0-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+            print(f"Warning: gemini-1.0-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
             return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gemini-1.0-pro-vision"):
-            print("Warning: gemini-1.0-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+            print("Warning: gemini-1.0-pro-vision may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
             return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gemini-1.0-pro-latest"):
-            print(f"Warning: gemini-1.0-pro-latest may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+            print(f"Warning: gemini-1.0-pro-latest may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
             return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=8)
         
         elif(model == "gemini-1.0-pro-vision-latest"):
-            print("Warning: gemini-1.0-pro-vision-latest may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+            print("Warning: gemini-1.0-pro-vision-latest may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
             return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
         
         elif(model == "gemini-1.5-pro-latest"):
@@ -375,32 +394,39 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
     raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
-    "gpt-4",
-    "gpt-4-turbo-preview",
     "gpt-3.5-turbo-0301",
-    "gpt-4-0314",
-    "gpt-4-32k-0314",
-    "gpt-3.5-turbo-0613",
     "gpt-3.5-turbo-0125",
-    "gpt-3.5-turbo-16k-0613",
+    "gpt-3.5-turbo-0613",
     "gpt-3.5-turbo-1106",
+    "gpt-3.5-turbo-16k",
+    "gpt-3.5-turbo-16k-0613",
+    "gpt-4",
+    "gpt-4-0314",
     "gpt-4-0613",
+    "gpt-4-32k",
+    "gpt-4-32k-0314",
     "gpt-4-32k-0613",
+    "gpt-4-turbo",
+    "gpt-4-turbo-preview",
+    "gpt-4-turbo-2024-04-09",
+    "gpt-4-0125-preview",
     "gpt-4-1106-preview",
-    "gpt-4-0125-preview"
+    "gpt-4-vision-preview",
+    "gpt-4-1106-vision-preview",
 ]
 
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
 ## https://ai.google.dev/models/gemini
 ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-001",
-    "gemini-1.0-pro-vision-001",
     "gemini-1.0-pro",
-    "gemini-1.0-pro-vision",
     "gemini-1.0-pro-latest",
+    "gemini-1.0-pro-vision-001",
+    "gemini-1.0-pro-vision",
     "gemini-1.0-pro-vision-latest",
     "gemini-1.5-pro-latest",
     "gemini-1.0-ultra-latest",
@@ -409,31 +435,35 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-ultra"
 ]
 
-## Costs are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-02
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
 MODEL_COSTS = {
-    "gpt-3.5-turbo": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
-    "gpt-4": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
-    "gpt-4-turbo-preview": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
-    "gpt-3.5-turbo-0613": {"price_case": 1, "_input_cost": 0.0015, "_output_cost": 0.0020},
-    "gpt-3.5-turbo-0301": {"price_case": 1, "_input_cost": 0.0015, "_output_cost": 0.0020},
-    "gpt-3.5-turbo-1106": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
+    # Grouping GPT-3.5 models together
     "gpt-3.5-turbo-0125": {"price_case": 7, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gpt-3.5-turbo-0301": {"price_case": 1, "_input_cost": 0.0015, "_output_cost": 0.0020},
+    "gpt-3.5-turbo-0613": {"price_case": 1, "_input_cost": 0.0015, "_output_cost": 0.0020},
+    "gpt-3.5-turbo-1106": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
     "gpt-3.5-turbo-16k-0613": {"price_case": 3, "_input_cost": 0.0030, "_output_cost": 0.0040},
-    "gpt-4-1106-preview": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
-    "gpt-4-0125-preview": {"price_case": 4, "_input_cost": 0.01, "_output_cost": 0.03},
+    
+    # Grouping GPT-4 models by their capabilities and versions
     "gpt-4-0314": {"price_case": 5, "_input_cost": 0.03, "_output_cost": 0.06},
     "gpt-4-0613": {"price_case": 5, "_input_cost": 0.03, "_output_cost": 0.06},
     "gpt-4-32k-0314": {"price_case": 6, "_input_cost": 0.06, "_output_cost": 0.012},
     "gpt-4-32k-0613": {"price_case": 6, "_input_cost": 0.06, "_output_cost": 0.012},
-    "gemini-1.0-pro-001": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-vision-001": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-vision": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-vision-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.5-pro-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-ultra-latest": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-pro": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-pro-vision": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-ultra": {"price_case": 8, "_input_cost": 0.0, "_output_cost": 0.0}
+    "gpt-4-1106-preview": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-4-0125-preview": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-4-1106-vision-preview": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
+    "gpt-4-turbo-2024-04-09": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
+    
+    # Grouping Gemini models together
+    "gemini-1.0-pro-001": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-vision-001": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-vision": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-pro-vision-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.5-pro-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.0-ultra-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-pro-vision": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-ultra": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0}
 }
