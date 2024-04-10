@@ -309,6 +309,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "gpt-4-1106-vision-preview"):
             return _estimate_cost(text, model=model, price_case=8)
         
+        elif(model == "gpt-4-turbo-2024-04-09"):
+            return _estimate_cost(text, model=model, price_case=8)
+        
         elif(model == "gpt-4-0314"):
             print("Warning: gpt-4-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
             return _estimate_cost(text, model=model, price_case=5)
