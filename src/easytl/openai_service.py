@@ -349,6 +349,8 @@ class OpenAIService:
 
         """
 
+        cost_modifier = 1.0
+
         if(translation_instructions is None):
             translation_instructions = OpenAIService._default_translation_instructions.content
 
@@ -356,9 +358,16 @@ class OpenAIService:
 
             if(not isinstance(text,str) and not _is_iterable_of_strings(text)):
                 raise ValueError("The text must be a string or an iterable of strings.")
+            
+            if(isinstance(text, ModelTranslationMessage) or isinstance(text, SystemTranslationMessage)):
+                ## since instructions are paired with the text, we need to repeat the instructions for index
+                ## this only works if the text is pre-built ModelTranslationMessage or SystemTranslationMessage objects
+                ## otherwise, the instructions will be repeated for each item in the iterable which is not the intended behavior
+                translation_instructions = translation_instructions * len(text) # type: ignore
 
-            ## since instructions are paired with the text, we need to repeat the instructions for index
-            translation_instructions = translation_instructions * len(text) # type: ignore
+            else:
+                ## otherwise, we can really only estimate.
+                cost_modifier = 2.5
 
             text = _convert_iterable_to_str(text)
 
@@ -372,5 +381,7 @@ class OpenAIService:
         total_text_to_estimate = f"{translation_instructions}\n{text}"
         
         _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
+
+        _cost = _cost * cost_modifier
 
         return _num_tokens, _cost, model   
