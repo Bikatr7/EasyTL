@@ -334,8 +334,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             print("Warning: gemini-pro-vision may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
             return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
         
-        elif(model == "gemini-ultra"):
-            return _estimate_cost(text, model=model, price_case=8)
+       ## elif(model == "gemini-ultra"):
+    ##        return _estimate_cost(text, model=model, price_case=8)
+        
         elif(model == "gemini-1.0-pro"):
             print(f"Warning: gemini-1.0-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
             return _estimate_cost(text, model=model, price_case=8)
@@ -355,8 +356,8 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "gemini-1.5-pro-latest"):
             return _estimate_cost(text, model=model, price_case=8)
         
-        elif(model == "gemini-1.0-ultra-latest"):
-            return _estimate_cost(text, model=model, price_case=8)
+  ##      elif(model == "gemini-1.0-ultra-latest"):
+      ##      return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gemini-1.0-pro-001"):
             return _estimate_cost(text, model=model, price_case=8)
@@ -432,10 +433,10 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-vision",
     "gemini-1.0-pro-vision-latest",
     "gemini-1.5-pro-latest",
-    "gemini-1.0-ultra-latest",
+  ##  "gemini-1.0-ultra-latest",
     "gemini-pro",
     "gemini-pro-vision",
-    "gemini-ultra"
+  ##  "gemini-ultra"
 ]
 
 ## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
@@ -465,8 +466,8 @@ MODEL_COSTS = {
     "gemini-1.0-pro-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-1.0-pro-vision-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-1.5-pro-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-ultra-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+ ##   "gemini-1.0-ultra-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-pro-vision": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-ultra": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0}
+ ##   "gemini-ultra": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0}
 }
