@@ -340,8 +340,11 @@ class EasyTL:
         if(decorator != None):
             GeminiService._set_decorator(decorator)
 
+        translation_instructions = translation_instructions or GeminiService._system_message
+
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
+                                          system_message=translation_instructions,
                                           temperature=temperature,
                                           top_p=top_p,
                                           top_k=top_k,
@@ -351,7 +354,7 @@ class EasyTL:
                                           max_output_tokens=max_output_tokens)
 
         if(isinstance(text, str)):
-            _result = GeminiService._translate_text(text, translation_instructions)
+            _result = GeminiService._translate_text(text)
 
             if(hasattr(_result, "text")):
                 return _result.text
@@ -361,7 +364,7 @@ class EasyTL:
         
         elif(_is_iterable_of_strings(text)):
             
-            _results = [GeminiService._translate_text(t, translation_instructions) for t in text]
+            _results = [GeminiService._translate_text(t) for t in text]
 
             if(all(hasattr(_r, "text") for _r in _results)):
                 return [_r.text for _r in _results]
@@ -441,8 +444,11 @@ class EasyTL:
         if(decorator != None):
             GeminiService._set_decorator(decorator)
 
+        translation_instructions = translation_instructions or GeminiService._system_message
+
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
+                                          system_message=translation_instructions,
                                           temperature=temperature,
                                           top_p=top_p,
                                           top_k=top_k,
@@ -452,7 +458,7 @@ class EasyTL:
                                           max_output_tokens=max_output_tokens)
             
         if(isinstance(text, str)):
-            _result = await GeminiService._translate_text_async(text, translation_instructions)
+            _result = await GeminiService._translate_text_async(text)
 
             if(hasattr(_result, "text")):
                 return _result.text 
@@ -461,7 +467,7 @@ class EasyTL:
                 raise Exception("Unexpected error occurred. Please try again.")
             
         elif(_is_iterable_of_strings(text)):
-            _tasks = [GeminiService._translate_text_async(_t, translation_instructions) for _t in text]
+            _tasks = [GeminiService._translate_text_async(_t) for _t in text]
 
             _results = await asyncio.gather(*_tasks)
 
