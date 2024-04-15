@@ -119,7 +119,7 @@ class EasyTL:
 
     @staticmethod
     def deepl_translate(text:typing.Union[str, typing.Iterable[str]],
-                        target_lang:str | Language = "EN",
+                        target_lang:str | Language = "EN-US",
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
                         source_lang:str | Language | None = None,
@@ -189,7 +189,7 @@ class EasyTL:
 
     @staticmethod
     async def deepl_translate_async(text:typing.Union[str, typing.Iterable[str]],
-                            target_lang:str | Language = "EN",
+                            target_lang:str | Language = "EN-US",
                             override_previous_settings:bool = True,
                             decorator:typing.Callable | None = None,
                             source_lang:str | Language | None = None,
