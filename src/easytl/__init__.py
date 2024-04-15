@@ -11,6 +11,6 @@ from .classes import Language, SplitSentences, Formality, GlossaryInfo, ModelTra
 from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
 
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, EasyTLException, InvalidAPIKeyException, InvalidEasyTLSettings
-from .exceptions import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from .exceptions import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
 from .exceptions import AuthorizationException, QuotaExceededException
 from .exceptions import GoogleAuthError
