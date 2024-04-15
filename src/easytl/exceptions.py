@@ -12,7 +12,7 @@ from google.api_core.exceptions import GoogleAPIError
 from openai import OpenAIError
 
 ## service specific exceptions
-from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
 from deepl.exceptions import AuthorizationException, QuotaExceededException
 from google.auth.exceptions import GoogleAuthError
 
