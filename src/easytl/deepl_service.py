@@ -18,7 +18,7 @@ class DeepLService:
     
     _translator:Translator
 
-    _target_lang:str | Language = "EN"
+    _target_lang:str | Language = "EN-US"
     _source_lang:str | Language | None = None
     _context:str | None = None
     _split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL"

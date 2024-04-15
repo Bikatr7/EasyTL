@@ -19,6 +19,8 @@ class GeminiService:
     _default_translation_instructions:str = "Please translate the following text into English."
     _default_model:str = "gemini-pro"
 
+    _system_message = _default_translation_instructions
+
     _model:str = _default_model
     _temperature:float = 0.5
     _top_p:float = 0.9
@@ -93,6 +95,7 @@ class GeminiService:
         
     @staticmethod
     def _set_attributes(model:str="gemini-pro",
+                        system_message:str = _default_translation_instructions,
                         temperature:float=0.5,
                         top_p:float=0.9,
                         top_k:int=40,
@@ -108,6 +111,7 @@ class GeminiService:
         """
 
         GeminiService._model = model
+        GeminiService._system_message = system_message
         GeminiService._temperature = temperature
         GeminiService._top_p = top_p
         GeminiService._top_k = top_k
@@ -127,12 +131,21 @@ class GeminiService:
 
         """
 
-        GeminiService._client = genai.GenerativeModel(model_name=GeminiService._model,
-                                                     safety_settings=GeminiService._safety_settings)
+        ## as of now, the only model that allows for system instructions is gemini--1.5-pro-latest
+        if(GeminiService._model == "gemini--1.5-pro-latest"):
+
+            GeminiService._client = genai.GenerativeModel(model_name=GeminiService._model,
+                                                        safety_settings=GeminiService._safety_settings,
+                                                        system_instruction=GeminiService._system_message,
+                                                        )
+        else:
+            GeminiService._client = genai.GenerativeModel(model_name=GeminiService._model,
+                                                        safety_settings=GeminiService._safety_settings)
+
 
         GeminiService._generation_config = GenerationConfig(candidate_count=GeminiService._candidate_count,
-                                                           max_output_tokens=GeminiService._max_output_tokens,
                                                            stop_sequences=GeminiService._stop_sequences,
+                                                           max_output_tokens=GeminiService._max_output_tokens,
                                                             temperature=GeminiService._temperature,
                                                             top_p=GeminiService._top_p,
                                                             top_k=GeminiService._top_k)
@@ -164,7 +177,7 @@ class GeminiService:
 
     @staticmethod
     @_redefine_client_decorator
-    async def _translate_text_async(text_to_translate:str, translation_instructions:typing.Optional[str]) -> AsyncGenerateContentResponse:
+    async def _translate_text_async(text_to_translate:str) -> AsyncGenerateContentResponse:
 
         """
 
@@ -173,26 +186,23 @@ class GeminiService:
 
         Parameters:
         text_to_translate (string) : The text to translate.
-        translation_instructions (string) : The instructions for the translation.
 
         Returns:
         AsyncGenerateContentResponse : The translation.
 
         """
 
-        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
-
         if(GeminiService._decorator_to_use is None):
-            return await GeminiService.__translate_text_async(translation_instructions, text_to_translate)
+            return await GeminiService.__translate_text_async(text_to_translate)
 
         _decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text_async)
-        return await _decorated_function(translation_instructions, text_to_translate)
+        return await _decorated_function(text_to_translate)
     
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
     @_redefine_client_decorator
-    def _translate_text(text_to_translate:str, translation_instructions:typing.Optional[str]) -> GenerateContentResponse:
+    def _translate_text(text_to_translate:str) -> GenerateContentResponse:
 
         """
 
@@ -201,32 +211,28 @@ class GeminiService:
 
         Parameters:
         text_to_translate (string) : The text to translate.
-        translation_instructions (string) : The instructions for the translation.
 
         Returns:
         GenerateContentResponse : The translation.
 
         """
 
-        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
-
         if(GeminiService._decorator_to_use is None):
-            return GeminiService.__translate_text(translation_instructions, text_to_translate)
+            return GeminiService.__translate_text(text_to_translate)
 
         _decorated_function = GeminiService._decorator_to_use(GeminiService.__translate_text)
-        return _decorated_function(translation_instructions, text_to_translate)
+        return _decorated_function(text_to_translate)
     
 ##-------------------start-of-__translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def __translate_text(translation_instructions:str, text_to_translate:str) -> GenerateContentResponse:
+    def __translate_text(text_to_translate:str) -> GenerateContentResponse:
 
         """
 
         Synchronously translates text.
 
         Parameters:
-        translation_instructions (string) : The instructions for the translation.
         text_to_translate (string) : The text to translate.
 
         Returns:
@@ -234,8 +240,10 @@ class GeminiService:
 
         """
 
+        text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+
         _response = GeminiService._client.generate_content(
-            f"{translation_instructions}\n{text_to_translate}",
+            contents=text_request,
             generation_config=GeminiService._generation_config,
             safety_settings=GeminiService._safety_settings,
             stream=GeminiService._stream
@@ -246,14 +254,13 @@ class GeminiService:
 ##-------------------start-of-__translate_message_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(translation_instructions:str, text_to_translate:str) -> AsyncGenerateContentResponse:
+    async def __translate_text_async(text_to_translate:str) -> AsyncGenerateContentResponse:
 
         """
 
         Asynchronously translates text.
 
         Parameters:
-        translation_instructions (string) : The instructions for the translation.
         text_to_translate (string) : The text to translate.
 
         Returns:
@@ -261,8 +268,10 @@ class GeminiService:
 
         """
 
+        text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+
         _response = await GeminiService._client.generate_content_async(
-            contents=[f"{translation_instructions}\n{text_to_translate}"],
+            contents=text_request,
             generation_config=GeminiService._generation_config,
             safety_settings=GeminiService._safety_settings,
             stream=GeminiService._stream
