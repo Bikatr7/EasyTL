@@ -172,7 +172,8 @@ class EasyTL:
                                         source_lang, 
                                         context, 
                                         split_sentences,
-                                        preserve_formatting, 
+                                        preserve_formatting,
+                                        None,
                                         formality, 
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
             
@@ -192,6 +193,7 @@ class EasyTL:
                             target_lang:str | Language = "EN-US",
                             override_previous_settings:bool = True,
                             decorator:typing.Callable | None = None,
+                            semaphore:int | None = None,
                             source_lang:str | Language | None = None,
                             context:str | None = None,
                             split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -218,6 +220,7 @@ class EasyTL:
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        semaphore (int) : The number of concurrent requests to make. Default is 30.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
@@ -246,6 +249,7 @@ class EasyTL:
                                         context, 
                                         split_sentences,
                                         preserve_formatting, 
+                                        semaphore,
                                         formality, 
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
             
@@ -382,6 +386,7 @@ class EasyTL:
     async def gemini_translate_async(text:typing.Union[str, typing.Iterable[str]],
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
+                                    semaphore:int | None = None,
                                     translation_instructions:str | None = None,
                                     model:str="gemini-pro",
                                     temperature:float=0.5,
@@ -407,6 +412,7 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models.
         translation_instructions (string or None) : The translation instructions to use.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -457,7 +463,8 @@ class EasyTL:
                                           candidate_count=1,
                                           stream=False,
                                           stop_sequences=stop_sequences,
-                                          max_output_tokens=max_output_tokens)
+                                          max_output_tokens=max_output_tokens,
+                                          semaphore=semaphore)
             
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
@@ -587,6 +594,7 @@ class EasyTL:
     async def openai_translate_async(text:typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
+                                    semaphore:int | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
                                     model:str="gpt-4",
                                     temperature:float=0.3,
@@ -612,6 +620,7 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -657,6 +666,7 @@ class EasyTL:
             OpenAIService._set_attributes(model=model,
                                         temperature=temperature,
                                         logit_bias=None,
+                                        semaphore=semaphore,
                                         top_p=top_p,
                                         n=1,
                                         stop=stop,

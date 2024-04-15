@@ -34,7 +34,9 @@ class GeminiService:
     _client:genai.GenerativeModel
     _generation_config:GenerationConfig
 
-    _semaphore = asyncio.Semaphore(15)
+    _semaphore_value:int = 15
+
+    _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
@@ -105,7 +107,9 @@ class GeminiService:
                         candidate_count:int=1,
                         stream:bool=False,
                         stop_sequences:typing.List[str] | None=None,
-                        max_output_tokens:int | None=None) -> None:
+                        max_output_tokens:int | None=None,
+                        semaphore:int | None=None
+                        ) -> None:
         
         """
 
@@ -123,7 +127,12 @@ class GeminiService:
         GeminiService._stop_sequences = stop_sequences
         GeminiService._max_output_tokens = max_output_tokens
 
-        GeminiService._semaphore = asyncio.Semaphore(15) if model != "gemini--1.5-pro-latest" else asyncio.Semaphore(2)
+        ## if a semaphore is not provided, set it to the default value based on the model
+        if(semaphore is not None):
+            GeminiService._semaphore_value = semaphore
+
+        else:
+            GeminiService._semaphore_value = 15 if GeminiService._model != "gemini--1.5-pro-latest" else 2
         
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -155,7 +164,7 @@ class GeminiService:
                                                             top_p=GeminiService._top_p,
                                                             top_k=GeminiService._top_k)
         
-        GeminiService._semaphore = asyncio.Semaphore(15) if GeminiService._model != "gemini--1.5-pro-latest" else asyncio.Semaphore(2)
+        GeminiService._semaphore = asyncio.Semaphore(GeminiService._semaphore_value)
 
 ##-------------------start-of-_redefine_client_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

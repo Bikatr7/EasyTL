@@ -32,8 +32,9 @@ class OpenAIService:
     _presence_penalty:float = 0.0
     _frequency_penalty:float = 0.0
 
-    _semaphore = asyncio.Semaphore(5)
+    _semaphore_value:int = 5
 
+    _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
     _async_client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
@@ -79,6 +80,7 @@ class OpenAIService:
     def _set_attributes(model:str = _default_model,
                         temperature:float = 0.3,
                         logit_bias:typing.Dict[str, int] | None = None,
+                        semaphore:int | None = None,
                         top_p:float = 1.0,
                         n:int = 1,
                         stream:bool = False,
@@ -103,6 +105,10 @@ class OpenAIService:
             OpenAIService._max_tokens = max_tokens
             OpenAIService._presence_penalty = presence_penalty
             OpenAIService._frequency_penalty = frequency_penalty
+
+            if(semaphore is not None):
+                OpenAIService._semaphore_value = semaphore
+                OpenAIService._semaphore = asyncio.Semaphore(OpenAIService._semaphore_value)
 
 ##-------------------start-of-_build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -31,9 +31,11 @@ class DeepLService:
     _splitting_tags:str | typing.List[str] | None = None
     _ignore_tags:str | typing.List[str] | None = None
 
-    _decorator_to_use:typing.Union[typing.Callable, None] = None
+    _semaphore_value:int = 30
 
-    _semaphore = asyncio.Semaphore(30)
+    _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
+
+    _decorator_to_use:typing.Union[typing.Callable, None] = None
 
 ##-------------------start-of-_set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -59,6 +61,7 @@ class DeepLService:
                         context:str | None = None,
                         split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
                         preserve_formatting:bool | None = None,
+                        semaphore:int | None = None,
                         formality:typing.Literal["default", "more", "less", "prefer_more", "prefer_less"] | Formality | None = None,
                         glossary:str | GlossaryInfo | None = None,
                         tag_handling:typing.Literal["xml", "html"] | None = None,
@@ -85,6 +88,10 @@ class DeepLService:
         DeepLService._non_splitting_tags = non_splitting_tags
         DeepLService._splitting_tags = splitting_tags
         DeepLService._ignore_tags = ignore_tags
+
+        if(semaphore is not None):
+            DeepLService._semaphore_value = semaphore
+            DeepLService._semaphore = asyncio.Semaphore(semaphore)
 
 ##-------------------start-of-_prepare_translation_parameters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
