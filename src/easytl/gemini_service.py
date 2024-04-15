@@ -4,6 +4,7 @@
 
 ## built-in libraries
 import typing
+import asyncio
 
 ## third party libraries
 from google.generativeai import GenerationConfig
@@ -32,6 +33,8 @@ class GeminiService:
 
     _client:genai.GenerativeModel
     _generation_config:GenerationConfig
+
+    _semaphore = asyncio.Semaphore(15)
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
@@ -119,6 +122,8 @@ class GeminiService:
         GeminiService._stream = stream
         GeminiService._stop_sequences = stop_sequences
         GeminiService._max_output_tokens = max_output_tokens
+
+        GeminiService._semaphore = asyncio.Semaphore(15) if model != "gemini--1.5-pro-latest" else asyncio.Semaphore(2)
         
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -149,6 +154,8 @@ class GeminiService:
                                                             temperature=GeminiService._temperature,
                                                             top_p=GeminiService._top_p,
                                                             top_k=GeminiService._top_k)
+        
+        GeminiService._semaphore = asyncio.Semaphore(15) if GeminiService._model != "gemini--1.5-pro-latest" else asyncio.Semaphore(2)
 
 ##-------------------start-of-_redefine_client_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -268,17 +275,19 @@ class GeminiService:
 
         """
 
-        text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+        async with GeminiService._semaphore:
 
-        _response = await GeminiService._client.generate_content_async(
-            contents=text_request,
-            generation_config=GeminiService._generation_config,
-            safety_settings=GeminiService._safety_settings,
-            stream=GeminiService._stream
-        )
+            text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+
+            _response = await GeminiService._client.generate_content_async(
+                contents=text_request,
+                generation_config=GeminiService._generation_config,
+                safety_settings=GeminiService._safety_settings,
+                stream=GeminiService._stream
+            )
+            
+            return _response
         
-        return _response
-    
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod

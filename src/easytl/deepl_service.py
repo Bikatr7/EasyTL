@@ -33,6 +33,8 @@ class DeepLService:
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
+    _semaphore = asyncio.Semaphore(30)
+
 ##-------------------start-of-_set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -172,19 +174,21 @@ class DeepLService:
 
         """
 
-        params = DeepLService._prepare_translation_parameters(text)
+        async with DeepLService._semaphore:
 
-        try:
-            if(DeepLService._decorator_to_use is None):
-                loop = asyncio.get_running_loop()
-                return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
-            
-            else:
-                decorated_function = DeepLService._decorator_to_use(DeepLService._async_translate_text)
-                return await decorated_function(**params)
-            
-        except Exception as _e:
-            raise _e
+            params = DeepLService._prepare_translation_parameters(text)
+
+            try:
+                if(DeepLService._decorator_to_use is None):
+                    loop = asyncio.get_running_loop()
+                    return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
+                
+                else:
+                    decorated_function = DeepLService._decorator_to_use(DeepLService._async_translate_text)
+                    return await decorated_function(**params)
+                
+            except Exception as _e:
+                raise _e
 
 ##-------------------start-of-_set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

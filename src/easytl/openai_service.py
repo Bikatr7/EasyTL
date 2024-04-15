@@ -4,6 +4,7 @@
 
 ## built-in libraries
 import typing
+import asyncio
 
 ## third-party libraries
 from openai import AsyncOpenAI, OpenAI
@@ -30,6 +31,8 @@ class OpenAIService:
     _max_tokens:int | None = None
     _presence_penalty:float = 0.0
     _frequency_penalty:float = 0.0
+
+    _semaphore = asyncio.Semaphore(5)
 
 
     _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
@@ -258,26 +261,28 @@ class OpenAIService:
 
         """
 
-        response = await OpenAIService._async_client.chat.completions.create(
-            messages=[
-                instruction.to_dict(),
-                prompt.to_dict()
-            ],  # type: ignore
+        async with OpenAIService._semaphore:
 
-            model=OpenAIService._model,
-            temperature=OpenAIService._temperature,
-            logit_bias=OpenAIService._logit_bias,
-            top_p=OpenAIService._top_p,
-            n=OpenAIService._n,
-            stream=OpenAIService._stream,
-            stop=OpenAIService._stop,
-            presence_penalty=OpenAIService._presence_penalty,
-            frequency_penalty=OpenAIService._frequency_penalty,
-            max_tokens=OpenAIService._max_tokens
-            
-        ) 
+            response = await OpenAIService._async_client.chat.completions.create(
+                messages=[
+                    instruction.to_dict(),
+                    prompt.to_dict()
+                ],  # type: ignore
 
-        return response
+                model=OpenAIService._model,
+                temperature=OpenAIService._temperature,
+                logit_bias=OpenAIService._logit_bias,
+                top_p=OpenAIService._top_p,
+                n=OpenAIService._n,
+                stream=OpenAIService._stream,
+                stop=OpenAIService._stop,
+                presence_penalty=OpenAIService._presence_penalty,
+                frequency_penalty=OpenAIService._frequency_penalty,
+                max_tokens=OpenAIService._max_tokens
+                
+            ) 
+
+            return response
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
