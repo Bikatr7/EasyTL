@@ -50,6 +50,8 @@ class EasyTL:
 
         """
 
+        assert api_type in ["deepl", "gemini", "openai"], ValueError("Invalid API type specified.")
+
         if(api_type == "deepl"):
             DeepLService._set_api_key(api_key)
 
