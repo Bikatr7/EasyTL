@@ -29,7 +29,7 @@ class EasyTL:
 
     Use test_api_key_validity() to test the validity of the API key for the specified API type. (Optional) Will be done automatically when calling translation functions.
 
-    Use translate() to translate text using the specified service. Or specify the service by calling the specific translation function. (e.g. openai_translate())
+    Use translate() to translate text using the specified service with it's appropriate kwargs. Or specify the service by calling the specific translation function. (e.g. openai_translate())
 
     Use calculate_cost() to calculate the cost of translating text using the specified service. (Optional)
 
