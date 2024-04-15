@@ -240,8 +240,10 @@ class GeminiService:
 
         """
 
+        text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+
         _response = GeminiService._client.generate_content(
-            contents=f"{text_to_translate}",
+            contents=text_request,
             generation_config=GeminiService._generation_config,
             safety_settings=GeminiService._safety_settings,
             stream=GeminiService._stream
@@ -266,8 +268,10 @@ class GeminiService:
 
         """
 
+        text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+
         _response = await GeminiService._client.generate_content_async(
-            contents=f"{text_to_translate}",
+            contents=text_request,
             generation_config=GeminiService._generation_config,
             safety_settings=GeminiService._safety_settings,
             stream=GeminiService._stream
