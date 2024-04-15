@@ -75,7 +75,7 @@ setuptools_scm>=6.0
 
 tomli
 
-google-generativeai==0.4.1
+google-generativeai==0.5.0
 
 deepl==1.16.1
 

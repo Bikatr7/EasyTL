@@ -131,10 +131,17 @@ class GeminiService:
 
         """
 
-        GeminiService._client = genai.GenerativeModel(model_name=GeminiService._model,
-                                                     safety_settings=GeminiService._safety_settings,
-                                                     system_instruction=GeminiService._system_message,
-                                                     )
+        ## as of now, the only model that allows for system instructions is gemini--1.5-pro-latest
+        if(GeminiService._model == "gemini--1.5-pro-latest"):
+
+            GeminiService._client = genai.GenerativeModel(model_name=GeminiService._model,
+                                                        safety_settings=GeminiService._safety_settings,
+                                                        system_instruction=GeminiService._system_message,
+                                                        )
+        else:
+            GeminiService._client = genai.GenerativeModel(model_name=GeminiService._model,
+                                                        safety_settings=GeminiService._safety_settings)
+
 
         GeminiService._generation_config = GenerationConfig(candidate_count=GeminiService._candidate_count,
                                                            stop_sequences=GeminiService._stop_sequences,
@@ -184,8 +191,6 @@ class GeminiService:
         AsyncGenerateContentResponse : The translation.
 
         """
-
-
 
         if(GeminiService._decorator_to_use is None):
             return await GeminiService.__translate_text_async(text_to_translate)
