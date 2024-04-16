@@ -122,6 +122,7 @@ class EasyTL:
                         target_lang:str | Language = "EN-US",
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
+                        logging_directory:str | None = None,
                         source_lang:str | Language | None = None,
                         context:str | None = None,
                         split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -145,6 +146,7 @@ class EasyTL:
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
@@ -173,6 +175,7 @@ class EasyTL:
                                         context, 
                                         split_sentences,
                                         preserve_formatting,
+                                        logging_directory,
                                         None,
                                         formality, 
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
@@ -193,6 +196,7 @@ class EasyTL:
                             target_lang:str | Language = "EN-US",
                             override_previous_settings:bool = True,
                             decorator:typing.Callable | None = None,
+                            logging_directory:str | None = None,
                             semaphore:int | None = None,
                             source_lang:str | Language | None = None,
                             context:str | None = None,
@@ -220,6 +224,7 @@ class EasyTL:
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         semaphore (int) : The number of concurrent requests to make. Default is 30.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
@@ -249,6 +254,7 @@ class EasyTL:
                                         context, 
                                         split_sentences,
                                         preserve_formatting, 
+                                        logging_directory,
                                         semaphore,
                                         formality, 
                                         glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
@@ -285,6 +291,7 @@ class EasyTL:
     def gemini_translate(text:typing.Union[str, typing.Iterable[str]],
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
+                        logging_directory:str | None = None,
                         translation_instructions:str | None = None,
                         model:str="gemini-pro",
                         temperature:float=0.5,
@@ -307,6 +314,7 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         translation_instructions (string or None) : The translation instructions to use.
         model (string) : The model to use. 
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -331,7 +339,7 @@ class EasyTL:
         "gemini_max_output_tokens": ""
         }
 
-        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory"]
         _custom_validation_params = ["gemini_stop_sequences"]
 
         assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "text must be a string or an iterable of strings."
@@ -357,7 +365,8 @@ class EasyTL:
                                           candidate_count=1,
                                           stream=False,
                                           stop_sequences=stop_sequences,
-                                          max_output_tokens=max_output_tokens)
+                                          max_output_tokens=max_output_tokens,
+                                          logging_directory=logging_directory)
 
         if(isinstance(text, str)):
             _result = GeminiService._translate_text(text)
@@ -386,6 +395,7 @@ class EasyTL:
     async def gemini_translate_async(text:typing.Union[str, typing.Iterable[str]],
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
+                                    logging_directory:str | None = None,
                                     semaphore:int | None = None,
                                     translation_instructions:str | None = None,
                                     model:str="gemini-pro",
@@ -412,6 +422,7 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models.
         translation_instructions (string or None) : The translation instructions to use.
         model (string) : The model to use.
@@ -437,7 +448,7 @@ class EasyTL:
         "gemini_max_output_tokens": ""
         }
 
-        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "semaphore"]
         _custom_validation_params = ["gemini_stop_sequences"]
 
         assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "stop_sequences must be a string or an iterable of strings."
@@ -464,7 +475,8 @@ class EasyTL:
                                           stream=False,
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
-                                          semaphore=semaphore)
+                                          semaphore=semaphore,
+                                          logging_directory=logging_directory)
             
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
@@ -494,6 +506,7 @@ class EasyTL:
     def openai_translate(text:typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
+                        logging_directory:str | None = None,
                         translation_instructions:str | SystemTranslationMessage | None = None,
                         model:str="gpt-4",
                         temperature:float=0.3,
@@ -518,6 +531,7 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -544,7 +558,7 @@ class EasyTL:
         "openai_frequency_penalty": ""
         }
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory"]
         _custom_validation_params = ["openai_stop"]
     
         assert stop is None or isinstance(stop, str) or (hasattr(stop, '__iter__') and all(isinstance(i, str) for i in stop)), "stop must be a string or an iterable of strings."
@@ -568,7 +582,8 @@ class EasyTL:
                                         stop=stop,
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
-                                        frequency_penalty=frequency_penalty)
+                                        frequency_penalty=frequency_penalty,
+                                        logging_directory=logging_directory)
             
         translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
         
@@ -595,6 +610,7 @@ class EasyTL:
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
                                     semaphore:int | None = None,
+                                    logging_directory:str | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
                                     model:str="gpt-4",
                                     temperature:float=0.3,
@@ -647,7 +663,7 @@ class EasyTL:
         "openai_frequency_penalty": ""
         }
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions"]
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "semaphore"]
         _custom_validation_params = ["openai_stop"]
 
         assert stop is None or isinstance(stop, str) or (hasattr(stop, '__iter__') and all(isinstance(i, str) for i in stop)), "stop must be a string or an iterable of strings."
@@ -672,7 +688,8 @@ class EasyTL:
                                         stop=stop,
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
-                                        frequency_penalty=frequency_penalty)
+                                        frequency_penalty=frequency_penalty,
+                                        logging_directory=logging_directory)
 
         _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
 

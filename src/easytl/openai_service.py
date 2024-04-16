@@ -88,7 +88,9 @@ class OpenAIService:
                         stop:typing.List[str] | None = None,
                         max_tokens:int | None = None,
                         presence_penalty:float = 0.0,
-                        frequency_penalty:float = 0.0) -> None:
+                        frequency_penalty:float = 0.0,
+                        logging_directory:str | None = None
+                        ) -> None:
     
             """
     
@@ -106,6 +108,7 @@ class OpenAIService:
             OpenAIService._max_tokens = max_tokens
             OpenAIService._presence_penalty = presence_penalty
             OpenAIService._frequency_penalty = frequency_penalty
+            OpenAIService._log_directory = logging_directory
 
             if(semaphore is not None):
                 OpenAIService._semaphore_value = semaphore
