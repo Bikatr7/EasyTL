@@ -109,7 +109,8 @@ class GeminiService:
                         stream:bool=False,
                         stop_sequences:typing.List[str] | None=None,
                         max_output_tokens:int | None=None,
-                        semaphore:int | None=None
+                        semaphore:int | None=None,
+                        logging_directory:str | None=None
                         ) -> None:
         
         """
@@ -127,6 +128,7 @@ class GeminiService:
         GeminiService._stream = stream
         GeminiService._stop_sequences = stop_sequences
         GeminiService._max_output_tokens = max_output_tokens
+        GeminiService._log_directory = logging_directory
 
         ## if a semaphore is not provided, set it to the default value based on the model
         if(semaphore is not None):
