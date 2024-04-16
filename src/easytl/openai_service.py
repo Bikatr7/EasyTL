@@ -12,7 +12,7 @@ from openai.types.chat.chat_completion import ChatCompletion
 
 ## custom modules
 from .classes import SystemTranslationMessage, ModelTranslationMessage
-from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
+from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings, _sync_logging_decorator, _async_logging_decorator
 
 class OpenAIService:
 
@@ -159,6 +159,7 @@ class OpenAIService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @_sync_logging_decorator
     def _translate_text(translation_instructions: typing.Optional[SystemTranslationMessage],
                                 translation_prompt: ModelTranslationMessage
                                 ) -> ChatCompletion:
@@ -188,6 +189,7 @@ class OpenAIService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @_async_logging_decorator
     async def _translate_text_async(translation_instructions: typing.Optional[SystemTranslationMessage],
                                 translation_prompt: ModelTranslationMessage
                                 ) -> ChatCompletion:

@@ -13,7 +13,7 @@ from google.generativeai.types import GenerateContentResponse, AsyncGenerateCont
 import google.generativeai as genai
 
 ## custom modules
-from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings
+from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings, _sync_logging_decorator, _async_logging_decorator
 
 class GeminiService:
 
@@ -196,6 +196,7 @@ class GeminiService:
 
     @staticmethod
     @_redefine_client_decorator
+    @_async_logging_decorator
     async def _translate_text_async(text_to_translate:str) -> AsyncGenerateContentResponse:
 
         """
@@ -221,6 +222,7 @@ class GeminiService:
     
     @staticmethod
     @_redefine_client_decorator
+    @_sync_logging_decorator
     def _translate_text(text_to_translate:str) -> GenerateContentResponse:
 
         """
