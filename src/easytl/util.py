@@ -23,7 +23,7 @@ def _get_nested_attribute(obj, attrs):
         try:
             obj = getattr(obj, attr)
         except AttributeError:
-            return "Attribute not found"
+            raise ValueError(f"Attribute {attr} in object {obj} not found.")
     return obj
 
 ##-------------------start-of-logging_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,10 +55,8 @@ def _async_logging_decorator(func):
 
         ## Get the attribute to log
         attr_to_log = log_attributes.get(cls_name, None)
-        if(attr_to_log):
+        if(attr_to_log and not isinstance(result, str)):
             log_data = _get_nested_attribute(result, attr_to_log)
-        else:
-            log_data = str(result)
         
         log_data = f"""
         Function Name: {func.__name__}
@@ -102,10 +100,8 @@ def _sync_logging_decorator(func):
 
         ## Get the attribute to log
         attr_to_log = log_attributes.get(cls_name, None)
-        if(attr_to_log):
+        if(attr_to_log and not isinstance(result, str)):
             log_data = _get_nested_attribute(result, attr_to_log)
-        else:
-            log_data = str(result)
         
         log_data = f"""
         Function Name: {func.__name__}
@@ -124,9 +120,9 @@ def _sync_logging_decorator(func):
 
 ## Since we're dealing with objects here...
 log_attributes = {
-    'GeminiService': 'text',
-    'DeepLService': 'text',
-    'OpenAIService': 'choices[0].message.content'
+    'GeminiService': ['text'],
+    'DeepLService': ['text'],
+    'OpenAIService': ['choices', '0', 'message', 'content']
 }
 
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
