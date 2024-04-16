@@ -18,7 +18,7 @@ from .exceptions import InvalidEasyTLSettings
 
 ##-------------------start-of-get_nested_attribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def get_nested_attribute(obj, attrs):
+def _get_nested_attribute(obj, attrs):
     for attr in attrs:
         try:
             obj = getattr(obj, attr)
@@ -28,7 +28,7 @@ def get_nested_attribute(obj, attrs):
 
 ##-------------------start-of-logging_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def async_logging_decorator(func):
+def _async_logging_decorator(func):
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -75,7 +75,7 @@ def async_logging_decorator(func):
     
     return wrapper
 
-def sync_logging_decorator(func):
+def _sync_logging_decorator(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):

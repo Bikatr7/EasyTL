@@ -9,7 +9,7 @@ import asyncio
 ## third-party libraries
 from deepl.translator import Translator
 
-from .util import _convert_iterable_to_str
+from .util import _convert_iterable_to_str,
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
