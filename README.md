@@ -14,6 +14,9 @@
 
 Wrapper for OpenAI, DeepL, and Gemini APIs for easy translation of text.
 
+EasyTL has a trello board:
+https://trello.com/b/Td555CoW/easytl
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
 
