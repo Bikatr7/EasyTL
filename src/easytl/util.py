@@ -21,8 +21,11 @@ from .exceptions import InvalidEasyTLSettings
 def _get_nested_attribute(obj, attrs):
     for attr in attrs:
         try:
-            obj = getattr(obj, attr)
-        except AttributeError:
+            if(isinstance(obj, list) and attr.isdigit()):
+                obj = obj[int(attr)]
+            else:
+                obj = getattr(obj, attr)
+        except (AttributeError, IndexError):
             raise ValueError(f"Attribute {attr} in object {obj} not found.")
     return obj
 
@@ -48,7 +51,8 @@ def _async_logging_decorator(func):
             return await func(*args, **kwargs)
 
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        filename = f"easytl-{timestamp}.txt"
+
+        filename = f"easytl-log.txt"
         filepath = os.path.join(directory, filename)
         
         result = await func(*args, **kwargs)
@@ -58,12 +62,22 @@ def _async_logging_decorator(func):
         if(attr_to_log and not isinstance(result, str)):
             log_data = _get_nested_attribute(result, attr_to_log)
         
+        ## did you know multi-line f-strings take leading spaces into account?
         log_data = f"""
-        Function Name: {func.__name__}
-        {'-' * 40}
-        Result: {log_data}
-        {'-' * 40}
-        Details: Static method of {cls_name}
+{'=' * 40}
+Function Call Details:
+{'-' * 40}
+Class Name: {cls_name}
+Function Name: {func.__name__}
+Arguments: {args}
+Keyword Arguments: {kwargs}
+{'-' * 40}
+Result Details:
+{'-' * 40}
+Result: {log_data}
+{'-' * 40}
+Timestamp: {timestamp}
+{'=' * 40}
         """
         
         with open(filepath, 'a+') as file:
@@ -93,7 +107,8 @@ def _sync_logging_decorator(func):
             return func(*args, **kwargs)
 
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        filename = f"easytl-{timestamp}.txt"
+
+        filename = f"easytl-log.txt"
         filepath = os.path.join(directory, filename)
         
         result = func(*args, **kwargs)
@@ -103,12 +118,22 @@ def _sync_logging_decorator(func):
         if(attr_to_log and not isinstance(result, str)):
             log_data = _get_nested_attribute(result, attr_to_log)
         
+        ## did you know multi-line f-strings take leading spaces into account?
         log_data = f"""
-        Function Name: {func.__name__}
-        {'-' * 40}
-        Result: {log_data}
-        {'-' * 40}
-        Details: Static method of {cls_name}
+{'=' * 40}
+Function Call Details:
+{'-' * 40}
+Class Name: {cls_name}
+Function Name: {func.__name__}
+Arguments: {args}
+Keyword Arguments: {kwargs}
+{'-' * 40}
+Result Details:
+{'-' * 40}
+Result: {log_data}
+{'-' * 40}
+Timestamp: {timestamp}
+{'=' * 40}
         """
         
         with open(filepath, 'a+') as file:
