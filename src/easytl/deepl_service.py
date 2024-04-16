@@ -9,7 +9,7 @@ import asyncio
 ## third-party libraries
 from deepl.translator import Translator
 
-from .util import _convert_iterable_to_str,
+from .util import _convert_iterable_to_str, _async_logging_decorator, _sync_logging_decorator
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
@@ -139,6 +139,7 @@ class DeepLService:
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
+    @_sync_logging_decorator
     def _translate_text(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
         """
@@ -170,6 +171,7 @@ class DeepLService:
 ##-------------------start-of-_async_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
+    @_async_logging_decorator
     async def _async_translate_text(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
         """

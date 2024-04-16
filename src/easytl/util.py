@@ -56,7 +56,7 @@ def _async_logging_decorator(func):
         ## Get the attribute to log
         attr_to_log = log_attributes.get(cls_name, None)
         if(attr_to_log):
-            log_data = get_nested_attribute(result, attr_to_log)
+            log_data = _get_nested_attribute(result, attr_to_log)
         else:
             log_data = str(result)
         
@@ -103,7 +103,7 @@ def _sync_logging_decorator(func):
         ## Get the attribute to log
         attr_to_log = log_attributes.get(cls_name, None)
         if(attr_to_log):
-            log_data = get_nested_attribute(result, attr_to_log)
+            log_data = _get_nested_attribute(result, attr_to_log)
         else:
             log_data = str(result)
         
