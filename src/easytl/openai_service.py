@@ -33,13 +33,14 @@ class OpenAIService:
     _frequency_penalty:float = 0.0
 
     _semaphore_value:int = 5
-
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
     _async_client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
+
+    _log_directory:str | None = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -32,10 +32,11 @@ class DeepLService:
     _ignore_tags:str | typing.List[str] | None = None
 
     _semaphore_value:int = 30
-
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
+
+    _log_directory:str | None = None
 
 ##-------------------start-of-_set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

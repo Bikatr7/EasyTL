@@ -35,10 +35,11 @@ class GeminiService:
     _generation_config:GenerationConfig
 
     _semaphore_value:int = 15
-
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
+
+    _log_directory:str | None = None
 
     ## I don't plan to allow users to change these settings, as I believe that translations should be as accurate as possible, avoiding any censorship or filtering of content.
     _safety_settings = [
