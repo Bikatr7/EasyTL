@@ -57,7 +57,7 @@ num_tokens, cost, model = EasyTL.calculate_cost("私は日本語が話せます"
 
 **Installation**<a name="installation"></a>
 
-Python 3.8+
+Python 3.10+
 
 EasyTL can be installed using pip:
 

@@ -2,4 +2,4 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-VERSION = "0.2.0-beta"
+VERSION = "0.2.0-beta-2"
