@@ -15,7 +15,7 @@ from .classes import GenerateContentResponse, AsyncGenerateContentResponse, Gene
 
 from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS, VALID_JSON_OPENAI_MODELS
 
-from .exceptions import DeepLException, GoogleAPIError, OpenAIError, EasyTLException, InvalidAPIKeyException, InvalidEasyTLSettings
+from .exceptions import DeepLException, GoogleAPIError, OpenAIError, EasyTLException, InvalidAPIKeyException, InvalidEasyTLSettingsException, InvalidTextInputException, InvalidAPITypeException, InvalidResponseFormatException
 from .exceptions import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
 from .exceptions import AuthorizationException, QuotaExceededException
 from .exceptions import GoogleAuthError

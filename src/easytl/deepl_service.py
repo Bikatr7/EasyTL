@@ -5,6 +5,7 @@
 ## built-in libraries
 import typing
 import asyncio
+import time
 
 ## third-party libraries
 from deepl.translator import Translator
@@ -35,25 +36,11 @@ class DeepLService:
     _semaphore_value:int = 30
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
+    _rate_limit_delay:float | None = None 
+
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
     _log_directory:str | None = None
-
-##-------------------start-of-_set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _set_decorator(decorator:typing.Callable | None) -> None:
-
-        """
-
-        Sets the decorator to use for the DeepL service. Should be a callable that returns a decorator or None.
-
-        Parameters:
-        decorator (callable or None) : The decorator to use for the DeepL service.
-
-        """
-
-        DeepLService._decorator_to_use = decorator
 
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -70,8 +57,10 @@ class DeepLService:
                         non_splitting_tags:str | typing.List[str] | None = None,
                         splitting_tags:str | typing.List[str] | None = None,
                         ignore_tags:str | typing.List[str] | None = None,
-                        semaphore:int | None = None,
+                        decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
+                        semaphore:int | None = None,
+                        rate_limit_delay:float | None = None
                         ) -> None:
 
         """
@@ -79,6 +68,8 @@ class DeepLService:
         Sets the attributes of the DeepL client.
 
         """
+
+        ## API Attributes
 
         DeepLService._target_lang = target_lang
         DeepLService._source_lang = source_lang
@@ -93,11 +84,17 @@ class DeepLService:
         DeepLService._splitting_tags = splitting_tags
         DeepLService._ignore_tags = ignore_tags
 
+        ## Service Attributes
+
+        DeepLService._decorator_to_use = decorator
+
+        DeepLService._log_directory = logging_directory
+
         if(semaphore is not None):
             DeepLService._semaphore_value = semaphore
             DeepLService._semaphore = asyncio.Semaphore(semaphore)
 
-        DeepLService._log_directory = logging_directory
+        DeepLService._rate_limit_delay = rate_limit_delay
 
 ##-------------------start-of-_prepare_translation_parameters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -157,6 +154,9 @@ class DeepLService:
 
         """
 
+        if(DeepLService._rate_limit_delay is not None):
+            time.sleep(DeepLService._rate_limit_delay)
+
         params = DeepLService._prepare_translation_parameters(text)
 
         try:
@@ -190,6 +190,9 @@ class DeepLService:
         """
 
         async with DeepLService._semaphore:
+
+            if(DeepLService._rate_limit_delay is not None):
+                await asyncio.sleep(DeepLService._rate_limit_delay)
 
             params = DeepLService._prepare_translation_parameters(text)
 
@@ -252,22 +255,6 @@ class DeepLService:
 
             return _validity, _e
         
-##-------------------start-of-_get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _get_decorator() -> typing.Union[typing.Callable, None]:
-
-        """
-
-        Returns the decorator to use for the DeepL service.
-
-        Returns:
-        decorator (callable) : The decorator to use.
-
-        """
-
-        return DeepLService._decorator_to_use
-    
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod

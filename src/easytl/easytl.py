@@ -15,7 +15,7 @@ from .gemini_service import GeminiService
 from .openai_service import OpenAIService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion
-from .exceptions import DeepLException, GoogleAPIError,OpenAIError, EasyTLException
+from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
 
 from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings
 
@@ -58,7 +58,7 @@ class EasyTL:
             "openai": OpenAIService
         }
 
-        assert api_type in service_map, ValueError("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
+        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
 
         service_map[api_type]._set_api_key(api_key)
 
@@ -86,7 +86,7 @@ class EasyTL:
             "openai": {"service": OpenAIService, "exception": OpenAIError}
         }
 
-        assert api_type in api_services, ValueError("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
+        assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
 
         _is_valid, _e = api_services[api_type]["service"]._test_api_key_validity()
 
@@ -106,6 +106,7 @@ class EasyTL:
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
                         response_type:typing.Literal["text", "raw"] | None = "text",
+                        translation_delay:float | None = None,
                         source_lang:str | Language | None = None,
                         context:str | None = None,
                         split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -126,6 +127,8 @@ class EasyTL:
 
         DeepL has backoff retrying implemented by default.
 
+        Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
+
         Parameters:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
@@ -133,6 +136,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
@@ -150,11 +154,9 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw"], ValueError("Invalid response type specified. Must be 'text' or 'raw'.")
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
         EasyTL.test_api_key_validity("deepl")
-
-        DeepLService._set_decorator(decorator)
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang = target_lang, 
@@ -169,34 +171,30 @@ class EasyTL:
                                         non_splitting_tags = non_splitting_tags, 
                                         splitting_tags = splitting_tags, 
                                         ignore_tags = ignore_tags,
+                                        decorator=decorator,
+                                        logging_directory=logging_directory,
                                         semaphore=None,
-                                        logging_directory=logging_directory)
+                                        rate_limit_delay=translation_delay)
             
         if(isinstance(text, str)):
             result = DeepLService._translate_text(text)
         
-            assert not isinstance(result, list), "Unexpected error occurred. Please try again."
+            assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
 
-            if(response_type == "text"):
-                return result.text
-            
-            else:
-                return result
+            result = result if response_type == "raw" else result.text
         
         elif(_is_iterable_of_strings(text)):
 
             results = [DeepLService._translate_text(t) for t in text]
 
-            assert isinstance(results, list), "Unexpected error occurred. Please try again."
+            assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
 
-            if(all(isinstance(_r, TextResult) for _r in results)):
-                if(response_type == "text"):
-                    return [_r.text for _r in results] # type: ignore
-                
-                else:
-                    return results # type: ignore
+            result = [_r.text for _r in results] if response_type == "text" else results # type: ignore    
+            
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
         
-        raise ValueError("text must be a string or an iterable of strings.")
+        return result
         
 ##-------------------start-of-deepl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -206,8 +204,9 @@ class EasyTL:
                             override_previous_settings:bool = True,
                             decorator:typing.Callable | None = None,
                             logging_directory:str | None = None,
-                            semaphore:int | None = None,
                             response_type:typing.Literal["text", "raw"] | None = "text",
+                            semaphore:int | None = None,
+                            translation_delay:float | None = None,
                             source_lang:str | Language | None = None,
                             context:str | None = None,
                             split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -230,6 +229,8 @@ class EasyTL:
         This function assumes that the API key has already been set.
 
         DeepL has backoff retrying implemented by default.
+
+        Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
         
         Parameters:
         text (string or iterable) : The text to translate.
@@ -237,8 +238,9 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        semaphore (int) : The number of concurrent requests to make. Default is 30.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
+        semaphore (int) : The number of concurrent requests to make. Default is 30.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
@@ -256,11 +258,9 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw"], ValueError("Invalid response type specified. Must be 'text' or 'raw'.")
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
         EasyTL.test_api_key_validity("deepl")
-
-        DeepLService._set_decorator(decorator)
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang=target_lang, 
@@ -275,34 +275,29 @@ class EasyTL:
                                         non_splitting_tags=non_splitting_tags, 
                                         splitting_tags=splitting_tags, 
                                         ignore_tags=ignore_tags,
+                                        decorator=decorator,
+                                        logging_directory=logging_directory,
                                         semaphore=semaphore,
-                                        logging_directory=logging_directory)
-            
+                                        rate_limit_delay=translation_delay)
         if(isinstance(text, str)):
             _result = await DeepLService._async_translate_text(text)
 
-            assert not isinstance(_result, list), "Unexpected error occurred. Please try again."
+            assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
 
-            if(response_type == "text"):
-                return _result.text
-            
-            else:
-                return _result
+            result = _result if response_type == "raw" else _result.text
             
         elif(_is_iterable_of_strings(text)):
             _tasks = [DeepLService._async_translate_text(t) for t in text]
             _results = await asyncio.gather(*_tasks)
             
-            assert isinstance(_results, list), "Unexpected error occurred. Please try again."
+            assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
 
-            if(all(isinstance(_r, TextResult) for _r in _results)):
-                if(response_type == "text"):
-                    return [_r.text for _r in _results] # type: ignore
+            result = [_r.text for _r in _results] if response_type == "text" else _results # type: ignore
                 
-                else:
-                    return _results # type: ignore
-            
-        raise ValueError("text must be a string or an iterable of strings.")
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
+        
+        return result
             
 ##-------------------start-of-gemini_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -47,13 +47,76 @@ class InvalidAPIKeyException(EasyTLException):
 
         self.message = f"The API key is invalid for the model {model_name}."
 
-##-------------------start-of-InvalidEasyTLSettings--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-InvalidEasyTLSettingsException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class InvalidEasyTLSettings(EasyTLException):
+class InvalidEasyTLSettingsException(EasyTLException):
 
     """
 
-    InvalidEasyTLSettings is an exception that is raised when the settings provided to the EasyTL class are invalid
+    InvalidEasyTLSettingsException is an exception that is raised when the settings provided to the EasyTL class are invalid
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display when the exception is raised.
+
+        """
+
+        self.message = message
+
+##-------------------start-of-InvalidAPITypeException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class InvalidAPITypeException(EasyTLException):
+
+    """
+
+    InvalidAPITypeException is an exception that is raised when the API type provided to the EasyTL class is invalid
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display when the exception is raised.
+
+        """
+
+        self.message = message
+
+##-------------------start-of-InvalidResponseFormatException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class InvalidResponseFormatException(EasyTLException):
+
+    """
+
+    InvalidResponseFormatException is an exception that is raised when the response format is invalid
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display when the exception is raised.
+
+        """
+
+        self.message = message
+
+##-------------------start-of-InvalidTextInputException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class InvalidTextInputException(EasyTLException):
+
+    """
+
+    InvalidTextInputException is an exception that is raised when the text input is invalid
 
     """
 
