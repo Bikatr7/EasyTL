@@ -8,10 +8,9 @@ import asyncio
 
 ## third-party libraries
 from openai import AsyncOpenAI, OpenAI
-from openai.types.chat.chat_completion import ChatCompletion
 
 ## custom modules
-from .classes import SystemTranslationMessage, ModelTranslationMessage
+from .classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
 from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 
@@ -41,6 +40,8 @@ class OpenAIService:
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
+    _json_mode:bool = False
+
     _log_directory:str | None = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -63,18 +64,34 @@ class OpenAIService:
 ##-------------------start-of-set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def _set_decorator(decorator:typing.Callable) -> None:
+    def _set_decorator(decorator:typing.Callable | None) -> None:
 
         """
 
-        Sets the decorator to use for the OpenAI service. Should be a callable that returns a decorator.
+        Sets the decorator to use for the OpenAI service. Should be a callable that returns a decorator or None.
 
         Parameters:
-        decorator (callable) : The decorator to use.
+        decorator (callable | None) : The decorator to use.
 
         """
 
         OpenAIService._decorator_to_use = decorator
+
+##-------------------start-of-set_json_mode()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def _set_json_mode(json_mode:bool) -> None:
+            
+        """
+
+        Sets the JSON mode for the OpenAI service.
+
+        Parameters:
+        json_mode (bool) : True if the JSON mode is to be used, False otherwise.
+
+        """
+
+        OpenAIService._json_mode = json_mode
 
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -115,6 +132,12 @@ class OpenAIService:
                 OpenAIService._semaphore = asyncio.Semaphore(OpenAIService._semaphore_value)
 
             OpenAIService._log_directory = logging_directory
+
+            if(OpenAIService._json_mode):
+                OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English. Make sure to return the translated text in JSON format.")
+
+            else:
+                OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English.")
 
 ##-------------------start-of-_build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -236,8 +259,11 @@ class OpenAIService:
 
         """
 
+        response_format = "json_object" if OpenAIService._json_mode else "text"
+
         response = OpenAIService._sync_client.chat.completions.create(
-            messages=[
+            response_format={ "type": response_format },
+            messages=[ 
                 instructions.to_dict(),
                 prompt.to_dict()
             ], # type: ignore
@@ -275,9 +301,12 @@ class OpenAIService:
 
         """
 
+        response_format = "json_object" if OpenAIService._json_mode else "text"
+
         async with OpenAIService._semaphore:
 
             response = await OpenAIService._async_client.chat.completions.create(
+                response_format={ "type": response_format },
                 messages=[
                     instruction.to_dict(),
                     prompt.to_dict()

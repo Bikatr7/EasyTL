@@ -42,14 +42,14 @@ class DeepLService:
 ##-------------------start-of-_set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def _set_decorator(decorator:typing.Callable) -> None:
+    def _set_decorator(decorator:typing.Callable | None) -> None:
 
         """
 
-        Sets the decorator to use for the Gemini service. Should be a callable that returns a decorator.
+        Sets the decorator to use for the DeepL service. Should be a callable that returns a decorator or None.
 
         Parameters:
-        decorator (callable) : The decorator to use.
+        decorator (callable or None) : The decorator to use for the DeepL service.
 
         """
 
@@ -259,7 +259,7 @@ class DeepLService:
 
         """
 
-        Returns the decorator to use for the Gemini service.
+        Returns the decorator to use for the DeepL service.
 
         Returns:
         decorator (callable) : The decorator to use.

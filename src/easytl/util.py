@@ -398,7 +398,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
     raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -423,7 +423,14 @@ ALLOWED_OPENAI_MODELS  = [
     "gpt-4-1106-vision-preview",
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
+VALID_JSON_OPENAI_MODELS = [
+    "gpt-3.5-turbo-0125",
+    "gpt-4-turbo",
+    "gpt-4-turbo-preview",
+    "gpt-4-turbo-2024-04-09",
+]
+
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
 ## https://ai.google.dev/models/gemini
 ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-001",
@@ -439,7 +446,7 @@ ALLOWED_GEMINI_MODELS = [
   ##  "gemini-ultra"
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-09
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
 MODEL_COSTS = {
     # Grouping GPT-3.5 models together
     "gpt-3.5-turbo-0125": {"price_case": 7, "_input_cost": 0.0005, "_output_cost": 0.0015},
