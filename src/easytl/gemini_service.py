@@ -151,11 +151,11 @@ class GeminiService:
             GeminiService._semaphore_value = semaphore
 
         else:
-            GeminiService._semaphore_value = 15 if GeminiService._model != "gemini--1.5-pro-latest" else 2
+            GeminiService._semaphore_value = 15 if GeminiService._model != "gemini-1.5-pro-latest" else 2
 
         GeminiService._log_directory = logging_directory
 
-        if(GeminiService._json_mode and GeminiService._model != "gemini--1.5-pro-latest"):
+        if(GeminiService._json_mode and GeminiService._model != "gemini-1.5-pro-latest"):
             GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format."
 
         else:
@@ -183,7 +183,7 @@ class GeminiService:
         }
 
         ## gemini 1.5 is the only model that supports json responses and system instructions
-        if(GeminiService._model == "gemini--1.5-pro-latest"):
+        if(GeminiService._model == "gemini-1.5-pro-latest"):
             gen_model_params["system_instruction"] = GeminiService._system_message
         else:
             response_mime_type = "text/plain"
