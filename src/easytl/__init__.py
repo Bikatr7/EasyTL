@@ -7,8 +7,13 @@ from .version import VERSION as __version__  # noqa
 __author__ = "Bikatr7 <Tetralon07@gmail.com>"
 
 from .easytl import EasyTL
-from .classes import Language, SplitSentences, Formality, GlossaryInfo, ModelTranslationMessage, SystemTranslationMessage, Message
-from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
+
+from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
+from .classes import Message, SystemTranslationMessage, ModelTranslationMessage
+from .classes import ChatCompletion
+from .classes import GenerateContentResponse, AsyncGenerateContentResponse, GenerationConfig
+
+from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS, VALID_JSON_OPENAI_MODELS
 
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, EasyTLException, InvalidAPIKeyException, InvalidEasyTLSettings
 from .exceptions import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError

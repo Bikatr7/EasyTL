@@ -5,6 +5,13 @@
 ## deepl api data used by deepl_service to type check
 from deepl.api_data import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
+## openai api data used by openai_service to type check
+from openai.types.chat.chat_completion import ChatCompletion
+
+## gemini api data used by gemini_service to type check
+from google.generativeai import GenerationConfig
+from google.generativeai.types import GenerateContentResponse, AsyncGenerateContentResponse
+
 ##-------------------start-of-Message--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Message:
