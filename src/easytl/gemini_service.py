@@ -13,6 +13,7 @@ from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_stri
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 
 from .classes import GenerationConfig, GenerateContentResponse, AsyncGenerateContentResponse
+from .exceptions import EasyTLException, InvalidTextInputException
 
 class GeminiService:
 
@@ -36,11 +37,13 @@ class GeminiService:
     _semaphore_value:int = 15
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
+    _rate_limit_delay:float | None = None
+
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
     _log_directory:str | None = None
 
-    ## I don't plan to easily allowing users to change these settings, as I believe that translations should be as accurate as possible, avoiding any censorship or filtering of content.
+    ## Set to prevent any blockage of content
     _safety_settings = [
         {
             "category": "HARM_CATEGORY_DANGEROUS",
@@ -82,38 +85,6 @@ class GeminiService:
 
         genai.configure(api_key=api_key)
 
-##-------------------start-of-_set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _set_decorator(decorator:typing.Callable | None) -> None:
-
-        """
-
-        Sets the decorator to use for the Gemini service. Should be a callable that returns a decorator or None.
-
-        Parameters:
-        decorator (callable | None) : The decorator to use.
-
-        """
-
-        GeminiService._decorator_to_use = decorator
-
-##-------------------start-of-_set_json_mode()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _set_json_mode(json_mode:bool) -> None:
-
-        """
-
-        Sets the JSON mode for the Gemini service.
-
-        Parameters:
-        json_mode (bool) : True if the service should return JSON responses, False if it should return text responses.
-
-        """
-
-        GeminiService._json_mode = json_mode
-
 ##-------------------start-of-_set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
@@ -125,9 +96,12 @@ class GeminiService:
                         candidate_count:int=1,
                         stream:bool=False,
                         stop_sequences:typing.List[str] | None=None,
+                        decorator:typing.Union[typing.Callable, None]=None,
                         max_output_tokens:int | None=None,
+                        logging_directory:str | None=None,
                         semaphore:int | None=None,
-                        logging_directory:str | None=None
+                        rate_limit_delay:float | None=None,
+                        json_mode:bool=False
                         ) -> None:
         
         """
@@ -146,20 +120,22 @@ class GeminiService:
         GeminiService._stop_sequences = stop_sequences
         GeminiService._max_output_tokens = max_output_tokens
 
-        ## if a semaphore is not provided, set it to the default value based on the model
-        if(semaphore is not None):
-            GeminiService._semaphore_value = semaphore
+        GeminiService._decorator_to_use = decorator
 
-        else:
-            GeminiService._semaphore_value = 15 if GeminiService._model != "gemini-1.5-pro-latest" else 2
+        GeminiService._rate_limit_delay = rate_limit_delay
+        GeminiService._json_mode = json_mode
 
         GeminiService._log_directory = logging_directory
 
-        if(GeminiService._json_mode and GeminiService._model != "gemini-1.5-pro-latest"):
-            GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format."
+        # if a semaphore is not provided, set it to the default value based on the model
+        semaphore_values = {"gemini-1.5-pro-latest": 2}
+        GeminiService._semaphore_value = semaphore or semaphore_values.get(GeminiService._model, 15)
+
+        if(GeminiService._json_mode and GeminiService._model == "gemini-1.5-pro-latest"):
+            GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format. The JSON should be in the following format: {\"text\": \"translated text\"}"
 
         else:
-            GeminiService._default_translation_instructions = "Please translate the following text into English."
+            raise EasyTLException("JSON mode for Gemini is only supported for the gemini-1.5-pro-latest model.")
         
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -172,34 +148,28 @@ class GeminiService:
 
         """
 
-        response_mime_type = "text/plain"
-
-        if(GeminiService._json_mode):
-            response_mime_type = "application/json"
-
+        response_mime_type = "application/json" if GeminiService._json_mode else "text/plain"
+        
         gen_model_params = {
             "model_name": GeminiService._model,
-            "safety_settings": GeminiService._safety_settings
+            "safety_settings": GeminiService._safety_settings,
+            "system_instruction": GeminiService._system_message if GeminiService._model == "gemini-1.5-pro-latest" else None
         }
-
-        ## gemini 1.5 is the only model that supports json responses and system instructions
-        if(GeminiService._model == "gemini-1.5-pro-latest"):
-            gen_model_params["system_instruction"] = GeminiService._system_message
-        else:
-            response_mime_type = "text/plain"
-
+        
         GeminiService._client = genai.GenerativeModel(**gen_model_params)
-
-        GeminiService._generation_config = GenerationConfig(
-            candidate_count=GeminiService._candidate_count,
-            stop_sequences=GeminiService._stop_sequences,
-            max_output_tokens=GeminiService._max_output_tokens,
-            temperature=GeminiService._temperature,
-            top_p=GeminiService._top_p,
-            top_k=GeminiService._top_k,
-            response_mime_type=response_mime_type
-        )
-
+        
+        generation_config_params = {
+            "candidate_count": GeminiService._candidate_count,
+            "stop_sequences": GeminiService._stop_sequences,
+            "max_output_tokens": GeminiService._max_output_tokens,
+            "temperature": GeminiService._temperature,
+            "top_p": GeminiService._top_p,
+            "top_k": GeminiService._top_k,
+            "response_mime_type": response_mime_type
+        }
+        
+        GeminiService._generation_config = GenerationConfig(**generation_config_params)
+        
         GeminiService._semaphore = asyncio.Semaphore(GeminiService._semaphore_value)
 
 ##-------------------start-of-_redefine_client_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -369,22 +339,6 @@ class GeminiService:
 
             return _validity, _e
         
-##-------------------start-of-_get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _get_decorator() -> typing.Union[typing.Callable, None]:
-
-        """
-
-        Returns the decorator to use for the Gemini service.
-
-        Returns:
-        decorator (callable) : The decorator to use.
-
-        """
-
-        return GeminiService._decorator_to_use
-    
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -413,7 +367,7 @@ class GeminiService:
         if(isinstance(text, typing.Iterable)):
 
             if(not isinstance(text,str) and not _is_iterable_of_strings(text)):
-                raise ValueError("The text must be a string or an iterable of strings.")
+                raise InvalidTextInputException("The text must be a string or an iterable of strings.")
 
             ## since instructions are paired with the text, we need to repeat the instructions for index
             translation_instructions = translation_instructions * len(text) # type: ignore
