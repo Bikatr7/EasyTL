@@ -14,7 +14,7 @@ from .deepl_service import DeepLService
 from .gemini_service import GeminiService
 from .openai_service import OpenAIService, ChatCompletion
 
-from. classes import ModelTranslationMessage, SystemTranslationMessage
+from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult
 from .exceptions import DeepLException, GoogleAPIError,OpenAIError, EasyTLException
 
 from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings
@@ -123,6 +123,7 @@ class EasyTL:
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
+                        response_type:typing.Literal["text", "raw"] | None = "text",
                         source_lang:str | Language | None = None,
                         context:str | None = None,
                         split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -133,7 +134,7 @@ class EasyTL:
                         outline_detection:bool | None = None,
                         non_splitting_tags:str | typing.List[str] | None = None,
                         splitting_tags:str | typing.List[str] | None = None,
-                        ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str]:
+                        ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
         """
 
@@ -147,6 +148,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
+        response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
@@ -163,6 +165,8 @@ class EasyTL:
         translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
+
+        assert response_type in ["text", "raw"], ValueError("Invalid response type specified. Must be 'text' or 'raw'.")
 
         EasyTL.test_api_key_validity("deepl")
 
@@ -186,13 +190,30 @@ class EasyTL:
                                         logging_directory=logging_directory)
             
         if(isinstance(text, str)):
-            return DeepLService._translate_text(text).text # type: ignore
+            result = DeepLService._translate_text(text)
+        
+            assert not isinstance(result, list), "Unexpected error occurred. Please try again."
+
+            if(response_type == "text"):
+                return result.text
+            
+            else:
+                return result
         
         elif(_is_iterable_of_strings(text)):
-            return [DeepLService._translate_text(t).text for t in text] # type: ignore
+
+            results = [DeepLService._translate_text(t) for t in text]
+
+            assert isinstance(results, list), "Unexpected error occurred. Please try again."
+
+            if(all(isinstance(_r, TextResult) for _r in results)):
+                if(response_type == "text"):
+                    return [_r.text for _r in results] # type: ignore
+                
+                else:
+                    return results # type: ignore
         
-        else:
-            raise ValueError("text must be a string or an iterable of strings.")
+        raise ValueError("text must be a string or an iterable of strings.")
         
 ##-------------------start-of-deepl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -203,6 +224,7 @@ class EasyTL:
                             decorator:typing.Callable | None = None,
                             logging_directory:str | None = None,
                             semaphore:int | None = None,
+                            response_type:typing.Literal["text", "raw"] | None = "text",
                             source_lang:str | Language | None = None,
                             context:str | None = None,
                             split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
@@ -213,7 +235,7 @@ class EasyTL:
                             outline_detection:bool | None = None,
                             non_splitting_tags:str | typing.List[str] | None = None,
                             splitting_tags:str | typing.List[str] | None = None,
-                            ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str]:
+                            ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
         """
 
@@ -231,6 +253,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         semaphore (int) : The number of concurrent requests to make. Default is 30.
+        response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
@@ -274,11 +297,11 @@ class EasyTL:
 
             assert not isinstance(_result, list), "Unexpected error occurred. Please try again."
 
-            if(hasattr(_result, "text")):
-                return _result.text 
+            if(response_type == "text"):
+                return _result.text
             
             else:
-                raise EasyTLException("Result does not have a 'text' attribute due to an unexpected error.")
+                return _result
             
         elif(_is_iterable_of_strings(text)):
             _tasks = [DeepLService._async_translate_text(t) for t in text]
@@ -286,14 +309,14 @@ class EasyTL:
             
             assert isinstance(_results, list), "Unexpected error occurred. Please try again."
 
-            if(all(hasattr(_r, "text") for _r in _results)):
-                return [_r.text for _r in _results] # type: ignore
+            if(all(isinstance(_r, TextResult) for _r in _results)):
+                if(response_type == "text"):
+                    return [_r.text for _r in _results] # type: ignore
+                
+                else:
+                    return _results # type: ignore
             
-            else:
-                raise EasyTLException("Result does not have a 'text' attribute due to an unexpected error.")
-            
-        else:
-            raise ValueError("text must be a string or an iterable of strings.")
+        raise ValueError("text must be a string or an iterable of strings.")
             
 ##-------------------start-of-gemini_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -725,7 +748,7 @@ class EasyTL:
     @staticmethod
     def translate(text:str | typing.Iterable[str],
                   service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
-                  **kwargs) -> typing.Union[typing.List[str], str]:
+                  **kwargs) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
         """
 
@@ -764,7 +787,7 @@ class EasyTL:
     @staticmethod
     async def translate_async(text:str | typing.Iterable[str],
                               service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
-                              **kwargs) -> typing.Union[typing.List[str], str]:
+                              **kwargs) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
         """
 
