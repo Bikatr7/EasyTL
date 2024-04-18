@@ -170,15 +170,20 @@ class EasyTL:
             DeepLService._set_decorator(decorator)
 
         if(override_previous_settings == True):
-            DeepLService._set_attributes(target_lang, 
-                                        source_lang, 
-                                        context, 
-                                        split_sentences,
-                                        preserve_formatting,
-                                        logging_directory,
-                                        None,
-                                        formality, 
-                                        glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
+            DeepLService._set_attributes(target_lang = target_lang, 
+                                        source_lang = source_lang, 
+                                        context = context, 
+                                        split_sentences = split_sentences,
+                                        preserve_formatting = preserve_formatting, 
+                                        formality = formality, 
+                                        glossary = glossary, 
+                                        tag_handling = tag_handling, 
+                                        outline_detection = outline_detection, 
+                                        non_splitting_tags = non_splitting_tags, 
+                                        splitting_tags = splitting_tags, 
+                                        ignore_tags = ignore_tags,
+                                        semaphore=None,
+                                        logging_directory=logging_directory)
             
         if(isinstance(text, str)):
             return DeepLService._translate_text(text).text # type: ignore
@@ -249,15 +254,20 @@ class EasyTL:
             DeepLService._set_decorator(decorator)
 
         if(override_previous_settings == True):
-            DeepLService._set_attributes(target_lang, 
-                                        source_lang, 
-                                        context, 
-                                        split_sentences,
-                                        preserve_formatting, 
-                                        logging_directory,
-                                        semaphore,
-                                        formality, 
-                                        glossary, tag_handling, outline_detection, non_splitting_tags, splitting_tags, ignore_tags)
+            DeepLService._set_attributes(target_lang=target_lang, 
+                                        source_lang=source_lang, 
+                                        context=context, 
+                                        split_sentences=split_sentences,
+                                        preserve_formatting=preserve_formatting, 
+                                        formality=formality, 
+                                        glossary=glossary, 
+                                        tag_handling=tag_handling, 
+                                        outline_detection=outline_detection, 
+                                        non_splitting_tags=non_splitting_tags, 
+                                        splitting_tags=splitting_tags, 
+                                        ignore_tags=ignore_tags,
+                                        semaphore=semaphore,
+                                        logging_directory=logging_directory)
             
         if(isinstance(text, str)):
             _result = await DeepLService._async_translate_text(text)
@@ -366,6 +376,7 @@ class EasyTL:
                                           stream=False,
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
+                                          semaphore=None,
                                           logging_directory=logging_directory)
 
         if(isinstance(text, str)):
@@ -583,6 +594,7 @@ class EasyTL:
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty,
+                                        semaphore=None,
                                         logging_directory=logging_directory)
             
         translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
@@ -682,13 +694,13 @@ class EasyTL:
             OpenAIService._set_attributes(model=model,
                                         temperature=temperature,
                                         logit_bias=None,
-                                        semaphore=semaphore,
                                         top_p=top_p,
                                         n=1,
                                         stop=stop,
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty,
+                                        semaphore=semaphore,
                                         logging_directory=logging_directory)
 
         _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)

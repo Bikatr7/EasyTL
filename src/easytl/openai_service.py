@@ -81,7 +81,6 @@ class OpenAIService:
     def _set_attributes(model:str = _default_model,
                         temperature:float = 0.3,
                         logit_bias:typing.Dict[str, int] | None = None,
-                        semaphore:int | None = None,
                         top_p:float = 1.0,
                         n:int = 1,
                         stream:bool = False,
@@ -89,6 +88,7 @@ class OpenAIService:
                         max_tokens:int | None = None,
                         presence_penalty:float = 0.0,
                         frequency_penalty:float = 0.0,
+                        semaphore:int | None = None,
                         logging_directory:str | None = None
                         ) -> None:
     
@@ -108,11 +108,12 @@ class OpenAIService:
             OpenAIService._max_tokens = max_tokens
             OpenAIService._presence_penalty = presence_penalty
             OpenAIService._frequency_penalty = frequency_penalty
-            OpenAIService._log_directory = logging_directory
 
             if(semaphore is not None):
                 OpenAIService._semaphore_value = semaphore
                 OpenAIService._semaphore = asyncio.Semaphore(OpenAIService._semaphore_value)
+
+            OpenAIService._log_directory = logging_directory
 
 ##-------------------start-of-_build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

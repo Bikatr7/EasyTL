@@ -62,15 +62,16 @@ class DeepLService:
                         context:str | None = None,
                         split_sentences:typing.Literal["OFF", "ALL", "NO_NEWLINES"] |  SplitSentences | None = "ALL",
                         preserve_formatting:bool | None = None,
-                        logging_directory:str | None = None,
-                        semaphore:int | None = None,
                         formality:typing.Literal["default", "more", "less", "prefer_more", "prefer_less"] | Formality | None = None,
                         glossary:str | GlossaryInfo | None = None,
                         tag_handling:typing.Literal["xml", "html"] | None = None,
                         outline_detection:bool | None = None,
                         non_splitting_tags:str | typing.List[str] | None = None,
                         splitting_tags:str | typing.List[str] | None = None,
-                        ignore_tags:str | typing.List[str] | None = None) -> None:
+                        ignore_tags:str | typing.List[str] | None = None,
+                        semaphore:int | None = None,
+                        logging_directory:str | None = None,
+                        ) -> None:
 
         """
 
@@ -83,7 +84,6 @@ class DeepLService:
         DeepLService._context = context
         DeepLService._split_sentences = split_sentences
         DeepLService._preserve_formatting = preserve_formatting
-        DeepLService._log_directory = logging_directory
         DeepLService._formality = formality
         DeepLService._glossary = glossary
         DeepLService._tag_handling = tag_handling
@@ -95,6 +95,8 @@ class DeepLService:
         if(semaphore is not None):
             DeepLService._semaphore_value = semaphore
             DeepLService._semaphore = asyncio.Semaphore(semaphore)
+
+        DeepLService._log_directory = logging_directory
 
 ##-------------------start-of-_prepare_translation_parameters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

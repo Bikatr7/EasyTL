@@ -128,7 +128,6 @@ class GeminiService:
         GeminiService._stream = stream
         GeminiService._stop_sequences = stop_sequences
         GeminiService._max_output_tokens = max_output_tokens
-        GeminiService._log_directory = logging_directory
 
         ## if a semaphore is not provided, set it to the default value based on the model
         if(semaphore is not None):
@@ -136,6 +135,8 @@ class GeminiService:
 
         else:
             GeminiService._semaphore_value = 15 if GeminiService._model != "gemini--1.5-pro-latest" else 2
+
+        GeminiService._log_directory = logging_directory
         
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
