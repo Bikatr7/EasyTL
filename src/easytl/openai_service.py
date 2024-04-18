@@ -11,7 +11,7 @@ from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
 from .classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
-from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
+from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings, VALID_JSON_OPENAI_MODELS
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 
 class OpenAIService:
@@ -133,7 +133,7 @@ class OpenAIService:
 
             OpenAIService._log_directory = logging_directory
 
-            if(OpenAIService._json_mode):
+            if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
                 OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English. Make sure to return the translated text in JSON format.")
 
             else:
@@ -259,7 +259,7 @@ class OpenAIService:
 
         """
 
-        response_format = "json_object" if OpenAIService._json_mode else "text"
+        response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
 
         response = OpenAIService._sync_client.chat.completions.create(
             response_format={ "type": response_format },
@@ -301,7 +301,7 @@ class OpenAIService:
 
         """
 
-        response_format = "json_object" if OpenAIService._json_mode else "text"
+        response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
 
         async with OpenAIService._semaphore:
 
