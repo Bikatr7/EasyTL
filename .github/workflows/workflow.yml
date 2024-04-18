@@ -1,4 +1,4 @@
-name: Build and Publish on Release
+name: Build, Test, and Publish on Release
 
 on:
   release:
@@ -7,9 +7,10 @@ on:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
+    environment: EasyTL
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -22,14 +23,23 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install twine build
+          pip install -e .
+
+      - name: Set Environment Variables and Run Tests
+        env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LOGGING_DIRECTORY: /tmp/
+        run: |
+          python tests/test_passing.py
 
       - name: Build the package
         run: |
           python -m build
 
       - name: Publish the package to PyPI
-        if: matrix.python-version == '3.8'
+        if: matrix.python-version == '3.9'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

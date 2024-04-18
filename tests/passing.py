@@ -1,6 +1,7 @@
 from easytl import EasyTL
 
 import asyncio
+import os
 
 
 def read_api_key(filename):
@@ -9,15 +10,32 @@ def read_api_key(filename):
 
 async def main():
 
-    deepl_api_key = read_api_key('tests/deepl.txt')
-    gemini_api_key = read_api_key('tests/gemini.txt')
-    openai_api_key = read_api_key('tests/openai.txt')
+    is_local = False
 
-    EasyTL.set_api_key("deepl", deepl_api_key)
-    EasyTL.set_api_key("gemini", gemini_api_key)
-    EasyTL.set_api_key("openai", openai_api_key)
+    try:
 
-    logging_directory = "C:/Users/Tetra/Desktop/"
+        deepl_api_key = os.environ.get('DEEPL_API_KEY')
+        gemini_api_key = os.environ.get('GEMINI_API_KEY')
+        openai_api_key = os.environ.get('OPENAI_API_KEY')
+
+
+
+    except:
+
+        deepl_api_key = read_api_key('tests/deepl.txt')
+        gemini_api_key = read_api_key('tests/gemini.txt')
+        openai_api_key = read_api_key('tests/openai.txt')
+
+        is_local = True
+
+        if(not all([deepl_api_key, gemini_api_key, openai_api_key])):
+            raise ValueError("API keys are required for all services.")
+
+        EasyTL.set_api_key("deepl", deepl_api_key)
+        EasyTL.set_api_key("gemini", gemini_api_key)
+        EasyTL.set_api_key("openai", openai_api_key)
+
+    logging_directory = "C:/Users/Tetra/Desktop/" if is_local else os.getenv('LOGGING_DIRECTORY', '/tmp/')
 
     print("Deepl ------------------------------------------------")
 
