@@ -9,7 +9,8 @@ import asyncio
 ## third-party libraries
 from deepl.translator import Translator
 
-from .util import _convert_iterable_to_str, _async_logging_decorator, _sync_logging_decorator
+from .util import _convert_iterable_to_str
+from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:

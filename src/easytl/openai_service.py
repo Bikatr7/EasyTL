@@ -12,7 +12,8 @@ from openai.types.chat.chat_completion import ChatCompletion
 
 ## custom modules
 from .classes import SystemTranslationMessage, ModelTranslationMessage
-from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings, _sync_logging_decorator, _async_logging_decorator
+from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
+from .decorators import _async_logging_decorator, _sync_logging_decorator
 
 class OpenAIService:
 
