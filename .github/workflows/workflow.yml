@@ -105,6 +105,10 @@ jobs:
         run: |
           python tests/passing.py
 
+      - name: Install twine
+        run: |
+          python -m pip install twineS
+
       - name: Build the package
         run: |
           python -m build
