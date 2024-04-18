@@ -33,6 +33,8 @@ class EasyTL:
 
     Use calculate_cost() to calculate the cost of translating text using the specified service. (Optional)
 
+    See the documentation for each function for more information.
+
     """
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,16 +52,15 @@ class EasyTL:
 
         """
 
-        assert api_type in ["deepl", "gemini", "openai"], ValueError("Invalid API type specified.")
+        service_map = {
+            "deepl": DeepLService,
+            "gemini": GeminiService,
+            "openai": OpenAIService
+        }
 
-        if(api_type == "deepl"):
-            DeepLService._set_api_key(api_key)
+        assert api_type in service_map, ValueError("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
 
-        elif(api_type == "gemini"):
-            GeminiService._set_api_key(api_key)
-            
-        elif(api_type == "openai"):
-            OpenAIService._set_api_key(api_key)
+        service_map[api_type]._set_api_key(api_key)
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -78,40 +79,21 @@ class EasyTL:
         (Exception) : The exception that was raised, if any. None otherwise.
 
         """
-
-        if(api_type == "deepl"):
-            _is_valid, _e = DeepLService._test_api_key_validity()
-
-            if(_is_valid == False):
-
-                ## make sure issue is due to DeepL and not the fault of easytl, cause it needs to be raised if it is
-                assert isinstance(_e, DeepLException), _e
-
-                return False, _e
-            
-        if(api_type == "gemini"):
-            
-            _is_valid, _e = GeminiService._test_api_key_validity()
-
-            if(_is_valid == False):
-
-                ## make sure issue is due to Gemini and not the fault of easytl, cause it needs to be raised if it is
-                assert isinstance(_e, GoogleAPIError), _e
-
-                return False, _e
         
-        if(api_type == "openai"):
-            
-            _is_valid, _e = OpenAIService._test_api_key_validity()
+        api_services = {
+            "deepl": {"service": DeepLService, "exception": DeepLException},
+            "gemini": {"service": GeminiService, "exception": GoogleAPIError},
+            "openai": {"service": OpenAIService, "exception": OpenAIError}
+        }
 
-            if(_is_valid == False):
+        assert api_type in api_services, ValueError("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
 
-                ## make sure issue is due to OpenAI and not the fault of easytl, cause it needs to be raised if it is
-                assert isinstance(_e, OpenAIError), _e
+        _is_valid, _e = api_services[api_type]["service"]._test_api_key_validity()
 
-                return False, _e
-            
-        assert api_type in ["deepl", "gemini", "openai"], ValueError("Invalid API type specified.")
+        if(not _is_valid):
+            ## Done to make sure the exception is due to the specified API type and not the fault of EasyTL
+            assert isinstance(_e, api_services[api_type]["exception"]), _e
+            return False, _e
 
         return True, None
         
