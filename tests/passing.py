@@ -2,40 +2,42 @@ from easytl import EasyTL
 
 import asyncio
 import os
-
+import time
 
 def read_api_key(filename):
-    with open(filename, 'r') as file:
-        return file.read().strip()
+    try:
+        with open(filename, 'r') as file:
+            return file.read().strip()
+        
+    except:
+        pass
 
 async def main():
 
-    is_local = False
+    gemini_time_delay = 30
 
-    try:
+    deepl_api_key = os.environ.get('DEEPL_API_KEY')
+    gemini_api_key = os.environ.get('GEMINI_API_KEY')
+    openai_api_key = os.environ.get('OPENAI_API_KEY')
 
-        deepl_api_key = os.environ.get('DEEPL_API_KEY')
-        gemini_api_key = os.environ.get('GEMINI_API_KEY')
-        openai_api_key = os.environ.get('OPENAI_API_KEY')
+    logging_directory = os.getenv('LOGGING_DIRECTORY', '/tmp/')
 
+    if(deepl_api_key is None):
+        deepl_api_key = read_api_key("tests/deepl.txt")
+    if(gemini_api_key is None):
+        gemini_api_key = read_api_key("tests/gemini.txt")
+    if(openai_api_key is None):
+        openai_api_key = read_api_key("tests/openai.txt")
+        
+        logging_directory = "tests/"
 
+    assert deepl_api_key is not None, "DEEPL_API_KEY environment variable must be set"
+    assert gemini_api_key is not None, "GEMINI_API_KEY environment variable must be set"
+    assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
 
-    except:
-
-        deepl_api_key = read_api_key('tests/deepl.txt')
-        gemini_api_key = read_api_key('tests/gemini.txt')
-        openai_api_key = read_api_key('tests/openai.txt')
-
-        is_local = True
-
-        if(not all([deepl_api_key, gemini_api_key, openai_api_key])):
-            raise ValueError("API keys are required for all services.")
-
-        EasyTL.set_api_key("deepl", deepl_api_key)
-        EasyTL.set_api_key("gemini", gemini_api_key)
-        EasyTL.set_api_key("openai", openai_api_key)
-
-    logging_directory = "C:/Users/Tetra/Desktop/" if is_local else os.getenv('LOGGING_DIRECTORY', '/tmp/')
+    EasyTL.set_api_key("deepl", deepl_api_key)
+    EasyTL.set_api_key("gemini", gemini_api_key)
+    EasyTL.set_api_key("openai", openai_api_key)
 
     print("Deepl ------------------------------------------------")
 
@@ -86,6 +88,9 @@ async def main():
     print("JSON response")
 
     print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON.", response_type="json", logging_directory=logging_directory))
+    
+    time.sleep(gemini_time_delay)
+    
     print(await EasyTL.gemini_translate_async("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory))
     
 

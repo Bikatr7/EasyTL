@@ -164,3 +164,4 @@ cython_debug/
 tests/gemini.txt
 tests/openai.txt
 tests/deepl.txt
+tests/easytl-log.txt
