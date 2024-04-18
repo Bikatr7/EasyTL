@@ -107,7 +107,7 @@ jobs:
 
       - name: Install twine
         run: |
-          python -m pip install twineS
+          python -m pip install twine
 
       - name: Build the package
         run: |
