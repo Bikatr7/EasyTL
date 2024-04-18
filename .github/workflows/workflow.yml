@@ -32,7 +32,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           LOGGING_DIRECTORY: /tmp/
         run: |
-          python tests/test_passing.py
+          python tests/passing.py
 
       - name: Build the package
         run: |
