@@ -34,6 +34,9 @@ class Message:
     
     def __str__(self) -> str:
         return self.content
+    
+    def __repr__(self):
+        return f"<Message role={self.role} content='{self.content}'>"
 
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
