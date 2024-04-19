@@ -17,7 +17,7 @@ from .openai_service import OpenAIService
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
 
-from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings
+from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences
 
 class EasyTL:
 
@@ -307,6 +307,7 @@ class EasyTL:
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
                         response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                        translation_delay:float | None = None,
                         translation_instructions:str | None = None,
                         model:str="gemini-pro",
                         temperature:float=0.5,
@@ -333,6 +334,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a GenerateContentResponse object, 'json' returns a json-parseable string.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
         model (string) : The model to use. 
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -346,36 +348,20 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw", "json"], ValueError("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
 
-        _settings = {
-        "gemini_model": "",
-        "gemini_temperature": "",
-        "gemini_top_p": "",
-        "gemini_top_k": "",
-        "gemini_stop_sequences": "",
-        "gemini_max_output_tokens": ""
-        }
-
-        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type"]
-        _custom_validation_params = ["gemini_stop_sequences"]
-
-        assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "text must be a string or an iterable of strings."
-
-        for _key in _settings.keys():
-            param_name = _key.replace("gemini_", "")
-            if(param_name in locals() and _key not in _non_gemini_params and _key not in _custom_validation_params):
-                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
+        _settings = _return_curated_gemini_settings(locals())
 
         _validate_easytl_translation_settings(_settings, "gemini")
 
+        _validate_stop_sequences(stop_sequences)
+
+        ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_api_key_validity("gemini")
 
-        GeminiService._set_decorator(decorator)
-
-        GeminiService._set_json_mode(True if response_type == "json" else False)
-
         translation_instructions = translation_instructions or GeminiService._system_message
+
+        json_mode = True if response_type == "json" else False
 
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
@@ -387,30 +373,28 @@ class EasyTL:
                                           stream=False,
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
+                                          decorator=decorator,
+                                          logging_directory=logging_directory,
                                           semaphore=None,
-                                          logging_directory=logging_directory)
-
+                                          rate_limit_delay=translation_delay,
+                                          json_mode=json_mode)
+        
         if(isinstance(text, str)):
             _result = GeminiService._translate_text(text)
             
-            if(response_type == "text" or response_type == "json"):
-                return _result.text
-            
-            else:
-                return _result
+            result = _result if response_type == "raw" else _result.text
 
         elif(_is_iterable_of_strings(text)):
             
             _results = [GeminiService._translate_text(t) for t in text]
 
-            if(response_type == "text" or response_type == "json"):
-                return [_r.text for _r in _results]
+            result = [_r.text for _r in _results] if response_type == "text" else _results # type: ignore
             
-            else:
-                return _results
-            
-        raise ValueError("text must be a string or an iterable of strings.")
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
         
+        return result
+
 ##-------------------start-of-gemini_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -418,8 +402,9 @@ class EasyTL:
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
-                                    semaphore:int | None = None,
                                     response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                    semaphore:int | None = None,
+                                    translation_delay:float | None = None,
                                     translation_instructions:str | None = None,
                                     model:str="gemini-pro",
                                     temperature:float=0.5,
@@ -448,8 +433,9 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a AsyncGenerateContentResponse object, 'json' returns a json-parseable string.
+        semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -463,34 +449,20 @@ class EasyTL:
 
         """
 
-        _settings = {
-        "gemini_model": "",
-        "gemini_temperature": "",
-        "gemini_top_p": "",
-        "gemini_top_k": "",
-        "gemini_stop_sequences": "",
-        "gemini_max_output_tokens": ""
-        }
+        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
 
-        _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "semaphore", "response_type"]
-        _custom_validation_params = ["gemini_stop_sequences"]
-
-        assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), "stop_sequences must be a string or an iterable of strings."
-
-        for _key in _settings.keys():
-            param_name = _key.replace("gemini_", "")
-            if(param_name in locals() and _key not in _non_gemini_params and _key not in _custom_validation_params):
-                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
+        _settings = _return_curated_gemini_settings(locals())
 
         _validate_easytl_translation_settings(_settings, "gemini")
 
+        _validate_stop_sequences(stop_sequences)
+
+        ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_api_key_validity("gemini")
 
-        GeminiService._set_decorator(decorator)
-
-        GeminiService._set_json_mode(True if response_type == "json" else False)
-
         translation_instructions = translation_instructions or GeminiService._system_message
+
+        json_mode = True if response_type == "json" else False
 
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
@@ -502,30 +474,27 @@ class EasyTL:
                                           stream=False,
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
+                                          decorator=decorator,
+                                          logging_directory=logging_directory,
                                           semaphore=semaphore,
-                                          logging_directory=logging_directory)
+                                          rate_limit_delay=translation_delay,
+                                          json_mode=json_mode)
             
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
 
-            if(response_type == "text" or response_type == "json"):
-                return _result.text
-            
-            else:
-                return _result
+            result = _result if response_type == "raw" else _result.text
             
         elif(_is_iterable_of_strings(text)):
             _tasks = [GeminiService._translate_text_async(_t) for _t in text]
-
             _results = await asyncio.gather(*_tasks)
 
-            if(response_type == "text" or response_type == "json"):
-                return [_r.text for _r in _results]
-            
-            else:
-                return _results 
+            result = [_r.text for _r in _results] if response_type == "text" else _results # type: ignore
 
-        raise ValueError("text must be a string or an iterable of strings.")
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
+        
+        return result
             
 ##-------------------start-of-openai_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
