@@ -150,7 +150,7 @@ class EasyTL:
         ignore_tags (string or list or None) : Tags that should be ignored.
 
         Returns:
-        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+        result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw', a TextResult object otherwise.
 
         """
 
@@ -254,7 +254,7 @@ class EasyTL:
         ignore_tags (string or list or None) : Tags that should be ignored.
 
         Returns:
-        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+        result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw', a TextResult object otherwise.
 
         """
 
@@ -344,7 +344,7 @@ class EasyTL:
         max_output_tokens (int or None) : The maximum number of tokens to output.
 
         Returns:
-        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+        result (string or list - string or GenerateContentResponse or list - GenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of GenerateContentResponse objects if the response type is 'raw', a GenerateContentResponse object otherwise.
 
         """
 
@@ -445,7 +445,7 @@ class EasyTL:
         max_output_tokens (int or None) : The maximum number of tokens to output.
 
         Returns:
-        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+        result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AsyncGenerateContentResponse objects if the response type is 'raw', a AsyncGenerateContentResponse object otherwise.
 
         """
 
