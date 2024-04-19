@@ -10,7 +10,69 @@ import tiktoken
 
 ## custom modules
 import google.generativeai as genai
-from .exceptions import InvalidEasyTLSettings
+from .exceptions import InvalidEasyTLSettingsException
+
+##-------------------start-of-_return_curated_gemini_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _return_curated_gemini_settings(local_settings:dict[str, typing.Any]) -> dict:
+
+    _settings = {
+    "gemini_model": "",
+    "gemini_temperature": "",
+    "gemini_top_p": "",
+    "gemini_top_k": "",
+    "gemini_stop_sequences": "",
+    "gemini_max_output_tokens": ""
+    }
+
+    _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type"]
+    _custom_validation_params = ["gemini_stop_sequences"]
+
+    for _key in _settings.keys():
+        param_name = _key.replace("gemini_", "")
+        if(param_name in local_settings and _key not in _non_gemini_params and _key not in _custom_validation_params):
+            _settings[_key] = _convert_to_correct_type(_key, local_settings[param_name])
+
+    return _settings
+
+##-------------------start-of-_return_curated_openai_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dict:
+        
+        """
+        
+        Returns the curated OpenAI settings.
+
+        What this does is it takes local_settings from the calling function, and then returns a dictionary with the settings that are relevant to OpenA that were converted to the correct type.
+
+        """
+
+        _settings = {
+        "openai_model": "",
+        "openai_temperature": "",
+        "openai_top_p": "",
+        "openai_stop": "",
+        "openai_max_tokens": "",
+        "openai_presence_penalty": "",
+        "openai_frequency_penalty": ""
+        }
+
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type"]
+        _custom_validation_params = ["openai_stop"]
+
+        for _key in _settings.keys():
+            param_name = _key.replace("openai_", "")
+            if(param_name in local_settings and _key not in _non_openai_params and _key not in _custom_validation_params):
+                _settings[_key] = _convert_to_correct_type(_key, local_settings[param_name])
+
+        return _settings
+
+##-------------------start-of-_return_curated_gemini_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _validate_stop_sequences(stop_sequences:typing.List[str] | None) -> None:
+
+    assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), InvalidEasyTLSettingsException("Invalid stop sequences. Must be a string or a list of strings.")
+
 
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -150,7 +212,7 @@ def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["ge
       ##      settings["gemini_candidate_count"] = 1
         
     except Exception as e:
-        raise InvalidEasyTLSettings(f"Invalid settings, Due to: {str(e)}")
+        raise InvalidEasyTLSettingsException(f"Invalid settings, Due to: {str(e)}")
 
 ##-------------------start-of-_convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
