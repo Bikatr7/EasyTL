@@ -378,7 +378,7 @@ class EasyTL:
                                           json_mode=json_mode)
             
         ## Done afterwards, cause default translation instructions can change based on set_attributes()       
-        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
+        GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
         
         if(isinstance(text, str)):
             _result = GeminiService._translate_text(text)
@@ -480,7 +480,7 @@ class EasyTL:
                                           json_mode=json_mode)
             
         ## Done afterwards, cause default translation instructions can change based on set_attributes()
-        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
+        GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
             
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)

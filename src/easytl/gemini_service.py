@@ -208,7 +208,7 @@ class GeminiService:
 
         """
 
-        Asynchronously translates a text.
+        Asynchronously translates text.
         Instructions default to translating whatever text is input into English.
 
         Parameters:
@@ -234,7 +234,7 @@ class GeminiService:
 
         """
 
-        Synchronously translates a text.
+        Synchronously translates text.
         Instructions default to translating whatever text is input into English.
 
         Parameters:

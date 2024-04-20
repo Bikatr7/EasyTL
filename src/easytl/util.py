@@ -25,7 +25,7 @@ def _return_curated_gemini_settings(local_settings:dict[str, typing.Any]) -> dic
     "gemini_max_output_tokens": ""
     }
 
-    _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type"]
+    _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
     _custom_validation_params = ["gemini_stop_sequences"]
 
     for _key in _settings.keys():
@@ -57,7 +57,7 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
         "openai_frequency_penalty": ""
         }
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type"]
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
         _custom_validation_params = ["openai_stop"]
 
         for _key in _settings.keys():
