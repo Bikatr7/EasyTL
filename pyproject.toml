@@ -18,11 +18,11 @@ dependencies = [
 ]
 
 name = "easytl"
-version = "v0.2.0-beta-2"
+version = "v0.2.0"
 authors = [
   { name="Bikatr7", email="Tetralon07@gmail.com" },
 ]
-description = "Wrapper for OpenAI, DeepL, and Gemini APIs for easy translation of text."
+description = "Seamless Multi-API Translation: Simplifying Language Barriers with DeepL, OpenAI, and Gemini."
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
