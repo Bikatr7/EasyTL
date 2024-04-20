@@ -133,9 +133,7 @@ Contributions are welcome! I don't have a specific format for contributions, but
 
 **Notes**<a name="notes"></a>
 
-EasyTL was originally developed as a part of [Kudasai](https://github.com/Bikatr7/Kudas
-
-ai), a Japanese preprocessor later turned Machine Translator. It was later split off into its own package to be used independently of Kudasai for multiple reasons.
+EasyTL was originally developed as a part of [Kudasai](https://github.com/Bikatr7/Kudasai), a Japanese preprocessor later turned Machine Translator. It was later split off into its own package to be used independently of Kudasai for multiple reasons.
 
 This package is also my second serious attempt at creating a Python package, so I'm sure there are some things that could be improved. Feedback is welcomed.
 
