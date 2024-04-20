@@ -13,6 +13,7 @@ from openai import AsyncOpenAI, OpenAI
 from .classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
 from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings, VALID_JSON_OPENAI_MODELS
 from .decorators import _async_logging_decorator, _sync_logging_decorator
+from .exceptions import EasyTLException
 
 class OpenAIService:
 
@@ -38,11 +39,13 @@ class OpenAIService:
     _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
     _async_client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
 
+    _rate_limit_delay:float | None = None
+
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
-    _json_mode:bool = False
-
     _log_directory:str | None = None
+
+    _json_mode:bool = False
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -61,38 +64,6 @@ class OpenAIService:
         OpenAIService._async_client.api_key = api_key
         OpenAIService._sync_client.api_key = api_key
 
-##-------------------start-of-set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _set_decorator(decorator:typing.Callable | None) -> None:
-
-        """
-
-        Sets the decorator to use for the OpenAI service. Should be a callable that returns a decorator or None.
-
-        Parameters:
-        decorator (callable | None) : The decorator to use.
-
-        """
-
-        OpenAIService._decorator_to_use = decorator
-
-##-------------------start-of-set_json_mode()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def _set_json_mode(json_mode:bool) -> None:
-            
-        """
-
-        Sets the JSON mode for the OpenAI service.
-
-        Parameters:
-        json_mode (bool) : True if the JSON mode is to be used, False otherwise.
-
-        """
-
-        OpenAIService._json_mode = json_mode
-
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
@@ -106,8 +77,11 @@ class OpenAIService:
                         max_tokens:int | None = None,
                         presence_penalty:float = 0.0,
                         frequency_penalty:float = 0.0,
-                        semaphore:int | None = None,
-                        logging_directory:str | None = None
+                        decorator:typing.Union[typing.Callable, None]=None,
+                        logging_directory:str | None=None,
+                        semaphore:int | None=None,
+                        rate_limit_delay:float | None=None,
+                        json_mode:bool=False
                         ) -> None:
     
             """
@@ -127,15 +101,26 @@ class OpenAIService:
             OpenAIService._presence_penalty = presence_penalty
             OpenAIService._frequency_penalty = frequency_penalty
 
+            OpenAIService._decorator_to_use = decorator
+
+            OpenAIService._log_directory = logging_directory
+
+            OpenAIService._rate_limit_delay = rate_limit_delay
+
+            OpenAIService._json_mode = json_mode
+
+            
             if(semaphore is not None):
                 OpenAIService._semaphore_value = semaphore
                 OpenAIService._semaphore = asyncio.Semaphore(OpenAIService._semaphore_value)
 
-            OpenAIService._log_directory = logging_directory
-
             if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
                 OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English. Make sure to return the translated text in JSON format.")
 
+            elif(OpenAIService._json_mode):
+                model_string = ", ".join(VALID_JSON_OPENAI_MODELS)
+                raise EasyTLException("JSON mode for OpenAI is only available for the following models: " + model_string)
+            
             else:
                 OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English.")
 

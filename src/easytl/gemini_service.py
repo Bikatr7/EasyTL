@@ -89,7 +89,7 @@ class GeminiService:
         
     @staticmethod
     def _set_attributes(model:str="gemini-pro",
-                        system_message:str = _default_translation_instructions,
+                        system_message:str | None = _default_translation_instructions,
                         temperature:float=0.5,
                         top_p:float=0.9,
                         top_k:int=40,
@@ -122,10 +122,11 @@ class GeminiService:
 
         GeminiService._decorator_to_use = decorator
 
-        GeminiService._rate_limit_delay = rate_limit_delay
-        GeminiService._json_mode = json_mode
-
         GeminiService._log_directory = logging_directory
+
+        GeminiService._rate_limit_delay = rate_limit_delay
+
+        GeminiService._json_mode = json_mode
 
         # if a semaphore is not provided, set it to the default value based on the model
         semaphore_values = {"gemini-1.5-pro-latest": 2}
@@ -134,8 +135,11 @@ class GeminiService:
         if(GeminiService._json_mode and GeminiService._model == "gemini-1.5-pro-latest"):
             GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format. The JSON should be in the following format: {\"text\": \"translated text\"}"
 
-        else:
+        elif(GeminiService._json_mode):
             raise EasyTLException("JSON mode for Gemini is only supported for the gemini-1.5-pro-latest model.")
+        
+        else:
+            GeminiService._default_translation_instructions = "Please translate the following text into English."
         
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

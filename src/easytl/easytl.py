@@ -359,8 +359,6 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_api_key_validity("gemini")
 
-        translation_instructions = translation_instructions or GeminiService._system_message
-
         json_mode = True if response_type == "json" else False
 
         if(override_previous_settings == True):
@@ -378,6 +376,9 @@ class EasyTL:
                                           semaphore=None,
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode)
+            
+        ## Done afterwards, cause default translation instructions can change based on set_attributes()       
+        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
         
         if(isinstance(text, str)):
             _result = GeminiService._translate_text(text)
@@ -460,8 +461,6 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_api_key_validity("gemini")
 
-        translation_instructions = translation_instructions or GeminiService._system_message
-
         json_mode = True if response_type == "json" else False
 
         if(override_previous_settings == True):
@@ -479,6 +478,9 @@ class EasyTL:
                                           semaphore=semaphore,
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode)
+            
+        ## Done afterwards, cause default translation instructions can change based on set_attributes()
+        translation_instructions = translation_instructions or GeminiService._default_translation_instructions
             
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
@@ -504,6 +506,7 @@ class EasyTL:
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
                         response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                        translation_delay:float | None = None,
                         translation_instructions:str | SystemTranslationMessage | None = None,
                         model:str="gpt-4",
                         temperature:float=0.3,
@@ -516,7 +519,7 @@ class EasyTL:
         
         """
 
-        Translates the given text to the target language using OpenAI.
+        Translates the given text using OpenAI.
 
         This function assumes that the API key has already been set.
 
@@ -532,6 +535,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -542,38 +546,23 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use.
 
         Returns:
-        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw', a ChatCompletion object otherwise.
 
         """
 
-        _settings = {
-        "openai_model": "",
-        "openai_temperature": "",
-        "openai_top_p": "",
-        "openai_stop": "",
-        "openai_max_tokens": "",
-        "openai_presence_penalty": "",
-        "openai_frequency_penalty": ""
-        }
+        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type"]
-        _custom_validation_params = ["openai_stop"]
-    
-        assert stop is None or isinstance(stop, str) or (hasattr(stop, '__iter__') and all(isinstance(i, str) for i in stop)), "stop must be a string or an iterable of strings."
-
-        for _key in _settings.keys():
-            param_name = _key.replace("openai_", "")
-            if(param_name in locals() and _key not in _non_openai_params and _key not in _custom_validation_params):
-                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
-
-        EasyTL.test_api_key_validity("openai")
+        _settings = _return_curated_openai_settings(locals())
 
         _validate_easytl_translation_settings(_settings, "openai")
 
-        OpenAIService._set_decorator(decorator)
+        _validate_stop_sequences(stop)
 
-        OpenAIService._set_json_mode(True if response_type == "json" else False)
+        ## Should be done after validating the settings to reduce cost to the user
+        EasyTL.test_api_key_validity("openai")
 
+        json_mode = True if response_type == "json" else False
+        
         if(override_previous_settings == True):
             OpenAIService._set_attributes(model=model,
                                         temperature=temperature,
@@ -584,37 +573,44 @@ class EasyTL:
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty,
+                                        decorator=decorator,
+                                        logging_directory=logging_directory,
                                         semaphore=None,
-                                        logging_directory=logging_directory)
+                                        rate_limit_delay=translation_delay,
+                                        json_mode=json_mode)
             
+        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
+
+        ## Done afterwards, cause default translation instructions can change based on set_attributes()
+        translation_instructions = translation_instructions or OpenAIService._default_translation_instructions
+
         translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
         
         translations = []
-
+        
         for _text, _translation_instructions in translation_batches:
 
             _result = OpenAIService._translate_text(_translation_instructions, _text)
 
-            if(response_type == "text" or response_type == "json"):
-                translation = _result.choices[0].message.content
-
-            else:
-                translation = _result
+            translation = _result if response_type == "raw" else _result.choices[0].message.content
             
             translations.append(translation)
         
         ## If originally a single text was provided, return a single translation instead of a list
-        return translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
+        result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
         
+        return result
+    
 ##-------------------start-of-openai_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     async def openai_translate_async(text:typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
-                                    semaphore:int | None = None,
                                     logging_directory:str | None = None,
                                     response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                    semaphore:int | None = None,
+                                    translation_delay:float | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
                                     model:str="gpt-4",
                                     temperature:float=0.3,
@@ -642,9 +638,10 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
-        semaphore (int) : The number of concurrent requests to make. Default is 5.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
+        semaphore (int) : The number of concurrent requests to make. Default is 5.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -655,37 +652,22 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use.
 
         Returns:
-        translation (list - string or string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
+        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw', a ChatCompletion object otherwise.
 
         """
 
-        _settings = {
-        "openai_model": "",
-        "openai_temperature": "",
-        "openai_top_p": "",
-        "openai_stop": "",
-        "openai_max_tokens": "",
-        "openai_presence_penalty": "",
-        "openai_frequency_penalty": ""
-        }
+        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "semaphore", "response_type"]
-        _custom_validation_params = ["openai_stop"]
-
-        assert stop is None or isinstance(stop, str) or (hasattr(stop, '__iter__') and all(isinstance(i, str) for i in stop)), "stop must be a string or an iterable of strings."
-
-        for _key in _settings.keys():
-            param_name = _key.replace("openai_", "")
-            if(param_name in locals() and _key not in _non_openai_params and _key not in _custom_validation_params):
-                _settings[_key] = _convert_to_correct_type(_key, locals()[param_name])
+        _settings = _return_curated_openai_settings(locals())
 
         _validate_easytl_translation_settings(_settings, "openai")
 
+        _validate_stop_sequences(stop)
+
+        ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_api_key_validity("openai")
 
-        OpenAIService._set_decorator(decorator)
-
-        OpenAIService._set_json_mode(True if response_type == "json" else False)
+        json_mode = True if response_type == "json" else False
 
         if(override_previous_settings == True):
             OpenAIService._set_attributes(model=model,
@@ -697,8 +679,16 @@ class EasyTL:
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty,
+                                        decorator=decorator,
+                                        logging_directory=logging_directory,
                                         semaphore=semaphore,
-                                        logging_directory=logging_directory)
+                                        rate_limit_delay=translation_delay,
+                                        json_mode=json_mode)
+            
+        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
+
+        ## Done afterwards, cause default translation instructions can change based on set_attributes()
+        translation_instructions = translation_instructions or OpenAIService._default_translation_instructions        
 
         _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
 
@@ -711,15 +701,12 @@ class EasyTL:
         _results = await asyncio.gather(*_translation_tasks)
 
         _results:typing.List[ChatCompletion] = _results
-        
-        if(response_type == "text" or response_type == "json"):
-            _translations = [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
 
-        elif(response_type == "raw"):
-            _translations = _results
+        translation = _results if response_type == "raw" else [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
 
-        # If the original input was a single text (not an iterable of texts), return a single translation instead of a list
-        return _translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else _translations[0]
+        result = translation if isinstance(text, typing.Iterable) and not isinstance(text, str) else translation[0]
+
+        return result
     
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
