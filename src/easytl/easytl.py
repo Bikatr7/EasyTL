@@ -138,7 +138,7 @@ class EasyTL:
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         source_lang (string or Language or None) : The source language to translate from.
-        context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
+        context (string or None) : Additional information for the translator to be considered when translating. Not translated itself. This is a DeepL alpha feature and may be removed at any time.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
         preserve_formatting (bool or None) : Whether to preserve formatting.
         formality (literal or Formality or None) : The formality level to use.
@@ -150,7 +150,7 @@ class EasyTL:
         ignore_tags (string or list or None) : Tags that should be ignored.
 
         Returns:
-        result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw', a TextResult object otherwise.
+        result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise.
 
         """
 
@@ -242,7 +242,7 @@ class EasyTL:
         semaphore (int) : The number of concurrent requests to make. Default is 30.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         source_lang (string or Language or None) : The source language to translate from.
-        context (string or None) : Additional information for the translator to be considered when translating. Not translated itself.
+        context (string or None) : Additional information for the translator to be considered when translating. Not translated itself. This is a DeepL alpha feature and may be removed at any time.
         split_sentences (literal or SplitSentences or None) : How to split sentences.
         preserve_formatting (bool or None) : Whether to preserve formatting.
         formality (literal or Formality or None) : The formality level to use.
@@ -254,7 +254,7 @@ class EasyTL:
         ignore_tags (string or list or None) : Tags that should be ignored.
 
         Returns:
-        result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw', a TextResult object otherwise.
+        result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise.
 
         """
 
@@ -326,7 +326,7 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        It is not known whether Gemini has backoff retrying implemented. (Their API is a mess.)
+        It is not known whether Gemini has backoff retrying implemented. Assume it does not exist. 
         
         Parameters:
         text (string or iterable) : The text to translate.
@@ -335,7 +335,7 @@ class EasyTL:
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a GenerateContentResponse object, 'json' returns a json-parseable string.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
-        translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
+        translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         model (string) : The model to use. 
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
@@ -344,7 +344,7 @@ class EasyTL:
         max_output_tokens (int or None) : The maximum number of tokens to output.
 
         Returns:
-        result (string or list - string or GenerateContentResponse or list - GenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of GenerateContentResponse objects if the response type is 'raw', a GenerateContentResponse object otherwise.
+        result (string or list - string or GenerateContentResponse or list - GenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise.
 
         """
 
@@ -377,17 +377,21 @@ class EasyTL:
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode)
             
-        ## Done afterwards, cause default translation instructions can change based on set_attributes()       
-        GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
+            ## Done afterwards, cause default translation instructions can change based on set_attributes()       
+            GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
         
         if(isinstance(text, str)):
             _result = GeminiService._translate_text(text)
+            
+            assert not isinstance(_result, list) and hasattr(_result, "text"), EasyTLException("Malformed response received. Please try again.")
             
             result = _result if response_type == "raw" else _result.text
 
         elif(_is_iterable_of_strings(text)):
             
             _results = [GeminiService._translate_text(t) for t in text]
+
+            assert isinstance(_results, list) and all([hasattr(_r, "text") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
             result = [_r.text for _r in _results] if response_type == "text" else _results # type: ignore
             
@@ -427,7 +431,7 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        It is not known whether Gemini has backoff retrying implemented. (Their API is a mess.)
+        It is not known whether Gemini has backoff retrying implemented. Assume it does not exist.
         
         Parameters:
         text (string or iterable) : The text to translate.
@@ -435,9 +439,9 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a AsyncGenerateContentResponse object, 'json' returns a json-parseable string.
-        semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models.
+        semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
-        translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
+        translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
@@ -446,7 +450,7 @@ class EasyTL:
         max_output_tokens (int or None) : The maximum number of tokens to output.
 
         Returns:
-        result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AsyncGenerateContentResponse objects if the response type is 'raw', a AsyncGenerateContentResponse object otherwise.
+        result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AsyncGenerateContentResponse objects if the response type is 'raw' and input was an iterable, a AsyncGenerateContentResponse object otherwise.
 
         """
 
@@ -479,8 +483,8 @@ class EasyTL:
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode)
             
-        ## Done afterwards, cause default translation instructions can change based on set_attributes()
-        GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
+            ## Done afterwards, cause default translation instructions can change based on set_attributes()
+            GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
             
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
@@ -527,7 +531,7 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        OpenAI has it's backoff retrying disabled by EasyTL.
+        OpenAI has it's backoff retrying disabled by EasyTL, in favor of the user implementing their own retrying mechanism via the decorator.
 
         Parameters:
         text (string or iterable) : The text to translate.
@@ -536,8 +540,7 @@ class EasyTL:
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
-        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
-        model (string) : The model to use.
+        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
         stop (list or None) : The sequences to stop at.
@@ -546,7 +549,7 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use.
 
         Returns:
-        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw', a ChatCompletion object otherwise.
+        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
 
         """
 
@@ -578,11 +581,14 @@ class EasyTL:
                                         semaphore=None,
                                         rate_limit_delay=translation_delay,
                                         json_mode=json_mode)
-            
-        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
 
-        ## Done afterwards, cause default translation instructions can change based on set_attributes()
-        translation_instructions = translation_instructions or OpenAIService._default_translation_instructions
+            ## Done afterwards, cause default translation instructions can change based on set_attributes()
+            translation_instructions = translation_instructions or OpenAIService._default_translation_instructions
+        
+        else:
+            translation_instructions = OpenAIService._system_message
+
+        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
 
         translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
         
@@ -591,6 +597,8 @@ class EasyTL:
         for _text, _translation_instructions in translation_batches:
 
             _result = OpenAIService._translate_text(_translation_instructions, _text)
+
+            assert not isinstance(_result, list) and hasattr(_result, "choices"), EasyTLException("Malformed response received. Please try again.")
 
             translation = _result if response_type == "raw" else _result.choices[0].message.content
             
@@ -642,7 +650,7 @@ class EasyTL:
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
-        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output in the instructions. The default system message will ask for json if the response type is json.
+        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         model (string) : The model to use.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
@@ -652,8 +660,8 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use.
 
         Returns:
-        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw', a ChatCompletion object otherwise.
-
+        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
+        
         """
 
         assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
@@ -685,10 +693,13 @@ class EasyTL:
                                         rate_limit_delay=translation_delay,
                                         json_mode=json_mode)
             
-        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
+            ## Done afterwards, cause default translation instructions can change based on set_attributes()
+            translation_instructions = translation_instructions or OpenAIService._default_translation_instructions
 
-        ## Done afterwards, cause default translation instructions can change based on set_attributes()
-        translation_instructions = translation_instructions or OpenAIService._default_translation_instructions        
+        else:
+            translation_instructions = OpenAIService._system_message        
+            
+        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
 
         _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
 
@@ -701,6 +712,8 @@ class EasyTL:
         _results = await asyncio.gather(*_translation_tasks)
 
         _results:typing.List[ChatCompletion] = _results
+
+        assert all([hasattr(_r, "choices") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
         translation = _results if response_type == "raw" else [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
 
