@@ -5,6 +5,7 @@
 ## built-in libraries
 import asyncio
 import typing
+import time
 
 ## third-party libraries
 from google.cloud import translate_v2 as translate
@@ -15,6 +16,7 @@ from google.oauth2.service_account import Credentials
 
 ## custom modules
 from .util import _convert_iterable_to_str
+from .decorators import _sync_logging_decorator, _async_logging_decorator
 
 class GoogleTLService:
 
@@ -55,6 +57,64 @@ class GoogleTLService:
 
         GoogleTLService._credentials = service_account.Credentials.from_service_account_file(key_path)
 
+##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def _set_attributes(target_language:str = 'en',
+                        format:str = 'text',
+                        source_language:str | None = None,
+                        decorator:typing.Callable | None = None,
+                        logging_directory:str | None = None,
+                        semaphore:int | None = None,
+                        rate_limit_delay:float | None = None
+                        ) -> None:
+
+        """
+
+        Sets the attributes of the DeepL client.
+
+        """
+
+        ## API Attributes
+    
+        GoogleTLService._target_lang = target_language
+        GoogleTLService._format = format
+        GoogleTLService._source_lang = source_language
+
+        ## Service Attributes
+
+        GoogleTLService._decorator_to_use = decorator
+
+        GoogleTLService._log_directory = logging_directory
+
+        if(semaphore is not None):
+            GoogleTLService._semaphore_value = semaphore
+            GoogleTLService._semaphore = asyncio.Semaphore(semaphore)
+
+        GoogleTLService._rate_limit_delay = rate_limit_delay
+
+##-------------------start-of-_prepare_translation_parameters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def _prepare_translation_parameters(text:str):
+
+        """
+
+        Prepares the parameters for the translation.
+
+        Parameters:
+        text (string) : The text to translate.
+
+        """
+
+        params = {
+            'values': text,
+            'target_language': GoogleTLService._target_lang,
+            'format_': GoogleTLService._format,
+            'source_language': GoogleTLService._source_lang,
+        }
+
+        return params
 
 ##-------------------start-of-_redefine_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,8 +151,79 @@ class GoogleTLService:
             return func(*args, **kwargs)
         
         return wrapper
-    
 
+##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    @_sync_logging_decorator
+    def _translate_text(text:str) -> typing.Union[typing.List[typing.Any], typing.Any]:
+
+        """
+
+        Translates the given text to the target language.
+
+        Parameters:
+        text (string) : The text to translate.
+
+        Returns:
+        translation (TextResult or list of TextResult) : The translation result.
+
+        """
+
+        if(GoogleTLService._rate_limit_delay is not None):
+            time.sleep(GoogleTLService._rate_limit_delay)
+
+        params = GoogleTLService._prepare_translation_parameters(text)
+
+        try:
+
+            if(GoogleTLService._decorator_to_use is None):
+                return GoogleTLService._translator.translate(**params)
+            
+            else:
+                decorated_function = GoogleTLService._decorator_to_use(GoogleTLService._translate_text)
+                return decorated_function(**params)
+            
+        except Exception as _e:
+            raise _e
+        
+##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    @staticmethod
+    @_async_logging_decorator
+    async def _translate_text_async(text:str) -> typing.Union[typing.List[typing.Any], typing.Any]:
+
+        """
+
+        Translates the given text to the target language asynchronously.
+
+        Parameters:
+        text (string) : The text to translate.
+
+        Returns:
+        translation (TextResult or list of TextResult) : The translation result.
+
+        """
+
+        async with GoogleTLService._semaphore:
+
+            if(GoogleTLService._rate_limit_delay is not None):
+                await asyncio.sleep(GoogleTLService._rate_limit_delay)
+
+            params = GoogleTLService._prepare_translation_parameters(text)
+
+            try:
+                if(GoogleTLService._decorator_to_use is None):
+                    loop = asyncio.get_running_loop()
+                    return await loop.run_in_executor(None, lambda: GoogleTLService._translator.translate(**params))
+                
+                else:
+                    decorated_function = GoogleTLService._decorator_to_use(GoogleTLService._translate_text_async)
+                    return await decorated_function(**params)
+                
+            except Exception as _e:
+                raise _e
+    
 ##-------------------start-of-_test_credential()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -155,20 +286,3 @@ class GoogleTLService:
         _model = "google translate"
 
         return _number_of_characters, _cost, _model
-
-
-def main():
-    credentials = service_account.Credentials.from_service_account_file(
-        'C:\\Users\\Tetra\\Desktop\\LN\\API keys\\gen-lang-client-0189553349-6c305b2f0118.json')
-
-
-    translate_client = translate.Client(credentials=credentials)
-
-    text = 'Hello, world!'
-
-    result = translate_client.translate(text, target_language='ru')
-
-    print(result['translatedText'])
-
-if __name__ == '__main__':
-    main()
