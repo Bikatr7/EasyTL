@@ -106,6 +106,9 @@ class EasyTL:
         """
 
         Tests the validity of the API key for the specified API type.
+        
+        Deprecated: This function is deprecated and will be removed in a future version.
+        Use test_credentials() instead.
 
         Parameters:
         api_type (literal["deepl", "gemini", "openai"]) : The API type to test the key for.
@@ -115,6 +118,8 @@ class EasyTL:
         (Exception) : The exception that was raised, if any. None otherwise.
 
         """
+
+        warnings.warn("test_api_key_validity is deprecated and will be removed in a future version. Use test_credentials instead.", DeprecationWarning, stacklevel=2)
         
         api_services = {
             "deepl": {"service": DeepLService, "exception": DeepLException},
@@ -132,7 +137,43 @@ class EasyTL:
             return False, _e
 
         return True, None
-        
+    
+##-------------------start-of-test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def test_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate"]) -> typing.Tuple[bool, typing.Optional[Exception]]:
+
+        """
+
+        Tests the validity of the credentials for the specified API type.
+
+        Parameters:
+        api_type (literal["deepl", "gemini", "openai", "google translate"]) : The API type to test the credentials for.
+
+        Returns:
+        (bool) : Whether the credentials are valid.
+        (Exception) : The exception that was raised, if any. None otherwise.
+
+        """
+
+        api_services = {
+            "deepl": {"service": DeepLService, "exception": DeepLException, "test_func": DeepLService._test_api_key_validity},
+            "gemini": {"service": GeminiService, "exception": GoogleAPIError, "test_func": GeminiService._test_api_key_validity},
+            "openai": {"service": OpenAIService, "exception": OpenAIError, "test_func": OpenAIService._test_api_key_validity},
+            "google translate": {"service": GoogleTLService, "exception": GoogleAPIError, "test_func": GoogleTLService._test_credentials}
+        }
+
+        assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai' and 'google translate'.")
+
+        _is_valid, _e = api_services[api_type]["test_func"]()
+
+        if(not _is_valid):
+            ## Done to make sure the exception is due to the specified API type and not the fault of EasyTL
+            assert isinstance(_e, api_services[api_type]["exception"]), _e
+            return False, _e
+
+        return True, None
+    
 ##-------------------start-of-deepl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

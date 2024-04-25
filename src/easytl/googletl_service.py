@@ -224,11 +224,11 @@ class GoogleTLService:
             except Exception as _e:
                 raise _e
     
-##-------------------start-of-_test_credential()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
     @_redefine_client_decorator
-    def _test_credential() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+    def _test_credentials() -> typing.Tuple[bool, typing.Union[Exception, None]]:
 
         """
 
