@@ -16,9 +16,15 @@ def _get_nested_attribute(obj, attrs):
             if(isinstance(obj, list) and attr.isdigit()):
                 obj = obj[int(attr)]
             else:
-                obj = getattr(obj, attr)
-        except (AttributeError, IndexError):
+                try:
+                    obj = getattr(obj, attr)
+                except AttributeError:
+                    ## Try dictionary access
+                    obj = obj[attr]
+
+        except (AttributeError, IndexError, KeyError):
             raise ValueError(f"Attribute {attr} in object {obj} not found.")
+        
     return obj
 
 ##-------------------start-of-logging_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -139,5 +145,6 @@ Timestamp: {timestamp}
 log_attributes = {
     'GeminiService': ['text'],
     'DeepLService': ['text'],
-    'OpenAIService': ['choices', '0', 'message', 'content']
+    'OpenAIService': ['choices', '0', 'message', 'content'],
+    'GoogleTLService': ['translatedText']
 }
