@@ -298,6 +298,9 @@ class GeminiService:
 
         async with GeminiService._semaphore:
 
+            if(GeminiService._rate_limit_delay is not None):
+                await asyncio.sleep(GeminiService._rate_limit_delay)
+
             text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
 
             _response = await GeminiService._client.generate_content_async(

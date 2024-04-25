@@ -290,6 +290,9 @@ class OpenAIService:
 
         async with OpenAIService._semaphore:
 
+            if(OpenAIService._rate_limit_delay is not None):
+                await asyncio.sleep(OpenAIService._rate_limit_delay)
+
             response = await OpenAIService._async_client.chat.completions.create(
                 response_format={ "type": response_format },
                 messages=[
