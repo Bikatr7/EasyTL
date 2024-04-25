@@ -171,11 +171,11 @@ class DeepLService:
         except Exception as _e:
             raise _e
         
-##-------------------start-of-_async_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
     @_async_logging_decorator
-    async def _async_translate_text(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
+    async def _translate_text_async(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
         """
 
@@ -202,7 +202,7 @@ class DeepLService:
                     return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
                 
                 else:
-                    decorated_function = DeepLService._decorator_to_use(DeepLService._async_translate_text)
+                    decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text_async)
                     return await decorated_function(**params)
                 
             except Exception as _e:

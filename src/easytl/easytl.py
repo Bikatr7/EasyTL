@@ -280,14 +280,14 @@ class EasyTL:
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay)
         if(isinstance(text, str)):
-            _result = await DeepLService._async_translate_text(text)
+            _result = await DeepLService._translate_text_async(text)
 
             assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
 
             result = _result if response_type == "raw" else _result.text
             
         elif(_is_iterable_of_strings(text)):
-            _tasks = [DeepLService._async_translate_text(t) for t in text]
+            _tasks = [DeepLService._translate_text_async(t) for t in text]
             _results = await asyncio.gather(*_tasks)
             
             assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
