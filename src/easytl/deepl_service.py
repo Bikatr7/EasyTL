@@ -110,11 +110,6 @@ class DeepLService:
 
         """
 
-        _is_valid, _e = DeepLService._test_api_key_validity()
-
-        if(not _is_valid and _e):
-            raise _e
-
         if(isinstance(DeepLService._split_sentences, str)):
             DeepLService._split_sentences = SplitSentences[DeepLService._split_sentences]
 
