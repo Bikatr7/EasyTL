@@ -13,6 +13,9 @@ from google.cloud.translate_v2 import Client
 from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
 
+## custom modules
+from .util import _convert_iterable_to_str
+
 class GoogleTLService:
 
     
@@ -90,6 +93,68 @@ class GoogleTLService:
         return wrapper
     
 
+##-------------------start-of-_test_credential()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    @_redefine_client_decorator
+    def _test_credential() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+
+        """
+
+        Tests the validity of the credentials.
+
+        Returns:
+        validity (bool) : The validity of the credentials.
+        e (Exception) : The exception that occurred, if any.
+
+        """
+
+        _validity = False
+
+        try:
+
+            _response = GoogleTLService._translator.translate('Hello, world!', target_language='ru')
+
+            assert isinstance(_response['translatedText'], str) 
+
+            _validity = True
+
+            return _validity, None
+
+        except Exception as _e:
+
+            return _validity, _e
+        
+##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    @_redefine_client_decorator
+    def _calculate_cost(text:str | typing.Iterable) -> typing.Tuple[int, float, str]:
+
+        """
+
+        Calculates the cost of the translation.
+
+        Parameters:
+        text (string) : The text to calculate the cost for.
+
+        Returns:
+        cost (float) : The cost of the translation.
+
+        """
+
+        ## $20.00 per 1,000,000 characters if already over 500,000 characters.
+        ## We cannot check quota, due to api limitations.
+
+        if(isinstance(text, typing.Iterable)):
+            text = _convert_iterable_to_str(text)
+
+
+        _number_of_characters = len(text)
+        _cost = (_number_of_characters/1000000)*20.0
+        _model = "google translate"
+
+        return _number_of_characters, _cost, _model
 
 
 def main():
