@@ -6,6 +6,8 @@
 import typing
 import asyncio
 
+import warnings
+
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo
 
@@ -13,6 +15,7 @@ from .classes import Language, SplitSentences, Formality, GlossaryInfo
 from .deepl_service import DeepLService
 from .gemini_service import GeminiService
 from .openai_service import OpenAIService
+from .googletl_service import GoogleTLService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
@@ -45,12 +48,18 @@ class EasyTL:
         """
 
         Sets the API key for the specified API type.
+        For Google Translate, use set_credentials() instead.
+
+        Deprecated: This function is deprecated and will be removed in a future version.
+        Use set_credentials(auth_info) instead.
 
         Parameters:
         api_type (literal["deepl", "gemini", "openai"]) : The API type to set the key for.
         api_key (string) : The API key to set.
 
         """
+
+        warnings.warn("set_api_key is deprecated and will be removed in a future version. Use set_credentials instead.", DeprecationWarning, stacklevel=2)
 
         service_map = {
             "deepl": DeepLService,
@@ -61,6 +70,33 @@ class EasyTL:
         assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
 
         service_map[api_type]._set_api_key(api_key)
+
+##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate"], credentials:str) -> None:
+
+        """
+
+        Sets the credentials for the specified API type.
+
+        Parameters:
+        api_type (literal["deepl", "gemini", "openai", "google translate"]) : The API type to set the credentials for.
+        credentials (string) : The credentials to set. This is an api key for deepl, gemini and openai. For google translate, this is a path to your json that has your service account key.
+
+        """
+
+        service_map = {
+            "deepl": DeepLService._set_api_key,
+            "gemini": GeminiService._set_api_key,
+            "openai": OpenAIService._set_api_key,
+            "google translate": GoogleTLService._set_credentials
+
+        }
+
+        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai' and 'google translate'.")
+
+        service_map[api_type](credentials)
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
