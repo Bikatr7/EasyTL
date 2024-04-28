@@ -219,6 +219,7 @@ class EasyTL:
 
         assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
 
+        ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("google translate")
 
         if(override_previous_settings == True):
@@ -300,6 +301,7 @@ class EasyTL:
 
         assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
 
+        ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("google translate")
 
         if(override_previous_settings == True):
@@ -390,7 +392,7 @@ class EasyTL:
 
         assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        EasyTL.test_api_key_validity("deepl")
+        EasyTL.test_credentials("deepl")
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang = target_lang, 
@@ -494,7 +496,7 @@ class EasyTL:
 
         assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        EasyTL.test_api_key_validity("deepl")
+        EasyTL.test_credentials("deepl")
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang=target_lang, 
@@ -591,7 +593,7 @@ class EasyTL:
         _validate_stop_sequences(stop_sequences)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("gemini")
+        EasyTL.test_credentials("gemini")
 
         json_mode = True if response_type == "json" else False
 
@@ -697,7 +699,7 @@ class EasyTL:
         _validate_stop_sequences(stop_sequences)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("gemini")
+        EasyTL.test_credentials("gemini")
 
         json_mode = True if response_type == "json" else False
 
@@ -796,7 +798,7 @@ class EasyTL:
         _validate_stop_sequences(stop)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("openai")
+        EasyTL.test_credentials("openai")
 
         json_mode = True if response_type == "json" else False
         
@@ -907,7 +909,7 @@ class EasyTL:
         _validate_stop_sequences(stop)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("openai")
+        EasyTL.test_credentials("openai")
 
         json_mode = True if response_type == "json" else False
 
