@@ -1070,7 +1070,7 @@ class EasyTL:
         
     @staticmethod
     def calculate_cost(text:str | typing.Iterable[str],
-                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl",
+                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
                        model:typing.Optional[str] = None,
                        translation_instructions:typing.Optional[str] = None
                        ) -> typing.Tuple[int, float, str]:
@@ -1081,9 +1081,10 @@ class EasyTL:
 
         For LLMs, the cost is based on the default model unless specified.
 
-        Model and Translation Instructions are ignored for DeepL.
+        Model and Translation Instructions are ignored for DeepL and Google Translate.
 
-        For deepl, number of tokens is the number of characters, the returned model is always "deepl"
+        For deepl, number of tokens is the number of characters, the returned model is always "deepl".
+        The same applies for google translate, but the model is "google translate".
 
         Parameters:
         text (string or iterable) : The text to translate.
@@ -1098,6 +1099,8 @@ class EasyTL:
 
         """
 
+        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
+
         if(service == "deepl"):
             return DeepLService._calculate_cost(text)
         
@@ -1107,5 +1110,5 @@ class EasyTL:
         elif(service == "gemini"):
             return GeminiService._calculate_cost(text, translation_instructions, model)
         
-        else:
-            raise ValueError("Invalid service specified.")
+        elif(service == "google translate"):
+            return GoogleTLService._calculate_cost(text)
