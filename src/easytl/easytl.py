@@ -961,11 +961,12 @@ class EasyTL:
         
     @staticmethod
     def translate(text:str | typing.Iterable[str],
-                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
+                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
                   **kwargs) -> typing.Union[typing.List[str], str, 
                                             typing.List[TextResult], TextResult, 
+                                            typing.List[ChatCompletion], ChatCompletion,
                                             typing.List[GenerateContentResponse], GenerateContentResponse, 
-                                            typing.List[ChatCompletion], ChatCompletion]:
+                                            typing.List[typing.Any], typing.Any]:
         
         """
 
@@ -973,9 +974,16 @@ class EasyTL:
 
         Please see the documentation for the specific translation function for the service you want to use.
 
-        DeepL: deepl_translate()
-        OpenAI: openai_translate()
-        Gemini: gemini_translate()
+        DeepL: deepl_translate() 
+        OpenAI: openai_translate() 
+        Gemini: gemini_translate() 
+        Google Translate: googletl_translate() 
+
+        All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
+        DeepL: TextResult
+        OpenAI: ChatCompletion
+        Gemini: GenerateContentResponse
+        Google Translate: any
 
         Parameters:
         service (string) : The service to use for translation.
@@ -983,9 +991,11 @@ class EasyTL:
         **kwargs : The keyword arguments to pass to the translation function.
 
         Returns:
-        translation (TextResult or list - TextResult) : The translation result.
+        result (string or list - string or TextResult or list - TextResult or ChatCompletion or list - ChatCompletion or GenerateContentResponse or list - GenerateContentResponse or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
 
         """
+
+        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
 
         if(service == "deepl"):
             return EasyTL.deepl_translate(text, **kwargs)
@@ -996,19 +1006,20 @@ class EasyTL:
         elif(service == "gemini"):
            return EasyTL.gemini_translate(text, **kwargs)
         
-        else:
-            raise ValueError("Invalid service specified.")
+        elif(service == "google translate"):
+            return EasyTL.googletl_translate(text, **kwargs)
         
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
     async def translate_async(text:str | typing.Iterable[str],
-                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
+                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
                               **kwargs) -> typing.Union[typing.List[str], str, 
-                                                        typing.List[TextResult], TextResult, 
-                                                        typing.List[GenerateContentResponse], GenerateContentResponse, 
+                                                        typing.List[TextResult], TextResult,  
                                                         typing.List[ChatCompletion], ChatCompletion,
-                                                        AsyncGenerateContentResponse, typing.List[AsyncGenerateContentResponse]]:
+                                                        typing.List[AsyncGenerateContentResponse], AsyncGenerateContentResponse,
+                                                        typing.List[typing.Any], typing.Any]:
+
         
         """
 
@@ -1021,8 +1032,15 @@ class EasyTL:
         Please see the documentation for the specific translation function for the service you want to use.
 
         DeepL: deepl_translate_async()
-        OpenAI: openai_translate_async()
-        Gemini: gemini_translate_async()
+        OpenAI: openai_translate_async() 
+        Gemini: gemini_translate_async() 
+        Google Translate: googletl_translate_async()
+
+        All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
+        DeepL: TextResult
+        OpenAI: ChatCompletion
+        Gemini: AsyncGenerateContentResponse
+        Google Translate: any
 
         Parameters:
         service (string) : The service to use for translation.
@@ -1030,9 +1048,11 @@ class EasyTL:
         **kwargs : The keyword arguments to pass to the translation function.
 
         Returns:
-        translation (TextResult or list - TextResult) : The translation result.
+        result (string or list - string or TextResult or list - TextResult or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse or ChatCompletion or list - ChatCompletion or any or list - any) : The translation result according to the service used.
 
         """
+
+        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
 
         if(service == "deepl"):
             return await EasyTL.deepl_translate_async(text, **kwargs)
@@ -1043,9 +1063,9 @@ class EasyTL:
         elif(service == "gemini"):
             return await EasyTL.gemini_translate_async(text, **kwargs)
         
-        else:
-            raise ValueError("Invalid service specified.")
-        
+        elif(service == "google translate"):
+            return await EasyTL.googletl_translate_async(text, **kwargs)
+
 ##-------------------start-of-calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
