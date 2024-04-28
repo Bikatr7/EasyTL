@@ -16,12 +16,19 @@ def read_api_key(filename):
 
 def setup_preconditions():
 
-
     gemini_time_delay = 30
 
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
+    json_value = os.environ.get('GOOGLE_TRANSLATE_SERVICE_KEY_VALUE')
+
+    if(json_value is not None):
+
+        with open("json_value.txt", "w") as file:
+            file.write(json_value)
+
+        google_tl_key_path = "json_value.txt"
 
     logging_directory = os.getenv('LOGGING_DIRECTORY', '/tmp/')
 
@@ -31,6 +38,9 @@ def setup_preconditions():
         gemini_api_key = read_api_key("tests/gemini.txt")
     if(openai_api_key is None):
         openai_api_key = read_api_key("tests/openai.txt")
+
+    if(json_value is None):
+        google_tl_key_path = "tests/google_translate_key.json"
         
         logging_directory = "tests/"
         gemini_time_delay = 5
@@ -38,10 +48,12 @@ def setup_preconditions():
     assert deepl_api_key is not None, "DEEPL_API_KEY environment variable must be set"
     assert gemini_api_key is not None, "GEMINI_API_KEY environment variable must be set"
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
+    assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
-    EasyTL.set_api_key("deepl", deepl_api_key)
-    EasyTL.set_api_key("gemini", gemini_api_key)
-    EasyTL.set_api_key("openai", openai_api_key)
+    EasyTL.set_credentials("deepl", deepl_api_key)
+    EasyTL.set_credentials("gemini", gemini_api_key)
+    EasyTL.set_credentials("openai", openai_api_key)
+    EasyTL.set_credentials("google translate", google_tl_key_path)
 
     return gemini_time_delay, logging_directory
 
@@ -77,6 +89,35 @@ async def main():
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
     characters, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="deepl", model=None, translation_instructions=None)
+
+    print(f"Characters: {characters}, Cost: {cost}, Model: {model}")
+
+    print("------------------------------------------------Google Translate------------------------------------------------")
+
+    print("------------------------------------------------Text response------------------------------------------------")
+
+    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", logging_directory=logging_directory))
+    print(await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory))
+
+    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", response_type="raw", logging_directory=logging_directory)["translatedText"]) # type: ignore
+    result = await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", response_type="raw", logging_directory=logging_directory)
+
+    print(result["translatedText"]) # type: ignore
+
+    print("------------------------------------------------Raw response------------------------------------------------")
+
+    results = EasyTL.googletl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory)
+    async_results = await EasyTL.googletl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory)
+
+    for result in results: # type: ignore
+        print(result["translatedText"]) # type: ignore
+
+    for result in async_results: # type: ignore
+        print(result["translatedText"]) # type: ignore
+
+    print("------------------------------------------------Cost calculation------------------------------------------------")
+
+    characters, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="google translate", model=None, translation_instructions=None)
 
     print(f"Characters: {characters}, Cost: {cost}, Model: {model}")
 

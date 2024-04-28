@@ -165,3 +165,4 @@ tests/gemini.txt
 tests/openai.txt
 tests/deepl.txt
 tests/easytl-log.txt
+tests/google_translate_key.json
