@@ -14,9 +14,9 @@
 
 ## EasyTL
 
-Wrapper for OpenAI, DeepL, and Gemini APIs for easy translation of text.
+Seamless Multi-API Translation: Simplifying Language Barriers with DeepL, OpenAI, Gemini and Google Translate.
 
-EasyTL has a Trello board for tracking features and issues:
+EasyTL has a Trello board for tracking planned features and issues:
 https://trello.com/b/Td555CoW/easytl
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ To get started with EasyTL, install the package via pip:
 pip install easytl
 ```
 
-Then, you can translate Japanese text using by importing the global client.
+Then, you can translate text using by importing the global client.
 
 For example, with DeepL:
 
@@ -36,12 +36,12 @@ For example, with DeepL:
 from easytl import EasyTL
 
 ## Set your API key
-EasyTL.set_api_key("deepL", "your_api_key_here")
+EasyTL.credentials("deepl", "your_api_key_here")
 
 ## You can also validate your API keys; translation functions will do this automatically
-is_valid, e = EasyTL.validate_api_key("deepL")
+is_valid, e = EasyTL.validate_credentials("deepl")
 
-translated_text = EasyTL.deepl_translate("私は日本語が話せます", "EN") ## Text to translate, language to translate to, only two "required" arguments but there are more optional arguments for additional functionality.
+translated_text = EasyTL.deepl_translate("私は日本語が話せます", "EN-US") ## Text to translate, language to translate to, only two "required" arguments but there are more optional arguments for additional functionality and other services.
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ pip install easytl
 This will install EasyTL along with its dependencies and requirements.
 
 These are the dependencies/requirements that will be installed:
-```
+```bash
 setuptools>=61.0
 wheel
 setuptools_scm>=6.0
@@ -69,6 +69,7 @@ deepl==1.16.1
 openai==1.13.3
 backoff==2.2.1
 tiktoken==0.6.0
+google-cloud-translate==3.15.3
 ```
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -76,10 +77,10 @@ tiktoken==0.6.0
 
 EasyTL offers seamless integration with several translation APIs, allowing users to easily switch between services based on their needs. Key features include:
 
-- Support for multiple translation APIs including OpenAI, DeepL, and Gemini.
-- Simple API key management.
-- Methods to validate API keys before usage.
-- Cost estimation tools to help manage usage based on text length and service.
+- Support for multiple translation APIs including OpenAI, DeepL, Gemini, and Google Translate.
+- Simple API key and credential management.
+- Methods to validate credentials before usage.
+- Cost estimation tools to help manage usage based on text length, translation instructions for LLMs, and translation services.
 - Highly customizable translation options, with the API's original features.
 - Lots of optional arguments for additional functionality. Such as decorators, semaphores, and rate-limit delays.
 
@@ -89,7 +90,15 @@ EasyTL offers seamless integration with several translation APIs, allowing users
 
 ### Translating Text
 
-Use `deepl_translate`, `openai_translate`, or `gemini_translate` to translate text using the respective services. Each method accepts various parameters to customize the translation process, such as language, text format, and API-specific features like formality level or temperature for creative outputs.
+Use `deepl_translate`, `googletl_translate`, `openai_translate`, or `gemini_translate` to translate text using the respective services. Each method accepts various parameters to customize the translation process, such as language, text format, and API-specific features like formality level or temperature for creative outputs.
+
+All services offer asynchronous translation methods that return a future object for concurrent processing. These methods are suffixed with `_async` and can be awaited to retrieve the translated text.
+
+Instead of receiving the translated text directly, you can also use the `response` parameter to get the full response object from the API.
+
+## Generic Translation Methods
+
+EasyTL has generic translation methods `translate` and `translate_async` that can be used to translate text with any of the supported services. These methods accept the text, service, and kwargs of the respective service as parameters.
 
 ### Cost Calculation
 
@@ -98,12 +107,18 @@ The `calculate_cost` method provides an estimate of the cost associated with tra
 characters or tokens depending on the service.
 
 ```python
-num_characters, cost, model = EasyTL.calculate_cost("Example text.", "deepL")
+num_characters, cost, model = EasyTL.calculate_cost("This has a lot of characters", "deepl")
 ```
 
-### API Key Management
+or 
 
-API keys can be set and validated using `set_api_key` and `validate_api_key` methods to ensure they are active and correct before submitting translation requests.
+```python
+num_tokens, cost, model = EasyTL.calculate_cost("This has a lot of tokens.", "openai", model="gpt-4", translation_instructions="Translate this text to Japanese.")
+```
+
+### Credentials Management
+
+Credentials can be set and validated using `set_credentials` and `validate_credentials` methods to ensure they are active and correct before submitting translation requests.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,7 +132,7 @@ The LGPL is a permissive copyleft license that enables this software to be freel
 
 **Contact**<a name="contact"></a>
 
-If you have any questions or suggestions, feel free to reach out to me at [Tetralon07@gmail.com](mailto:Tetralon07@gmail.com).
+If you have any questions or suggestions, feel free to reach out to me at [Bikatr7@proton.me](mailto:Bikatr7@proton.me)
 
 Also feel free to check out the [GitHub repository](https://github.com/Bikatr7/EasyTL) for this project.
 
