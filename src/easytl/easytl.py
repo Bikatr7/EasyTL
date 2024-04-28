@@ -6,6 +6,8 @@
 import typing
 import asyncio
 
+import warnings
+
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo
 
@@ -13,11 +15,12 @@ from .classes import Language, SplitSentences, Formality, GlossaryInfo
 from .deepl_service import DeepLService
 from .gemini_service import GeminiService
 from .openai_service import OpenAIService
+from .googletl_service import GoogleTLService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
 
-from .util import _convert_to_correct_type, _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences
+from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences
 
 class EasyTL:
 
@@ -25,9 +28,9 @@ class EasyTL:
     
     EasyTL global client, used to interact with Translation APIs.
 
-    Use set_api_key() to set the API key for the specified API type.
+    Use set_credentials() to set the credentials for the specified API type. (e.g. set_credentials("deepl", "your_api_key") or set_credentials("google translate", "path/to/your/credentials.json"))
 
-    Use test_api_key_validity() to test the validity of the API key for the specified API type. (Optional) Will be done automatically when calling translation functions.
+    Use test_credentials() to test the validity of the credentials for the specified API type. (e.g. test_credentials("deepl")) (Optional) Done automatically when translating.
 
     Use translate() to translate text using the specified service with it's appropriate kwargs. Or specify the service by calling the specific translation function. (e.g. openai_translate())
 
@@ -45,12 +48,18 @@ class EasyTL:
         """
 
         Sets the API key for the specified API type.
+        For Google Translate, use set_credentials() instead.
+
+        Deprecated: This function is deprecated and will be removed in a future version.
+        Use set_credentials(auth_info) instead.
 
         Parameters:
         api_type (literal["deepl", "gemini", "openai"]) : The API type to set the key for.
         api_key (string) : The API key to set.
 
         """
+
+        warnings.warn("set_api_key is deprecated and will be removed in a future version. Use set_credentials instead.", DeprecationWarning, stacklevel=2)
 
         service_map = {
             "deepl": DeepLService,
@@ -62,6 +71,33 @@ class EasyTL:
 
         service_map[api_type]._set_api_key(api_key)
 
+##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate"], credentials:str) -> None:
+
+        """
+
+        Sets the credentials for the specified API type.
+
+        Parameters:
+        api_type (literal["deepl", "gemini", "openai", "google translate"]) : The API type to set the credentials for.
+        credentials (string) : The credentials to set. This is an api key for deepl, gemini and openai. For google translate, this is a path to your json that has your service account key.
+
+        """
+
+        service_map = {
+            "deepl": DeepLService._set_api_key,
+            "gemini": GeminiService._set_api_key,
+            "openai": OpenAIService._set_api_key,
+            "google translate": GoogleTLService._set_credentials
+
+        }
+
+        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai' and 'google translate'.")
+
+        service_map[api_type](credentials)
+
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
     @staticmethod
@@ -70,6 +106,9 @@ class EasyTL:
         """
 
         Tests the validity of the API key for the specified API type.
+        
+        Deprecated: This function is deprecated and will be removed in a future version.
+        Use test_credentials() instead.
 
         Parameters:
         api_type (literal["deepl", "gemini", "openai"]) : The API type to test the key for.
@@ -79,6 +118,8 @@ class EasyTL:
         (Exception) : The exception that was raised, if any. None otherwise.
 
         """
+
+        warnings.warn("test_api_key_validity is deprecated and will be removed in a future version. Use test_credentials instead.", DeprecationWarning, stacklevel=2)
         
         api_services = {
             "deepl": {"service": DeepLService, "exception": DeepLException},
@@ -96,7 +137,202 @@ class EasyTL:
             return False, _e
 
         return True, None
+    
+##-------------------start-of-test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def test_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate"]) -> typing.Tuple[bool, typing.Optional[Exception]]:
+
+        """
+
+        Tests the validity of the credentials for the specified API type.
+
+        Parameters:
+        api_type (literal["deepl", "gemini", "openai", "google translate"]) : The API type to test the credentials for.
+
+        Returns:
+        (bool) : Whether the credentials are valid.
+        (Exception) : The exception that was raised, if any. None otherwise.
+
+        """
+
+        api_services = {
+            "deepl": {"service": DeepLService, "exception": DeepLException, "test_func": DeepLService._test_api_key_validity},
+            "gemini": {"service": GeminiService, "exception": GoogleAPIError, "test_func": GeminiService._test_api_key_validity},
+            "openai": {"service": OpenAIService, "exception": OpenAIError, "test_func": OpenAIService._test_api_key_validity},
+            "google translate": {"service": GoogleTLService, "exception": GoogleAPIError, "test_func": GoogleTLService._test_credentials}
+        }
+
+        assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai' and 'google translate'.")
+
+        _is_valid, _e = api_services[api_type]["test_func"]()
+
+        if(not _is_valid):
+            ## Done to make sure the exception is due to the specified API type and not the fault of EasyTL
+            assert isinstance(_e, api_services[api_type]["exception"]), _e
+            return False, _e
+
+        return True, None
+    
+##-------------------start-of-googletl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def googletl_translate(text:typing.Union[str, typing.Iterable[str]],
+                           target_lang:str = "en",
+                           override_previous_settings:bool = True,
+                           decorator:typing.Callable | None = None,
+                           logging_directory:str | None = None,
+                           response_type:typing.Literal["text", "raw"] | None = "text",
+                           translation_delay:float | None = None,
+                           format:typing.Literal["text", "html"] = "text",
+                           source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
         
+        """
+
+        Translates the given text to the target language using Google Translate.
+
+        This function assumes that the credentials have already been set.
+
+        It is unknown whether Google Translate has backoff retrying implemented. Assume it does not exist.
+
+        Due to how Google Translate's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
+
+        Google Translate v2 API is poorly documented and type hints are near non-existent. typing.Any return types are used for the raw response type.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        target_lang (string) : The target language to translate to.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Google Translate function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
+        response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
+        format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
+        source_lang (string or None) : The source language to translate from.
+
+        Returns:
+        result (string or list - string or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
+
+        """
+
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
+
+        ## Should be done after validating the settings to reduce cost to the user
+        EasyTL.test_credentials("google translate")
+
+        if(override_previous_settings == True):
+            GoogleTLService._set_attributes(target_language=target_lang, 
+                                            format=format, 
+                                            source_language=source_lang, 
+                                            decorator=decorator, 
+                                            logging_directory=logging_directory, 
+                                            semaphore=None, 
+                                            rate_limit_delay=translation_delay)
+            
+        if(isinstance(text, str)):
+            result = GoogleTLService._translate_text(text)
+        
+            assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = result if response_type == "raw" else result["translatedText"]
+        
+        elif(_is_iterable_of_strings(text)):
+
+            results = [GoogleTLService._translate_text(t) for t in text]
+
+            assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = [r["translatedText"] for r in results] if response_type == "text" else results # type: ignore
+            
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
+        
+        return result
+    
+##-------------------start-of-googletl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def googletl_translate_async(text:typing.Union[str, typing.Iterable[str]],
+                                       target_lang:str = "en",
+                                       override_previous_settings:bool = True,
+                                       decorator:typing.Callable | None = None,
+                                       logging_directory:str | None = None,
+                                       response_type:typing.Literal["text", "raw"] | None = "text",
+                                       semaphore:int | None = None,
+                                       translation_delay:float | None = None,
+                                       format:typing.Literal["text", "html"] = "text",
+                                       source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
+        
+        """
+
+        Asynchronous version of googletl_translate().
+
+        Translates the given text to the target language using Google Translate.
+        Will generally be faster for iterables. Order is preserved.
+
+        This function assumes that the credentials have already been set.
+
+        It is unknown whether Google Translate has backoff retrying implemented. Assume it does not exist.
+
+        Due to how Google Translate's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
+
+        Google Translate v2 API is poorly documented and type hints are near non-existent. typing.Any return types are used for the raw response type.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        target_lang (string) : The target language to translate to.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Google Translate function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
+        response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response.
+        semaphore (int) : The number of concurrent requests to make. Default is 15.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
+        format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
+        source_lang (string or None) : The source language to translate from.
+
+        Returns:
+        result (string or list - string or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
+
+        """
+
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
+
+        ## Should be done after validating the settings to reduce cost to the user
+        EasyTL.test_credentials("google translate")
+
+        if(override_previous_settings == True):
+            GoogleTLService._set_attributes(target_language=target_lang, 
+                                            format=format, 
+                                            source_language=source_lang, 
+                                            decorator=decorator, 
+                                            logging_directory=logging_directory, 
+                                            semaphore=semaphore, 
+                                            rate_limit_delay=translation_delay)
+            
+        if(isinstance(text, str)):
+            _result = await GoogleTLService._translate_text_async(text)
+
+            assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = _result if response_type == "raw" else _result["translatedText"]
+            
+        elif(_is_iterable_of_strings(text)):
+            _tasks = [GoogleTLService._translate_text_async(t) for t in text]
+            _results = await asyncio.gather(*_tasks)
+            
+            assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = [_r["translatedText"] for _r in _results] if response_type == "text" else _results # type: ignore
+                
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
+        
+        return result
+    
 ##-------------------start-of-deepl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -156,7 +392,7 @@ class EasyTL:
 
         assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        EasyTL.test_api_key_validity("deepl")
+        EasyTL.test_credentials("deepl")
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang = target_lang, 
@@ -260,7 +496,7 @@ class EasyTL:
 
         assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        EasyTL.test_api_key_validity("deepl")
+        EasyTL.test_credentials("deepl")
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang=target_lang, 
@@ -357,7 +593,7 @@ class EasyTL:
         _validate_stop_sequences(stop_sequences)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("gemini")
+        EasyTL.test_credentials("gemini")
 
         json_mode = True if response_type == "json" else False
 
@@ -463,7 +699,7 @@ class EasyTL:
         _validate_stop_sequences(stop_sequences)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("gemini")
+        EasyTL.test_credentials("gemini")
 
         json_mode = True if response_type == "json" else False
 
@@ -562,7 +798,7 @@ class EasyTL:
         _validate_stop_sequences(stop)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("openai")
+        EasyTL.test_credentials("openai")
 
         json_mode = True if response_type == "json" else False
         
@@ -673,7 +909,7 @@ class EasyTL:
         _validate_stop_sequences(stop)
 
         ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_api_key_validity("openai")
+        EasyTL.test_credentials("openai")
 
         json_mode = True if response_type == "json" else False
 
@@ -725,11 +961,12 @@ class EasyTL:
         
     @staticmethod
     def translate(text:str | typing.Iterable[str],
-                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
+                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
                   **kwargs) -> typing.Union[typing.List[str], str, 
                                             typing.List[TextResult], TextResult, 
+                                            typing.List[ChatCompletion], ChatCompletion,
                                             typing.List[GenerateContentResponse], GenerateContentResponse, 
-                                            typing.List[ChatCompletion], ChatCompletion]:
+                                            typing.List[typing.Any], typing.Any]:
         
         """
 
@@ -737,9 +974,16 @@ class EasyTL:
 
         Please see the documentation for the specific translation function for the service you want to use.
 
-        DeepL: deepl_translate()
-        OpenAI: openai_translate()
-        Gemini: gemini_translate()
+        DeepL: deepl_translate() 
+        OpenAI: openai_translate() 
+        Gemini: gemini_translate() 
+        Google Translate: googletl_translate() 
+
+        All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
+        DeepL: TextResult
+        OpenAI: ChatCompletion
+        Gemini: GenerateContentResponse
+        Google Translate: any
 
         Parameters:
         service (string) : The service to use for translation.
@@ -747,9 +991,11 @@ class EasyTL:
         **kwargs : The keyword arguments to pass to the translation function.
 
         Returns:
-        translation (TextResult or list - TextResult) : The translation result.
+        result (string or list - string or TextResult or list - TextResult or ChatCompletion or list - ChatCompletion or GenerateContentResponse or list - GenerateContentResponse or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
 
         """
+
+        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
 
         if(service == "deepl"):
             return EasyTL.deepl_translate(text, **kwargs)
@@ -760,19 +1006,20 @@ class EasyTL:
         elif(service == "gemini"):
            return EasyTL.gemini_translate(text, **kwargs)
         
-        else:
-            raise ValueError("Invalid service specified.")
+        elif(service == "google translate"):
+            return EasyTL.googletl_translate(text, **kwargs)
         
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
     async def translate_async(text:str | typing.Iterable[str],
-                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl", 
+                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
                               **kwargs) -> typing.Union[typing.List[str], str, 
-                                                        typing.List[TextResult], TextResult, 
-                                                        typing.List[GenerateContentResponse], GenerateContentResponse, 
+                                                        typing.List[TextResult], TextResult,  
                                                         typing.List[ChatCompletion], ChatCompletion,
-                                                        AsyncGenerateContentResponse, typing.List[AsyncGenerateContentResponse]]:
+                                                        typing.List[AsyncGenerateContentResponse], AsyncGenerateContentResponse,
+                                                        typing.List[typing.Any], typing.Any]:
+
         
         """
 
@@ -785,8 +1032,15 @@ class EasyTL:
         Please see the documentation for the specific translation function for the service you want to use.
 
         DeepL: deepl_translate_async()
-        OpenAI: openai_translate_async()
-        Gemini: gemini_translate_async()
+        OpenAI: openai_translate_async() 
+        Gemini: gemini_translate_async() 
+        Google Translate: googletl_translate_async()
+
+        All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
+        DeepL: TextResult
+        OpenAI: ChatCompletion
+        Gemini: AsyncGenerateContentResponse
+        Google Translate: any
 
         Parameters:
         service (string) : The service to use for translation.
@@ -794,9 +1048,11 @@ class EasyTL:
         **kwargs : The keyword arguments to pass to the translation function.
 
         Returns:
-        translation (TextResult or list - TextResult) : The translation result.
+        result (string or list - string or TextResult or list - TextResult or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse or ChatCompletion or list - ChatCompletion or any or list - any) : The translation result according to the service used.
 
         """
+
+        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
 
         if(service == "deepl"):
             return await EasyTL.deepl_translate_async(text, **kwargs)
@@ -807,14 +1063,14 @@ class EasyTL:
         elif(service == "gemini"):
             return await EasyTL.gemini_translate_async(text, **kwargs)
         
-        else:
-            raise ValueError("Invalid service specified.")
-        
+        elif(service == "google translate"):
+            return await EasyTL.googletl_translate_async(text, **kwargs)
+
 ##-------------------start-of-calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
     def calculate_cost(text:str | typing.Iterable[str],
-                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini"]] = "deepl",
+                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
                        model:typing.Optional[str] = None,
                        translation_instructions:typing.Optional[str] = None
                        ) -> typing.Tuple[int, float, str]:
@@ -825,9 +1081,10 @@ class EasyTL:
 
         For LLMs, the cost is based on the default model unless specified.
 
-        Model and Translation Instructions are ignored for DeepL.
+        Model and Translation Instructions are ignored for DeepL and Google Translate.
 
-        For deepl, number of tokens is the number of characters, the returned model is always "deepl"
+        For deepl, number of tokens is the number of characters, the returned model is always "deepl".
+        The same applies for google translate, but the model is "google translate".
 
         Parameters:
         text (string or iterable) : The text to translate.
@@ -842,6 +1099,8 @@ class EasyTL:
 
         """
 
+        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
+
         if(service == "deepl"):
             return DeepLService._calculate_cost(text)
         
@@ -851,5 +1110,5 @@ class EasyTL:
         elif(service == "gemini"):
             return GeminiService._calculate_cost(text, translation_instructions, model)
         
-        else:
-            raise ValueError("Invalid service specified.")
+        elif(service == "google translate"):
+            return GoogleTLService._calculate_cost(text)
