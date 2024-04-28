@@ -174,6 +174,163 @@ class EasyTL:
 
         return True, None
     
+##-------------------start-of-googletl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def googletl_translate(text:typing.Union[str, typing.Iterable[str]],
+                           target_lang:str = "en",
+                           override_previous_settings:bool = True,
+                           decorator:typing.Callable | None = None,
+                           logging_directory:str | None = None,
+                           response_type:typing.Literal["text", "raw"] | None = "text",
+                           translation_delay:float | None = None,
+                           format:typing.Literal["text", "html"] = "text",
+                           source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
+        
+        """
+
+        Translates the given text to the target language using Google Translate.
+
+        This function assumes that the credentials have already been set.
+
+        It is unknown whether Google Translate has backoff retrying implemented. Assume it does not exist.
+
+        Due to how Google Translate's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
+
+        Google Translate v2 API is poorly documented and type hints are near non-existent. typing.Any return types are used for the raw response type.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        target_lang (string) : The target language to translate to.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Google Translate function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
+        response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
+        format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
+        source_lang (string or None) : The source language to translate from.
+
+        Returns:
+        result (string or list - string or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
+
+        """
+
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
+
+        EasyTL.test_credentials("google translate")
+
+        if(override_previous_settings == True):
+            GoogleTLService._set_attributes(target_language=target_lang, 
+                                            format=format, 
+                                            source_language=source_lang, 
+                                            decorator=decorator, 
+                                            logging_directory=logging_directory, 
+                                            semaphore=None, 
+                                            rate_limit_delay=translation_delay)
+            
+        if(isinstance(text, str)):
+            result = GoogleTLService._translate_text(text)
+        
+            assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = result if response_type == "raw" else result["translatedText"]
+        
+        elif(_is_iterable_of_strings(text)):
+
+            results = [GoogleTLService._translate_text(t) for t in text]
+
+            assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = [r["translatedText"] for r in results] if response_type == "text" else results # type: ignore
+            
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
+        
+        return result
+    
+##-------------------start-of-googletl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def googletl_translate_async(text:typing.Union[str, typing.Iterable[str]],
+                                       target_lang:str = "en",
+                                       override_previous_settings:bool = True,
+                                       decorator:typing.Callable | None = None,
+                                       logging_directory:str | None = None,
+                                       response_type:typing.Literal["text", "raw"] | None = "text",
+                                       semaphore:int | None = None,
+                                       translation_delay:float | None = None,
+                                       format:typing.Literal["text", "html"] = "text",
+                                       source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
+        
+        """
+
+        Asynchronous version of googletl_translate().
+
+        Translates the given text to the target language using Google Translate.
+        Will generally be faster for iterables. Order is preserved.
+
+        This function assumes that the credentials have already been set.
+
+        It is unknown whether Google Translate has backoff retrying implemented. Assume it does not exist.
+
+        Due to how Google Translate's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
+
+        Google Translate v2 API is poorly documented and type hints are near non-existent. typing.Any return types are used for the raw response type.
+
+        Parameters:
+        text (string or iterable) : The text to translate.
+        target_lang (string) : The target language to translate to.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Google Translate function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
+        response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response.
+        semaphore (int) : The number of concurrent requests to make. Default is 15.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
+        format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
+        source_lang (string or None) : The source language to translate from.
+
+        Returns:
+        result (string or list - string or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
+
+        """
+
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
+
+        EasyTL.test_credentials("google translate")
+
+        if(override_previous_settings == True):
+            GoogleTLService._set_attributes(target_language=target_lang, 
+                                            format=format, 
+                                            source_language=source_lang, 
+                                            decorator=decorator, 
+                                            logging_directory=logging_directory, 
+                                            semaphore=semaphore, 
+                                            rate_limit_delay=translation_delay)
+            
+        if(isinstance(text, str)):
+            _result = await GoogleTLService._translate_text_async(text)
+
+            assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = _result if response_type == "raw" else _result["translatedText"]
+            
+        elif(_is_iterable_of_strings(text)):
+            _tasks = [GoogleTLService._translate_text_async(t) for t in text]
+            _results = await asyncio.gather(*_tasks)
+            
+            assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
+
+            result = [_r["translatedText"] for _r in _results] if response_type == "text" else _results # type: ignore
+                
+        else:
+            raise InvalidTextInputException("text must be a string or an iterable of strings.")
+        
+        return result
+    
 ##-------------------start-of-deepl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
