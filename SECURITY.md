@@ -8,8 +8,6 @@ I take the security of the EasyTL library very seriously. I appreciate your effo
 
 Please report (suspected) security vulnerabilities to **[Bikatr7@proton.me](mailto:Bikatr7@proton.me)**. You should receive a response within 48 hours. If the issue is confirmed, I will release a patch as soon as possible depending on the complexity but typically within a few days.
 
-If you believe the communication should be encrypted, please use [PGP/GPG key].
-
 ### What to include in a security report
 
 - The version of EasyTL you are using
