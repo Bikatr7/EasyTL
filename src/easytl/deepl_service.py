@@ -7,9 +7,13 @@ import typing
 import asyncio
 import time
 
+
 ## third-party libraries
 from deepl.translator import Translator
 
+import deepl
+
+## custom modules
 from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
@@ -89,6 +93,13 @@ class DeepLService:
         DeepLService._decorator_to_use = decorator
 
         DeepLService._log_directory = logging_directory
+
+        ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 5
+        if(DeepLService._decorator_to_use is not None):
+            deepl.http_client.max_network_retries = 0
+
+        else:
+            deepl.http_client.max_network_retries = 5
 
         if(semaphore is not None):
             DeepLService._semaphore_value = semaphore
