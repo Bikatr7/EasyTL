@@ -231,8 +231,20 @@ class EasyTL:
                                             semaphore=None, 
                                             rate_limit_delay=translation_delay)
             
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+
+        def translate(text):
+            return GoogleTLService._translate_text(text)
+        
+        if(decorator is not None):
+            translate = GoogleTLService._decorator_to_use(GoogleTLService._translate_text) ## type: ignore
+
+        else:
+            translate = GoogleTLService._translate_text
+            
         if(isinstance(text, str)):
-            result = GoogleTLService._translate_text(text)
+            result = translate(text)
         
             assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -240,7 +252,7 @@ class EasyTL:
         
         elif(_is_iterable_of_strings(text)):
 
-            results = [GoogleTLService._translate_text(t) for t in text]
+            results = [translate(t) for t in text]
 
             assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -313,15 +325,26 @@ class EasyTL:
                                             semaphore=semaphore, 
                                             rate_limit_delay=translation_delay)
             
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+        def translate(text):
+            return GoogleTLService._translate_text_async(text)
+        
+        if(decorator is not None):
+            translate = GoogleTLService._decorator_to_use(GoogleTLService._translate_text_async) ## type: ignore
+
+        else:
+            translate = GoogleTLService._translate_text_async
+            
         if(isinstance(text, str)):
-            _result = await GoogleTLService._translate_text_async(text)
+            _result = await translate(text)
 
             assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
 
             result = _result if response_type == "raw" else _result["translatedText"]
             
         elif(_is_iterable_of_strings(text)):
-            _tasks = [GoogleTLService._translate_text_async(t) for t in text]
+            _tasks = [translate(t) for t in text]
             _results = await asyncio.gather(*_tasks)
             
             assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
@@ -361,15 +384,13 @@ class EasyTL:
 
         This function assumes that the API key has already been set.
 
-        DeepL has backoff retrying implemented by default.
-
         Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
 
         Parameters:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
-        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this parameter is None, DeepL will retry your request 5 times before failing. Otherwise, the given decorator will be used.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -412,8 +433,19 @@ class EasyTL:
                                         semaphore=None,
                                         rate_limit_delay=translation_delay)
             
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+        def translate(text):
+            return DeepLService._translate_text(text)
+        
+        if(decorator is not None):
+            translate = DeepLService._decorator_to_use(DeepLService._translate_text) ## type: ignore
+
+        else:
+            translate = DeepLService._translate_text
+
         if(isinstance(text, str)):
-            result = DeepLService._translate_text(text)
+            result = translate(text)
         
             assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -421,7 +453,7 @@ class EasyTL:
         
         elif(_is_iterable_of_strings(text)):
 
-            results = [DeepLService._translate_text(t) for t in text]
+            results = [translate(t) for t in text]
 
             assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -430,7 +462,7 @@ class EasyTL:
         else:
             raise InvalidTextInputException("text must be a string or an iterable of strings.")
         
-        return result
+        return result  ## type: ignore
         
 ##-------------------start-of-deepl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -464,15 +496,13 @@ class EasyTL:
 
         This function assumes that the API key has already been set.
 
-        DeepL has backoff retrying implemented by default.
-
         Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
         
         Parameters:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
-        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this parameter is None, DeepL will retry your request 5 times before failing. Otherwise, the given decorator will be used.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         semaphore (int) : The number of concurrent requests to make. Default is 30.
@@ -515,15 +545,27 @@ class EasyTL:
                                         logging_directory=logging_directory,
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay)
+            
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+        def translate(text):
+            return DeepLService._translate_text_async(text)
+        
+        if(decorator is not None):
+            translate = DeepLService._decorator_to_use(DeepLService._translate_text_async) ## type: ignore
+
+        else:
+            translate = DeepLService._translate_text_async
+
         if(isinstance(text, str)):
-            _result = await DeepLService._translate_text_async(text)
+            _result = await translate(text)
 
             assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
 
             result = _result if response_type == "raw" else _result.text
             
         elif(_is_iterable_of_strings(text)):
-            _tasks = [DeepLService._translate_text_async(t) for t in text]
+            _tasks = [translate(t) for t in text]
             _results = await asyncio.gather(*_tasks)
             
             assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
@@ -767,12 +809,10 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        OpenAI has it's backoff retrying disabled by EasyTL, in favor of the user implementing their own retrying mechanism via the decorator.
-
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
-        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -876,12 +916,10 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        OpenAI has it's backoff retrying disabled by EasyTL.
-
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
-        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
