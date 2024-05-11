@@ -410,8 +410,19 @@ class EasyTL:
                                         semaphore=None,
                                         rate_limit_delay=translation_delay)
             
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+        def translate(text):
+            return DeepLService._translate_text(text)
+        
+        if(decorator is not None):
+            translate = DeepLService._decorator_to_use(DeepLService._translate_text) ## type: ignore
+
+        else:
+            translate = DeepLService._translate_text
+
         if(isinstance(text, str)):
-            result = DeepLService._translate_text(text)
+            result = translate(text)
         
             assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -419,7 +430,7 @@ class EasyTL:
         
         elif(_is_iterable_of_strings(text)):
 
-            results = [DeepLService._translate_text(t) for t in text]
+            results = [translate(t) for t in text]
 
             assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -428,7 +439,7 @@ class EasyTL:
         else:
             raise InvalidTextInputException("text must be a string or an iterable of strings.")
         
-        return result
+        return result  ## type: ignore
         
 ##-------------------start-of-deepl_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -461,8 +472,6 @@ class EasyTL:
         Will generally be faster for iterables. Order is preserved.
 
         This function assumes that the API key has already been set.
-
-        DeepL has backoff retrying implemented by default.
 
         Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
         
@@ -513,15 +522,27 @@ class EasyTL:
                                         logging_directory=logging_directory,
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay)
+            
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+        def translate(text):
+            return DeepLService._translate_text_async(text)
+        
+        if(decorator is not None):
+            translate = DeepLService._decorator_to_use(DeepLService._translate_text_async) ## type: ignore
+
+        else:
+            translate = DeepLService._translate_text_async
+
         if(isinstance(text, str)):
-            _result = await DeepLService._translate_text_async(text)
+            _result = await translate(text)
 
             assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
 
             result = _result if response_type == "raw" else _result.text
             
         elif(_is_iterable_of_strings(text)):
-            _tasks = [DeepLService._translate_text_async(t) for t in text]
+            _tasks = [translate(t) for t in text]
             _results = await asyncio.gather(*_tasks)
             
             assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")

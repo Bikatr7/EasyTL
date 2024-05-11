@@ -74,18 +74,18 @@ async def main():
 
     print("------------------------------------------------Text response------------------------------------------------")
 
-    print(EasyTL.deepl_translate(text="Hello, world!", target_lang="DE", logging_directory=logging_directory))
-    print(await EasyTL.deepl_translate_async(text="Hello, world!", target_lang="DE", logging_directory=logging_directory))
+    print(EasyTL.deepl_translate(text="Hello, world!", target_lang="DE", logging_directory=logging_directory, decorator=decorator))
+    print(await EasyTL.deepl_translate_async(text="Hello, world!", target_lang="DE", logging_directory=logging_directory,decorator=decorator))
 
-    print(EasyTL.deepl_translate("Hello, world!", target_lang="DE", response_type="raw", logging_directory=logging_directory).text) # type: ignore
-    result = await EasyTL.deepl_translate_async("Hello, world!", target_lang="DE", response_type="raw", logging_directory=logging_directory)
+    print(EasyTL.deepl_translate("Hello, world!", target_lang="DE", response_type="raw", logging_directory=logging_directory, decorator=decorator).text) # type: ignore
+    result = await EasyTL.deepl_translate_async("Hello, world!", target_lang="DE", response_type="raw", logging_directory=logging_directory, decorator=decorator)
 
     print(result.text) # type: ignore
 
     print("------------------------------------------------Raw response------------------------------------------------")
 
-    results = EasyTL.deepl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", logging_directory=logging_directory)
-    async_results = await EasyTL.deepl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", logging_directory=logging_directory)
+    results = EasyTL.deepl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", logging_directory=logging_directory, decorator=decorator)
+    async_results = await EasyTL.deepl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", logging_directory=logging_directory, decorator=decorator)
 
     for result in results: # type: ignore
         print(result.text) # type: ignore
@@ -103,18 +103,18 @@ async def main():
 
     print("------------------------------------------------Text response------------------------------------------------")
 
-    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", logging_directory=logging_directory))
-    print(await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory))
+    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator))
+    print(await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator))
 
-    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", response_type="raw", logging_directory=logging_directory)["translatedText"]) # type: ignore
-    result = await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", response_type="raw", logging_directory=logging_directory)
+    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", response_type="raw", logging_directory=logging_directory, decorator=decorator)["translatedText"]) # type: ignore
+    result = await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", response_type="raw", logging_directory=logging_directory, decorator=decorator)
 
     print(result["translatedText"]) # type: ignore
 
     print("------------------------------------------------Raw response------------------------------------------------")
 
-    results = EasyTL.googletl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory)
-    async_results = await EasyTL.googletl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory)
+    results = EasyTL.googletl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory, decorator=decorator)
+    async_results = await EasyTL.googletl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory, decorator=decorator)
 
     for result in results: # type: ignore
         print(result["translatedText"]) # type: ignore

@@ -167,12 +167,7 @@ class DeepLService:
 
         try:
 
-            if(DeepLService._decorator_to_use is None):
-                return DeepLService._translator.translate_text(**params)
-            
-            else:
-                decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text)
-                return decorated_function(**params)
+            return DeepLService._translator.translate_text(**params)
             
         except Exception as _e:
             raise _e
@@ -203,14 +198,10 @@ class DeepLService:
             params = DeepLService._prepare_translation_parameters(text)
 
             try:
-                if(DeepLService._decorator_to_use is None):
-                    loop = asyncio.get_running_loop()
-                    return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
-                
-                else:
-                    decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text_async)
-                    return await decorated_function(**params)
-                
+
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
+                                
             except Exception as _e:
                 raise _e
 
