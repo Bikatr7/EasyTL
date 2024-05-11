@@ -160,6 +160,9 @@ class DeepLService:
 
         """
 
+
+        ## decorators need to be applied outside of the function, for reasons detailed in easytl.py
+
         if(DeepLService._rate_limit_delay is not None):
             time.sleep(DeepLService._rate_limit_delay)
 
@@ -189,6 +192,8 @@ class DeepLService:
         translation (TextResult or list of TextResult) : The translation result.
 
         """
+
+        ## decorators need to be applied outside of the function, for reasons detailed in easytl.py
 
         async with DeepLService._semaphore:
 

@@ -231,8 +231,20 @@ class EasyTL:
                                             semaphore=None, 
                                             rate_limit_delay=translation_delay)
             
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+
+        def translate(text):
+            return GoogleTLService._translate_text(text)
+        
+        if(decorator is not None):
+            translate = GoogleTLService._decorator_to_use(GoogleTLService._translate_text) ## type: ignore
+
+        else:
+            translate = GoogleTLService._translate_text
+            
         if(isinstance(text, str)):
-            result = GoogleTLService._translate_text(text)
+            result = translate(text)
         
             assert not isinstance(result, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -240,7 +252,7 @@ class EasyTL:
         
         elif(_is_iterable_of_strings(text)):
 
-            results = [GoogleTLService._translate_text(t) for t in text]
+            results = [translate(t) for t in text]
 
             assert isinstance(results, list), EasyTLException("Malformed response received. Please try again.")
 
@@ -313,15 +325,26 @@ class EasyTL:
                                             semaphore=semaphore, 
                                             rate_limit_delay=translation_delay)
             
+        ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
+        ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
+        def translate(text):
+            return GoogleTLService._translate_text_async(text)
+        
+        if(decorator is not None):
+            translate = GoogleTLService._decorator_to_use(GoogleTLService._translate_text_async) ## type: ignore
+
+        else:
+            translate = GoogleTLService._translate_text_async
+            
         if(isinstance(text, str)):
-            _result = await GoogleTLService._translate_text_async(text)
+            _result = await translate(text)
 
             assert not isinstance(_result, list), EasyTLException("Malformed response received. Please try again.")
 
             result = _result if response_type == "raw" else _result["translatedText"]
             
         elif(_is_iterable_of_strings(text)):
-            _tasks = [GoogleTLService._translate_text_async(t) for t in text]
+            _tasks = [translate(t) for t in text]
             _results = await asyncio.gather(*_tasks)
             
             assert isinstance(_results, list), EasyTLException("Malformed response received. Please try again.")
