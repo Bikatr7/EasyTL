@@ -36,8 +36,8 @@ class OpenAIService:
     _semaphore_value:int = 5
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
-    _sync_client = OpenAI(max_retries=0, api_key="DummyKey")
-    _async_client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
+    _sync_client = OpenAI(api_key="DummyKey")
+    _async_client = AsyncOpenAI(api_key="DummyKey")
 
     _rate_limit_delay:float | None = None
 
@@ -109,6 +109,13 @@ class OpenAIService:
 
             OpenAIService._json_mode = json_mode
 
+            ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 2
+            if(OpenAIService._decorator_to_use is not None):
+                OpenAIService._sync_client.max_retries = 0
+                OpenAIService._async_client.max_retries = 0
+            else:
+                OpenAIService._sync_client.max_retries = 2
+                OpenAIService._async_client.max_retries = 2
             
             if(semaphore is not None):
                 OpenAIService._semaphore_value = semaphore
