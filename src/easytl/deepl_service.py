@@ -7,9 +7,13 @@ import typing
 import asyncio
 import time
 
+
 ## third-party libraries
 from deepl.translator import Translator
 
+import deepl
+
+## custom modules
 from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
@@ -90,6 +94,13 @@ class DeepLService:
 
         DeepLService._log_directory = logging_directory
 
+        ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 5
+        if(DeepLService._decorator_to_use is not None):
+            deepl.http_client.max_network_retries = 0
+
+        else:
+            deepl.http_client.max_network_retries = 5
+
         if(semaphore is not None):
             DeepLService._semaphore_value = semaphore
             DeepLService._semaphore = asyncio.Semaphore(semaphore)
@@ -149,6 +160,9 @@ class DeepLService:
 
         """
 
+
+        ## decorators need to be applied outside of the function, for reasons detailed in easytl.py
+
         if(DeepLService._rate_limit_delay is not None):
             time.sleep(DeepLService._rate_limit_delay)
 
@@ -156,12 +170,7 @@ class DeepLService:
 
         try:
 
-            if(DeepLService._decorator_to_use is None):
-                return DeepLService._translator.translate_text(**params)
-            
-            else:
-                decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text)
-                return decorated_function(**params)
+            return DeepLService._translator.translate_text(**params)
             
         except Exception as _e:
             raise _e
@@ -184,6 +193,8 @@ class DeepLService:
 
         """
 
+        ## decorators need to be applied outside of the function, for reasons detailed in easytl.py
+
         async with DeepLService._semaphore:
 
             if(DeepLService._rate_limit_delay is not None):
@@ -192,14 +203,10 @@ class DeepLService:
             params = DeepLService._prepare_translation_parameters(text)
 
             try:
-                if(DeepLService._decorator_to_use is None):
-                    loop = asyncio.get_running_loop()
-                    return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
-                
-                else:
-                    decorated_function = DeepLService._decorator_to_use(DeepLService._translate_text_async)
-                    return await decorated_function(**params)
-                
+
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(None, lambda: DeepLService._translator.translate_text(**params))
+                                
             except Exception as _e:
                 raise _e
 

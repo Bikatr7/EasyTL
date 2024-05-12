@@ -170,6 +170,8 @@ class GoogleTLService:
 
         """
 
+        ## decorators need to be applied outside of the function for reasons detailed in easytl.py
+
         if(GoogleTLService._rate_limit_delay is not None):
             time.sleep(GoogleTLService._rate_limit_delay)
 
@@ -177,13 +179,8 @@ class GoogleTLService:
 
         try:
 
-            if(GoogleTLService._decorator_to_use is None):
-                return GoogleTLService._translator.translate(**params)
-            
-            else:
-                decorated_function = GoogleTLService._decorator_to_use(GoogleTLService._translate_text)
-                return decorated_function(**params)
-            
+            return GoogleTLService._translator.translate(**params)
+                        
         except Exception as _e:
             raise _e
         
@@ -205,6 +202,8 @@ class GoogleTLService:
 
         """
 
+        ## decorators need to be applied outside of the function for reasons detailed in easytl.py
+
         async with GoogleTLService._semaphore:
 
             if(GoogleTLService._rate_limit_delay is not None):
@@ -213,13 +212,9 @@ class GoogleTLService:
             params = GoogleTLService._prepare_translation_parameters(text)
 
             try:
-                if(GoogleTLService._decorator_to_use is None):
-                    loop = asyncio.get_running_loop()
-                    return await loop.run_in_executor(None, lambda: GoogleTLService._translator.translate(**params))
                 
-                else:
-                    decorated_function = GoogleTLService._decorator_to_use(GoogleTLService._translate_text_async)
-                    return await decorated_function(**params)
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(None, lambda: GoogleTLService._translator.translate(**params))
                 
             except Exception as _e:
                 raise _e
