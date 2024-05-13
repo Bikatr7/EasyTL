@@ -354,23 +354,7 @@ class OpenAIService:
         except Exception as _e:
 
             return _validity, _e
-        
-##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    @staticmethod
-    def _get_decorator() -> typing.Union[typing.Callable, None]:
-
-        """
-
-        Returns the decorator to use for the OpenAI service.
-
-        Returns:
-        decorator (callable) : The decorator to use.
-
-        """
-
-        return OpenAIService._decorator_to_use
-    
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
