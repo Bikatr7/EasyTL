@@ -290,24 +290,39 @@ class AnthropicService:
 
         return response
     
+##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def _test_api_key_validity() -> typing.Tuple[bool, typing.Union[Exception, None]]:
 
-def main():
+        """
 
-     with open ("./tests/anthropic.txt", "r", encoding="utf-8") as file:
-         api_key = file.read().strip()
+        Tests the validity of the API key.
 
-     client = Anthropic(
-         api_key=api_key
-     )
+        Returns:
+        validity (bool) : True if the API key is valid, False if it is not.
+        e (Exception) : The exception that was raised, if any.
 
-     message = client.messages.create(
-         model="claude-3-haiku-20240307",
-         max_tokens=100,
-         temperature=0.0,
-         system="You are a chatbot.",
-         messages=[
-             {"role": "user", "content": "Respond to this with 1"},
-         ]
-     )
+        """
 
-     print(message.content[0].text)
+        _validity = False
+
+        try:
+
+            AnthropicService._sync_client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                temperature=0.0,
+                messages=[
+                    {"role": "user", "content": "Respond to this with 1"},
+                ]
+
+            )
+
+            _validity = True
+
+            return _validity, None
+
+        except Exception as _e:
+
+            return _validity, _e
