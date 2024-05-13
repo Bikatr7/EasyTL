@@ -8,11 +8,13 @@ import asyncio
 
 ## third-party imports
 from anthropic import Anthropic, AsyncAnthropic
+from anthropic.types import Message
 
 ## custom modules
 from .exceptions import EasyTLException
-from .classes import ModelTranslationMessage
+from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN
 from .util import ALLOWED_ANTHROPIC_MODELS, VALID_JSON_ANTHROPIC_MODELS
+from .decorators import _sync_logging_decorator, _async_logging_decorator
 
 class AnthropicService:
 
@@ -22,12 +24,12 @@ class AnthropicService:
     _system:str = _default_translation_instructions
 
     _model:str = _default_model
-    _temperature:float = 0.3
-    _top_p:float = 1.0
-    _top_k:int = 40
-    _stream:bool = False
-    _stop_sequences:typing.List[str] | None = None
-    _max_tokens:int | None = None
+    _temperature:float | NotGiven = NOT_GIVEN
+    _top_p:float | NotGiven = NOT_GIVEN
+    _top_k:int | NotGiven = NOT_GIVEN
+    _stream:typing.Literal[False] | NotGiven = False
+    _stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN
+    _max_tokens:int | NotGiven = NOT_GIVEN
 
     _semaphore_value:int = 5
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
@@ -64,12 +66,12 @@ class AnthropicService:
         
     @staticmethod
     def _set_attributes(model:str = _default_model,
-                        temperature:float = 0.3,
-                        top_p:float = 1.0,
-                        top_k:int = 40,
-                        stream:bool = False,
-                        stop_sequences:typing.List[str] | None = None,
-                        max_tokens:int | None = None,
+                        temperature:float | NotGiven = NOT_GIVEN,
+                        top_p:float | NotGiven = NOT_GIVEN,
+                        top_k:int | NotGiven = NOT_GIVEN,
+                        stream:typing.Literal[False] | NotGiven = False,
+                        stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
+                        max_tokens:int | NotGiven = NOT_GIVEN,
                         decorator:typing.Union[typing.Callable, None]=None,
                         logging_directory:str | None=None,
                         semaphore:int | None=None,
@@ -155,6 +157,138 @@ class AnthropicService:
             raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
         
         return text
+    
+##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    @_sync_logging_decorator
+    def _translate_text(translation_instructions: typing.Optional[str],
+                                translation_prompt: ModelTranslationMessage
+                                ) -> Message:
+        
+        """
+        
+        Synchronously translates the text using the Anthropic API.
+
+        Parameters:
+        translation_instructions (str) : The instructions to use for the translation.
+        translation_prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (Message) : The response from the API.
+
+        """
+        
+        if(translation_instructions is None):
+            translation_instructions = AnthropicService._default_translation_instructions
+
+        if(AnthropicService._decorator_to_use is None):
+            return AnthropicService.__translate_text(translation_instructions, translation_prompt)
+
+        decorated_function = AnthropicService._decorator_to_use(AnthropicService.__translate_text)
+        return decorated_function(translation_instructions, translation_prompt)
+    
+##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    @_async_logging_decorator
+    async def _translate_text_async(translation_instructions: typing.Optional[str],
+                                translation_prompt: ModelTranslationMessage
+                                ) -> Message:
+        
+        """
+
+        Asynchronously translates the text using the Anthropic API.
+
+        Parameters:
+        translation_instructions (str) : The instructions to use for the translation.
+        translation_prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (Message) : The response from the API.
+
+        """
+        
+        if(translation_instructions is None):
+            translation_instructions = AnthropicService._default_translation_instructions
+
+        if(AnthropicService._decorator_to_use is None):
+            return await AnthropicService.__translate_text_async(translation_instructions, translation_prompt)
+        
+        decorated_function = AnthropicService._decorator_to_use(AnthropicService.__translate_text_async)
+        return await decorated_function(translation_instructions, translation_prompt)
+
+##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> Message:
+
+        """
+
+        Synchronously translates the text using the Anthropic API.
+
+        Parameters:
+        instructions (str) : The instructions to use for the translation.
+        prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (Message) : The response from the API.
+
+        """
+
+        message_args = {
+            "model": AnthropicService._model,
+            "system": instructions,
+            "messages": [prompt.to_dict()],  # type: ignore
+            "temperature": AnthropicService._temperature,
+            "top_p": AnthropicService._top_p,
+            "top_k": AnthropicService._top_k,
+            "stream": AnthropicService._stream,
+            "stop_sequences": AnthropicService._stop_sequences,
+        }
+
+        if(AnthropicService._max_tokens != NOT_GIVEN):
+            message_args["max_tokens"] = AnthropicService._max_tokens
+
+        response = AnthropicService._sync_client.messages.create(**message_args)
+
+        return response
+    
+##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def __translate_text_async(instruction:str, prompt:ModelTranslationMessage) -> Message:
+
+        """
+
+        Asynchronously translates the text using the Anthropic API.
+
+        Parameters:
+        instruction (str) : The instructions to use for the translation.
+        prompt (ModelTranslationMessage) : The text to translate.
+
+        Returns:
+        response (Message) : The response from the API.
+
+        """
+
+        message_args = {
+            "model": AnthropicService._model,
+            "system": instruction,
+            "messages": [prompt.to_dict()],  # type: ignore
+            "temperature": AnthropicService._temperature,
+            "top_p": AnthropicService._top_p,
+            "top_k": AnthropicService._top_k,
+            "stream": AnthropicService._stream,
+            "stop_sequences": AnthropicService._stop_sequences,
+        }
+
+        if(AnthropicService._max_tokens != NOT_GIVEN):
+            message_args["max_tokens"] = AnthropicService._max_tokens
+
+        response = await AnthropicService._async_client.messages.create(**message_args)
+
+        return response
     
 
 def main():
