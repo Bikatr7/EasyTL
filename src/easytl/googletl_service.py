@@ -128,7 +128,7 @@ class GoogleTLService:
 
         """
 
-        GoogleTLService._translator = translate.Client(credentials=GoogleTLService._credentials, client_info=f"EasyTL v{VERSION}")
+        GoogleTLService._translator = translate.Client(credentials=GoogleTLService._credentials)
 
 ##-------------------start-of-_redefine_client_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
