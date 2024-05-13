@@ -54,7 +54,7 @@ class OpenAIService:
 
         """
 
-        Sets the API key for the OpenAI client.
+        Sets the API key for the OpenAI clients.
 
         Parameters:
         api_key (string) : The API key to set.
@@ -374,7 +374,9 @@ class OpenAIService:
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def _calculate_cost(text:str | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[int, float, str]:
+    def _calculate_cost(text:str | ModelTranslationMessage | SystemTranslationMessage | typing.Iterable, 
+                        translation_instructions:str | None, 
+                        model:str | None) -> typing.Tuple[int, float, str]:
 
         """
 
