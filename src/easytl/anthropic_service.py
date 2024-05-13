@@ -13,7 +13,7 @@ from anthropic.types import Message
 ## custom modules
 from .exceptions import EasyTLException
 from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN
-from .util import ALLOWED_ANTHROPIC_MODELS, VALID_JSON_ANTHROPIC_MODELS
+from .util import VALID_JSON_ANTHROPIC_MODELS, _is_iterable_of_strings, _convert_iterable_to_str, _estimate_cost
 from .decorators import _sync_logging_decorator, _async_logging_decorator
 
 class AnthropicService:
@@ -272,23 +272,28 @@ class AnthropicService:
 
         """
 
-        message_args = {
-            "model": AnthropicService._model,
-            "system": instruction,
-            "messages": [prompt.to_dict()],  # type: ignore
-            "temperature": AnthropicService._temperature,
-            "top_p": AnthropicService._top_p,
-            "top_k": AnthropicService._top_k,
-            "stream": AnthropicService._stream,
-            "stop_sequences": AnthropicService._stop_sequences,
-        }
+        async with AnthropicService._semaphore:
 
-        if(AnthropicService._max_tokens != NOT_GIVEN):
-            message_args["max_tokens"] = AnthropicService._max_tokens
+            if(AnthropicService._rate_limit_delay is not None):
+                await asyncio.sleep(AnthropicService._rate_limit_delay)
 
-        response = await AnthropicService._async_client.messages.create(**message_args)
+            message_args = {
+                "model": AnthropicService._model,
+                "system": instruction,
+                "messages": [prompt.to_dict()],  # type: ignore
+                "temperature": AnthropicService._temperature,
+                "top_p": AnthropicService._top_p,
+                "top_k": AnthropicService._top_k,
+                "stream": AnthropicService._stream,
+                "stop_sequences": AnthropicService._stop_sequences,
+            }
 
-        return response
+            if(AnthropicService._max_tokens != NOT_GIVEN):
+                message_args["max_tokens"] = AnthropicService._max_tokens
+
+            response = await AnthropicService._async_client.messages.create(**message_args)
+
+            return response
     
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -326,3 +331,62 @@ class AnthropicService:
         except Exception as _e:
 
             return _validity, _e
+        
+    
+##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def _calculate_cost(text:str | ModelTranslationMessage | typing.Iterable, translation_instructions:str | None, model:str | None) -> typing.Tuple[int, float, str]:
+
+        """
+
+        Calculates the cost of the translation.
+
+        Parameters:
+        text (string | iterable) : The text to translate.
+        translation_instructions (string) : The instructions to use for the translation.
+        model (string) : The model to use for the translation.
+
+        Returns:
+        num_tokens (int) : The number of tokens.
+        cost (float) : The cost of the translation.
+        model (string) : The model used for the translation.
+
+        """
+
+        cost_modifier = 1.0
+
+        if(translation_instructions is None):
+            translation_instructions = AnthropicService._default_translation_instructions
+
+        if(isinstance(text, typing.Iterable)):
+
+            if(not isinstance(text,str) and not _is_iterable_of_strings(text)):
+                raise ValueError("The text must be a string or an iterable of strings.")
+            
+            if(isinstance(text, ModelTranslationMessage)):
+                ## since instructions are paired with the text, we need to repeat the instructions for index
+                ## this only works if the text is pre-built ModelTranslationMessage objects
+                ## otherwise, the instructions will be repeated for each item in the iterable which is not the intended behavior
+                translation_instructions = translation_instructions * len(text) # type: ignore
+
+            else:
+                ## otherwise, we can really only estimate.
+                cost_modifier = 2.5
+
+            text = _convert_iterable_to_str(text)
+
+        if(isinstance(translation_instructions, typing.Iterable)):
+            translation_instructions = _convert_iterable_to_str(translation_instructions)
+
+        if(model is None):
+            model = AnthropicService._default_model
+
+        ## not exactly how the text will be formatted, but it's close enough for the purposes of estimating the cost as tokens should be the same
+        total_text_to_estimate = f"{translation_instructions}\n{text}"
+        
+        _num_tokens, _cost, _ = _estimate_cost(total_text_to_estimate, model)
+
+        _cost = _cost * cost_modifier
+
+        return _num_tokens, _cost, model   
