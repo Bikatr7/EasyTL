@@ -73,7 +73,6 @@ def _validate_stop_sequences(stop_sequences:typing.List[str] | None) -> None:
 
     assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), InvalidEasyTLSettingsException("Invalid stop sequences. Must be a string or a list of strings.")
 
-
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _string_to_bool(string:str) -> bool:
@@ -506,6 +505,18 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-pro",
     "gemini-pro-vision",
   ##  "gemini-ultra"
+]
+
+ALLOWED_ANTHROPIC_MODELS = [
+    "claude-3-opus-20240229",
+    "claude-3-sonnet-20240229",
+    "claude-3-haiku-20240307"
+]
+
+VALID_JSON_ANTHROPIC_MODELS = [
+    "claude-3-opus-20240229",
+    "claude-3-sonnet-20240229",
+    "claude-3-haiku-20240307"
 ]
 
 ## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
