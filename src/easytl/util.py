@@ -342,6 +342,10 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             print("Warning: gpt-4-vision-preview may change over time. Estimating cost assuming gpt-4-1106-vision-preview as it is the most recent version of gpt-4-1106-vision-preview.")
             return _estimate_cost(text, model="gpt-4-1106-vision-preview")
         
+        elif(model == "gpt-4o"):
+            print("Warning: gpt-4o may change over time. Estimating cost assuming gpt-4o-2024-05-13 as it is the most recent version of gpt-4o.")
+            return _estimate_cost(text, model="gpt-4o-2024-05-13")
+        
         elif(model == "gpt-3.5-turbo-0613"):
             print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-0125.")
             return _estimate_cost(text, model=model, price_case=1)
@@ -386,6 +390,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gpt-4-32k-0613"):
             return _estimate_cost(text, model=model, price_case=6)
+        
+        elif(model == "gpt-4o-2024-05-13"):
+            return _estimate_cost(text, model=model, price_case=10)
         
         elif(model == "gemini-pro"):
             print(f"Warning: gemini-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
@@ -482,6 +489,8 @@ ALLOWED_OPENAI_MODELS  = [
     "gpt-4-1106-preview",
     "gpt-4-vision-preview",
     "gpt-4-1106-vision-preview",
+    "gpt-4o",
+    "gpt-4o-2024-05-13"
 ]
 
 VALID_JSON_OPENAI_MODELS = [
@@ -489,6 +498,12 @@ VALID_JSON_OPENAI_MODELS = [
     "gpt-4-turbo",
     "gpt-4-turbo-preview",
     "gpt-4-turbo-2024-04-09",
+    "gpt-4-0125-preview",
+    "gpt-4-1106-preview",
+    "gpt-4-vision-preview",
+    "gpt-4-1106-vision-preview",
+    "gpt-4o-2024-05-13",
+    "gpt-4o"    
 ]
 
 ## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
@@ -519,7 +534,7 @@ VALID_JSON_ANTHROPIC_MODELS = [
     "claude-3-haiku-20240307"
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-13
 MODEL_COSTS = {
     # Grouping GPT-3.5 models together
     "gpt-3.5-turbo-0125": {"price_case": 7, "_input_cost": 0.0005, "_output_cost": 0.0015},
@@ -528,7 +543,7 @@ MODEL_COSTS = {
     "gpt-3.5-turbo-1106": {"price_case": 2, "_input_cost": 0.0010, "_output_cost": 0.0020},
     "gpt-3.5-turbo-16k-0613": {"price_case": 3, "_input_cost": 0.0030, "_output_cost": 0.0040},
     
-    # Grouping GPT-4 models by their capabilities and versions
+    ## Grouping GPT-4 models by their capabilities and versions
     "gpt-4-0314": {"price_case": 5, "_input_cost": 0.03, "_output_cost": 0.06},
     "gpt-4-0613": {"price_case": 5, "_input_cost": 0.03, "_output_cost": 0.06},
     "gpt-4-32k-0314": {"price_case": 6, "_input_cost": 0.06, "_output_cost": 0.012},
@@ -537,8 +552,11 @@ MODEL_COSTS = {
     "gpt-4-0125-preview": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
     "gpt-4-1106-vision-preview": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
     "gpt-4-turbo-2024-04-09": {"price_case": 8, "_input_cost": 0.01, "_output_cost": 0.03},
+
+    ## Grouping GPT-4o models together
+    "gpt-4o-2024-05-13": {"price_case": 10, "_input_cost": 0.005, "_output_cost": 0.015},
     
-    # Grouping Gemini models together
+    ## Grouping Gemini models together
     "gemini-1.0-pro-001": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-1.0-pro-vision-001": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-1.0-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
