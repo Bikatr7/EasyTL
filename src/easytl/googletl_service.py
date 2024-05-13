@@ -15,6 +15,7 @@ from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
 
 ## custom modules
+from .version import VERSION
 from .util import _convert_iterable_to_str
 from .decorators import _sync_logging_decorator, _async_logging_decorator
 
@@ -127,7 +128,7 @@ class GoogleTLService:
 
         """
 
-        GoogleTLService._translator = translate.Client(credentials=GoogleTLService._credentials)
+        GoogleTLService._translator = translate.Client(credentials=GoogleTLService._credentials, client_info=f"EasyTL v{VERSION}")
 
 ##-------------------start-of-_redefine_client_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
