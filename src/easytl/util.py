@@ -4,6 +4,7 @@
 
 ## built-in libraries
 import typing
+import json
 
 ## third-party libraries
 import tiktoken
@@ -26,7 +27,7 @@ def _return_curated_gemini_settings(local_settings:dict[str, typing.Any]) -> dic
     }
 
     _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
-    _custom_validation_params = ["gemini_stop_sequences"]
+    _custom_validation_params = ["gemini_stop_sequences", "gemini_response_schema"]
 
     for _key in _settings.keys():
         param_name = _key.replace("gemini_", "")
@@ -72,6 +73,30 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
 def _validate_stop_sequences(stop_sequences:typing.List[str] | None) -> None:
 
     assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), InvalidEasyTLSettingsException("Invalid stop sequences. Must be a string or a list of strings.")
+
+##-------------------start-of-_validate_response_schema()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _validate_response_schema(response_schema:str | typing.Mapping[str, typing.Any] | None = None) -> typing.Mapping[str, typing.Any] | None:
+
+    if(response_schema is None):
+        return None
+
+    if(isinstance(response_schema, str)):
+        try:
+            return json.loads(response_schema)
+        except json.JSONDecodeError:
+            raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON string or None.")
+
+    if(isinstance(response_schema, dict)):
+
+        try:
+            json.dumps(response_schema)
+            return response_schema
+        
+        except (TypeError, OverflowError):
+            raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON object or None.")
+
+    raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON, a valid JSON string, or None.")
 
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
