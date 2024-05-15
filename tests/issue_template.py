@@ -4,29 +4,27 @@ import typing
 ## third party libraries
 from google.generativeai import GenerationConfig
 from google.generativeai.types import GenerateContentResponse, AsyncGenerateContentResponse
-
 import google.generativeai as genai
 
-
-## dummy values from my production code
-_default_translation_instructions:str = "Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation."
-_default_model:str = "gemini-1.5-pro-latest"
+## Dummy values from production code
+_default_translation_instructions: str = "Translate this to German. Format the response as JSON parseable string."
+_default_model: str = "gemini-1.5-pro-latest"
 
 _system_message = _default_translation_instructions
 
-_model:str = _default_model
-_temperature:float = 0.5
-_top_p:float = 0.9
-_top_k:int = 40
-_candidate_count:int = 1
-_stream:bool = False
-_stop_sequences:typing.List[str] | None = None
-_max_output_tokens:int | None = None
+_model: str = _default_model
+_temperature: float = 0.5
+_top_p: float = 0.9
+_top_k: int = 40
+_candidate_count: int = 1
+_stream: bool = False
+_stop_sequences: typing.List[str] | None = None
+_max_output_tokens: int | None = None
 
-_client:genai.GenerativeModel
-_generation_config:GenerationConfig
+_client: genai.GenerativeModel
+_generation_config: GenerationConfig
 
-_decorator_to_use:typing.Union[typing.Callable, None] = None
+_decorator_to_use: typing.Union[typing.Callable, None] = None
 
 _safety_settings = [
     {
@@ -51,20 +49,66 @@ _safety_settings = [
     },
 ]
 
-genai.configure(api_key="API_KEY")
+## with open("gemini.txt", "r", encoding="utf-8") as f:
+##      api_key = f.read().strip()
+api_key = "YOUR_API_KEY"
+genai.configure(api_key=api_key)
 
-_client = genai.GenerativeModel(model_name=_model,
-                                safety_settings=_safety_settings,
-                                system_instruction=_system_message)
+## Instructing the model to translate the input to German as JSON, without detailed schema
+non_specific_client = genai.GenerativeModel(
+    model_name=_model,
+    safety_settings=_safety_settings,
+    system_instruction="Translate this to German. Format the response as JSON parseable string."
+)
 
-_generation_config = GenerationConfig(candidate_count=_candidate_count,
-                                                           stop_sequences=_stop_sequences,
-                                                           max_output_tokens=_max_output_tokens,
-                                                            temperature=_temperature,
-                                                            top_p=_top_p,
-                                                            top_k=_top_k,
-                                                            response_mime_type="application/json")
+## Instructing the model to translate the input to German as JSON, with detailed schema
+_client = genai.GenerativeModel(
+    model_name=_model,
+    safety_settings=_safety_settings,
+    system_instruction="Translate this to German. Format the response as JSON parseable string. It must have 2 keys, one for input titled input, and one called output, which is the translation."
+)
 
-print(_client.generate_content(
-    "Hello, world!",generation_config=_generation_config
-).text)
+_generation_config = GenerationConfig(
+    candidate_count=_candidate_count,
+    stop_sequences=_stop_sequences,
+    max_output_tokens=_max_output_tokens,
+    temperature=_temperature,
+    top_p=_top_p,
+    top_k=_top_k,
+    response_mime_type="application/json",
+    response_schema={
+        "type": "object",
+        "properties": {
+            "input": {
+                "type": "string",
+                "description": "The original text that was translated."
+            },
+            "output": {
+                "type": "string",
+                "description": "The translated text."
+            }
+        },
+        "required": ["input", "output"],
+    }
+)
+
+## Inconsistent results, schema is not being followed
+try:
+    response = non_specific_client.generate_content(
+        "Hello, world!", generation_config=_generation_config
+    )
+    print(response.text)
+except Exception as e:
+    print(f"Error with non-specific client: {e}")
+
+## Consistent results, schema is being followed
+try:
+    response = _client.generate_content(
+        "Hello, world!", generation_config=_generation_config
+    )
+    print(response.text)
+except Exception as e:
+    print(f"Error with specific client: {e}")
+
+## Clarification question
+## Is it intended behavior that the system instruction has to detail the schema? If so, what's the point of the response_schema parameter in the GenerationConfig class? It seems like a waste of tokens.
