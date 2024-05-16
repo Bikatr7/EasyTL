@@ -8,11 +8,10 @@ import asyncio
 
 ## third-party imports
 from anthropic import Anthropic, AsyncAnthropic
-from anthropic.types import Message
 
 ## custom modules
 from .exceptions import EasyTLException
-from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN
+from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage
 from .util import VALID_JSON_ANTHROPIC_MODELS, _is_iterable_of_strings, _convert_iterable_to_str, _estimate_cost
 from .decorators import _sync_logging_decorator, _async_logging_decorator
 
@@ -190,7 +189,7 @@ class AnthropicService:
     @_sync_logging_decorator
     def _translate_text(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> Message:
+                                ) -> AnthropicMessage:
         
         """
         
@@ -201,7 +200,7 @@ class AnthropicService:
         translation_prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (Message) : The response from the API.
+        response (AnthropicMessage) : The response from the API.
 
         """
         
@@ -220,7 +219,7 @@ class AnthropicService:
     @_async_logging_decorator
     async def _translate_text_async(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> Message:
+                                ) -> AnthropicMessage:
         
         """
 
@@ -231,7 +230,7 @@ class AnthropicService:
         translation_prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (Message) : The response from the API.
+        response (AnthropicMessage) : The response from the API.
 
         """
         
@@ -247,7 +246,7 @@ class AnthropicService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> Message:
+    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
 
         """
 
@@ -258,7 +257,7 @@ class AnthropicService:
         prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (Message) : The response from the API.
+        response (AnthropicMessage) : The response from the API.
 
         """
         
@@ -287,7 +286,7 @@ class AnthropicService:
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instruction:str, prompt:ModelTranslationMessage) -> Message:
+    async def __translate_text_async(instruction:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
 
         """
 
@@ -298,7 +297,7 @@ class AnthropicService:
         prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (Message) : The response from the API.
+        response (AnthropicMessage) : The response from the API.
 
         """
 

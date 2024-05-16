@@ -19,6 +19,9 @@ from openai.types.chat.chat_completion import ChatCompletion
 from google.generativeai import GenerationConfig
 from google.generativeai.types import GenerateContentResponse, AsyncGenerateContentResponse
 
+## anthropic api data used by anthropic_service to type check
+from anthropic.types import Message as AnthropicMessage
+
 ##-------------------start-of-Message--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Message:
