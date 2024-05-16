@@ -4,6 +4,7 @@
 
 ## built-in libraries
 import typing
+import json
 
 ## third-party libraries
 import tiktoken
@@ -26,7 +27,7 @@ def _return_curated_gemini_settings(local_settings:dict[str, typing.Any]) -> dic
     }
 
     _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
-    _custom_validation_params = ["gemini_stop_sequences"]
+    _custom_validation_params = ["gemini_stop_sequences", "gemini_response_schema"]
 
     for _key in _settings.keys():
         param_name = _key.replace("gemini_", "")
@@ -72,6 +73,30 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
 def _validate_stop_sequences(stop_sequences:typing.List[str] | None) -> None:
 
     assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), InvalidEasyTLSettingsException("Invalid stop sequences. Must be a string or a list of strings.")
+
+##-------------------start-of-_validate_response_schema()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _validate_response_schema(response_schema:str | typing.Mapping[str, typing.Any] | None = None) -> typing.Mapping[str, typing.Any] | None:
+
+    if(response_schema is None):
+        return None
+
+    if(isinstance(response_schema, str)):
+        try:
+            return json.loads(response_schema)
+        except json.JSONDecodeError:
+            raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON string or None.")
+
+    if(isinstance(response_schema, dict)):
+
+        try:
+            json.dumps(response_schema)
+            return response_schema
+        
+        except (TypeError, OverflowError):
+            raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON object or None.")
+
+    raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON, a valid JSON string, or None.")
 
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -421,8 +446,19 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             print("Warning: gemini-1.0-pro-vision-latest may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
             return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
         
+        elif(model == "gemini-1.5-pro"):
+            return _estimate_cost(text, model=model, price_case=9)
+        
+        elif(model == "gemini-1.5-flash"):
+            return _estimate_cost(text, model=model, price_case=9)
+
         elif(model == "gemini-1.5-pro-latest"):
-            return _estimate_cost(text, model=model, price_case=8)
+            print("Warning: gemini-1.5-pro-latest may change over time. Estimating cost assuming gemini-1.5-pro as it is the most recent version of gemini-1.5-pro.")
+            return _estimate_cost(text, model="gemini-1.5-pro", price_case=9)
+        
+        elif(model == "gemini-1.5-flash-latest"):
+            print("Warning: gemini-1.5-flash-latest may change over time. Estimating cost assuming gemini-1.5-flash as it is the most recent version of gemini-1.5-flash.")
+            return _estimate_cost(text, model="gemini-1.5-flash", price_case=9)
         
   ##      elif(model == "gemini-1.0-ultra-latest"):
       ##      return _estimate_cost(text, model=model, price_case=8)
@@ -516,10 +552,20 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-vision",
     "gemini-1.0-pro-vision-latest",
     "gemini-1.5-pro-latest",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
   ##  "gemini-1.0-ultra-latest",
     "gemini-pro",
     "gemini-pro-vision",
   ##  "gemini-ultra"
+]
+
+VALID_JSON_GEMINI_MODELS = [
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
 ]
 
 ALLOWED_ANTHROPIC_MODELS = [
@@ -568,6 +614,9 @@ MODEL_COSTS = {
     "gemini-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
     "gemini-pro-vision": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
  ##   "gemini-ultra": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0}
+    "gemini-1.5-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.5-flash-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-1.5-flash": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
 
     ## grouping anthropic models together
     "claude-3-haiku-20240307": {"price_case": 11, "_input_cost": 0.00025, "_output_cost": 0.00125},

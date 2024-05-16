@@ -60,13 +60,28 @@ def setup_preconditions():
     EasyTL.set_credentials("openai", openai_api_key)
     EasyTL.set_credentials("google translate", google_tl_key_path)
 
-    return gemini_time_delay, logging_directory
+    schema = {
+        "type": "object",
+        "properties": {
+            "input": {
+            "type": "string",
+            "description": "The original text that was translated."
+            },
+            "output": {
+            "type": "string",
+            "description": "The translated text."
+            }
+        },
+        "required": ["input", "output"],
+    }
+
+    return gemini_time_delay, logging_directory, schema
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async def main():
 
-    gemini_time_delay, logging_directory = setup_preconditions()
+    gemini_time_delay, logging_directory, schema = setup_preconditions()
 
     decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError), logger=logging.getLogger())
 
@@ -152,7 +167,7 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON parseable string must have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
     
     time.sleep(gemini_time_delay)
     

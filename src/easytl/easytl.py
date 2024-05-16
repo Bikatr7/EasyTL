@@ -20,7 +20,7 @@ from .googletl_service import GoogleTLService
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
 
-from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences
+from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema
 
 class EasyTL:
 
@@ -585,6 +585,7 @@ class EasyTL:
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
                         response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                        response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                         translation_delay:float | None = None,
                         translation_instructions:str | None = None,
                         model:str="gemini-pro",
@@ -612,6 +613,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a GenerateContentResponse object, 'json' returns a json-parseable string.
+        response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json. If you use this parameter, your system instructions must describe it too.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         model (string) : The model to use. 
@@ -634,6 +636,8 @@ class EasyTL:
 
         _validate_stop_sequences(stop_sequences)
 
+        response_schema = _validate_response_schema(response_schema)
+
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("gemini")
 
@@ -653,7 +657,8 @@ class EasyTL:
                                           logging_directory=logging_directory,
                                           semaphore=None,
                                           rate_limit_delay=translation_delay,
-                                          json_mode=json_mode)
+                                          json_mode=json_mode,
+                                          response_schema=response_schema)
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()       
             GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
@@ -686,6 +691,7 @@ class EasyTL:
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
                                     response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                    response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                                     semaphore:int | None = None,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | None = None,
@@ -717,6 +723,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a AsyncGenerateContentResponse object, 'json' returns a json-parseable string.
+        response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json. If you use this parameter, your system instructions must describe it too.
         semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
@@ -740,6 +747,8 @@ class EasyTL:
 
         _validate_stop_sequences(stop_sequences)
 
+        response_schema = _validate_response_schema(response_schema)
+
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("gemini")
 
@@ -759,7 +768,8 @@ class EasyTL:
                                           logging_directory=logging_directory,
                                           semaphore=semaphore,
                                           rate_limit_delay=translation_delay,
-                                          json_mode=json_mode)
+                                          json_mode=json_mode,
+                                          response_schema=response_schema)
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
