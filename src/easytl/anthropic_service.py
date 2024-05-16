@@ -44,6 +44,28 @@ class AnthropicService:
     _log_directory:str | None = None
 
     _json_mode:bool = False
+    _response_schema:typing.Mapping[str, typing.Any] | None = None
+
+    _input_schema_placeholder = {
+        "type": "object",
+        "properties": {
+            "input": {
+            "type": "string",
+            "description": "The original text that was translated."
+            },
+            "output": {
+            "type": "string",
+            "description": "The translated text."
+            }
+        },
+        "required": ["input", "output"],
+        }
+
+    _json_tool = {
+            "name": "translate",
+            "description": "Translate the text into well-structured JSON. This is required.",
+            "input_schema": _input_schema_placeholder,
+        }
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -76,7 +98,8 @@ class AnthropicService:
                         logging_directory:str | None=None,
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
-                        json_mode:bool=False
+                        json_mode:bool=False,
+                        response_schema:typing.Mapping[str, typing.Any] | None = None
                         ) -> None:
     
             """
@@ -100,6 +123,9 @@ class AnthropicService:
             AnthropicService._rate_limit_delay = rate_limit_delay
 
             AnthropicService._json_mode = json_mode
+            AnthropicService._response_schema = response_schema
+
+            AnthropicService._json_tool['input_schema'] = AnthropicService._response_schema
 
             ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 2
             if(AnthropicService._decorator_to_use is not None):
@@ -235,7 +261,7 @@ class AnthropicService:
         response (Message) : The response from the API.
 
         """
-
+        
         message_args = {
             "model": AnthropicService._model,
             "system": instructions,
@@ -249,6 +275,10 @@ class AnthropicService:
 
         if(AnthropicService._max_tokens != NOT_GIVEN):
             message_args["max_tokens"] = AnthropicService._max_tokens
+
+        if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
+            message_args["json_tool"] = AnthropicService._json_tool
+            message_args["tool_choice"] = "translate"
 
         response = AnthropicService._sync_client.messages.create(**message_args)
 
@@ -290,6 +320,10 @@ class AnthropicService:
 
             if(AnthropicService._max_tokens != NOT_GIVEN):
                 message_args["max_tokens"] = AnthropicService._max_tokens
+
+            if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
+                message_args["json_tool"] = AnthropicService._json_tool
+                message_args["tool_choice"] = "translate"
 
             response = await AnthropicService._async_client.messages.create(**message_args)
 
