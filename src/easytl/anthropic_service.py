@@ -20,7 +20,7 @@ class AnthropicService:
     _default_model:str = "claude-3-haiku-20240307"
     _default_translation_instructions:str = "Please translate the following text into English."
 
-    _system:str = _default_translation_instructions
+    _system:str | None   = _default_translation_instructions 
 
     _model:str = _default_model
     _temperature:float | NotGiven = NOT_GIVEN
@@ -87,6 +87,7 @@ class AnthropicService:
         
     @staticmethod
     def _set_attributes(model:str = _default_model,
+                        system:str | None = _default_translation_instructions,
                         temperature:float | NotGiven = NOT_GIVEN,
                         top_p:float | NotGiven = NOT_GIVEN,
                         top_k:int | NotGiven = NOT_GIVEN,
@@ -108,6 +109,7 @@ class AnthropicService:
             """
     
             AnthropicService._model = model
+            AnthropicService._system = system
             AnthropicService._temperature = temperature
             AnthropicService._top_p = top_p
             AnthropicService._top_k = top_k
@@ -274,6 +276,9 @@ class AnthropicService:
 
         if(AnthropicService._max_tokens != NOT_GIVEN):
             message_args["max_tokens"] = AnthropicService._max_tokens
+
+        else:
+            message_args["max_tokens"] = 4098
 
         if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
             message_args["json_tool"] = AnthropicService._json_tool

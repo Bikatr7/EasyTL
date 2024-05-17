@@ -11,7 +11,9 @@ import tiktoken
 
 ## custom modules
 import google.generativeai as genai
+
 from .exceptions import InvalidEasyTLSettingsException
+from .classes import NotGiven, NOT_GIVEN
 
 ##-------------------start-of-_return_curated_anthropic_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -109,9 +111,9 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
 
 ##-------------------start-of-_return_curated_gemini_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def _validate_stop_sequences(stop_sequences:typing.List[str] | None) -> None:
+def _validate_stop_sequences(stop_sequences:typing.List[str] | None | NotGiven) -> None:
 
-    assert stop_sequences is None or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), InvalidEasyTLSettingsException("Invalid stop sequences. Must be a string or a list of strings.")
+    assert stop_sequences in [None, NOT_GIVEN] or isinstance(stop_sequences, str) or (hasattr(stop_sequences, '__iter__') and all(isinstance(i, str) for i in stop_sequences)), InvalidEasyTLSettingsException("Invalid stop sequences. Must be a string or a list of strings.") # type: ignore
 
 ##-------------------start-of-_validate_response_schema()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -183,7 +185,7 @@ def _count_tokens(text:str) -> int:
 
 ##-------------------start-of-_validate_easytl_translation_settings()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["gemini","openai"]) -> None:
+def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["gemini","openai", "anthropic"]) -> None:
 
     """
 

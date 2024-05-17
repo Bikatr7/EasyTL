@@ -146,5 +146,6 @@ log_attributes = {
     'GeminiService': ['text'],
     'DeepLService': ['text'],
     'OpenAIService': ['choices', '0', 'message', 'content'],
-    'GoogleTLService': ['translatedText']
+    'GoogleTLService': ['translatedText'],
+    'AnthropicService': ['content','0', 'text']
 }
