@@ -13,9 +13,48 @@ import tiktoken
 import google.generativeai as genai
 from .exceptions import InvalidEasyTLSettingsException
 
+##-------------------start-of-_return_curated_anthropic_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _return_curated_anthropic_settings(local_settings:dict[str, typing.Any]) -> dict:
+
+    """
+
+    Returns the curated Anthropic settings.
+
+    What this does is it takes local_settings from the calling function, and then returns a dictionary with the settings that are relevant to Anthropic that were converted to the correct type.
+
+    """
+
+    _settings = {
+    "anthropic_model": "",
+    "anthropic_temperature": "",
+    "anthropic_top_p": "",
+    "anthropic_top_k": "",
+    "anthropic_stop_sequences": "",
+    "anthropic_max_output_tokens": "",
+    }
+
+    _non_anthropic_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
+    _custom_validation_params = ["anthropic_stop_sequences", "anthropic_response_schema"]
+
+    for _key in _settings.keys():
+        param_name = _key.replace("anthropic_", "")
+        if(param_name in local_settings and _key not in _non_anthropic_params and _key not in _custom_validation_params):
+            _settings[_key] = _convert_to_correct_type(_key, local_settings[param_name])
+
+    return _settings
+
 ##-------------------start-of-_return_curated_gemini_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _return_curated_gemini_settings(local_settings:dict[str, typing.Any]) -> dict:
+
+    """
+    
+    Returns the curated Gemini settings.
+
+    What this does is it takes local_settings from the calling function, and then returns a dictionary with the settings that are relevant to Gemini that were converted to the correct type.
+    
+    """
 
     _settings = {
     "gemini_model": "",
@@ -44,7 +83,7 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
         
         Returns the curated OpenAI settings.
 
-        What this does is it takes local_settings from the calling function, and then returns a dictionary with the settings that are relevant to OpenA that were converted to the correct type.
+        What this does is it takes local_settings from the calling function, and then returns a dictionary with the settings that are relevant to OpenAI that were converted to the correct type.
 
         """
 
@@ -187,6 +226,16 @@ def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["ge
         "gemini_max_output_tokens"
     ]
 
+    _anthropic_keys = [
+        "anthropic_model",
+        "anthropic_temperature",
+        "anthropic_top_p",
+        "anthropic_top_k",
+    ##    "anthropic_stream",
+    ##    "anthropic_stop_sequences",
+        "anthropic_max_output_tokens"
+    ]
+
     _validation_rules = {
 
         "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS,
@@ -202,6 +251,11 @@ def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["ge
         "gemini_top_k": lambda x: x is None or (isinstance(x, int) and x >= 0),
         "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
 ##        "gemini_stop_sequences": lambda x: x is None or all(isinstance(i, str) for i in x)
+        "anthropic_model": lambda x: isinstance(x, str) and x in ALLOWED_ANTHROPIC_MODELS,
+        "anthropic_temperature": lambda x: isinstance(x, float) and 0 <= x <= 1,
+        "anthropic_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
+        "anthropic_top_k": lambda x: isinstance(x, int) and x > 0,
+        "anthropic_max_output_tokens": lambda x: x is None or isinstance(x, int) and x > 0
     }
     
     try:
@@ -234,6 +288,16 @@ def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["ge
                 
         ##    settings["gemini_stream"] = False
       ##      settings["gemini_candidate_count"] = 1
+
+        elif(type == "anthropic"):
+
+            ## ensure all keys are present
+            assert all(_key in settings for _key in _anthropic_keys)
+
+            ## _validate each _key using the validation rules
+            for _key, _validate in _validation_rules.items():
+                if (_key in settings and not _validate(settings[_key])):
+                    raise ValueError(f"Invalid _value for {_key}")
         
     except Exception as e:
         raise InvalidEasyTLSettingsException(f"Invalid settings, Due to: {str(e)}")
@@ -278,6 +342,13 @@ def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
       ##  "gemini_stream": {"_type": bool, "constraints": lambda x: x is False},
    ## "gemini_stop_sequences": {"_type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
         "gemini_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or isinstance(x, int)},
+        "anthropic_model": {"_type": str, "constraints": lambda x: x in ALLOWED_ANTHROPIC_MODELS},
+        "anthropic_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 1},
+        "anthropic_top_p": {"_type": float, "constraints": lambda x: 0 <= x <= 1},
+        "anthropic_top_k": {"_type": int, "constraints": lambda x: x > 0},
+    ##    "anthropic_stream": {"_type": bool, "constraints": lambda x: x is False},
+    ##    "anthropic_stop_sequences": {"_type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
+        "anthropic_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or x > 0}
     }
 
     if(setting_name not in _type_expectations):
@@ -468,6 +539,15 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gemini-1.0-pro-vision-001"):
             return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "claude-3-opus-20240229"):
+            return _estimate_cost(text, model=model, price_case=11)
+        
+        elif(model == "claude-3-sonnet-20240229"):
+            return _estimate_cost(text, model=model, price_case=11)
+        
+        elif(model == "claude-3-haiku-20240307"):
+            return _estimate_cost(text, model=model, price_case=11)
         
     else:
 
