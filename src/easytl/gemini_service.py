@@ -142,9 +142,9 @@ class GeminiService:
                             }
         
         GeminiService._semaphore_value = semaphore or semaphore_values.get(GeminiService._model, 15)
+        GeminiService._semaphore = asyncio.Semaphore(GeminiService._semaphore_value)
 
         if(GeminiService._json_mode and GeminiService._model in VALID_JSON_GEMINI_MODELS and response_schema is not None):
-            ## may need to change this to include the response schema if that bug i reported turns out to be actual intended behavior.
             GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format. The JSON should be in the format specified in the response schema."
 
         elif(GeminiService._json_mode and GeminiService._model in VALID_JSON_GEMINI_MODELS):

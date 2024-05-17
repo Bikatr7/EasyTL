@@ -58,7 +58,7 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
         "openai_frequency_penalty": ""
         }
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "response_schema", "semaphore", "translation_delay"]
         _custom_validation_params = ["openai_stop"]
 
         for _key in _settings.keys():
