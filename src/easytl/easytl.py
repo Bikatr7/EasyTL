@@ -16,9 +16,10 @@ from .deepl_service import DeepLService
 from .gemini_service import GeminiService
 from .openai_service import OpenAIService
 from .googletl_service import GoogleTLService
+from .anthropic_service import AnthropicService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion
-from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
+from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError
 
 from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema
 
@@ -64,7 +65,7 @@ class EasyTL:
         service_map = {
             "deepl": DeepLService,
             "gemini": GeminiService,
-            "openai": OpenAIService
+            "openai": OpenAIService,
         }
 
         assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
@@ -74,15 +75,15 @@ class EasyTL:
 ##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate"], credentials:str) -> None:
+    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic"], credentials:str) -> None:
 
         """
 
         Sets the credentials for the specified API type.
 
         Parameters:
-        api_type (literal["deepl", "gemini", "openai", "google translate"]) : The API type to set the credentials for.
-        credentials (string) : The credentials to set. This is an api key for deepl, gemini and openai. For google translate, this is a path to your json that has your service account key.
+        api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic"]) : The API type to set the credentials for.
+        credentials (string) : The credentials to set. This is an api key for deepl, gemini, anthropic, and openai. For google translate, this is a path to your json that has your service account key.
 
         """
 
@@ -90,11 +91,12 @@ class EasyTL:
             "deepl": DeepLService._set_api_key,
             "gemini": GeminiService._set_api_key,
             "openai": OpenAIService._set_api_key,
-            "google translate": GoogleTLService._set_credentials
+            "google translate": GoogleTLService._set_credentials,
+            "anthropic": AnthropicService._set_api_key
 
         }
 
-        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai' and 'google translate'.")
+        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', and 'anthropic'.")
 
         service_map[api_type](credentials)
 
@@ -141,14 +143,14 @@ class EasyTL:
 ##-------------------start-of-test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def test_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate"]) -> typing.Tuple[bool, typing.Optional[Exception]]:
+    def test_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic"]) -> typing.Tuple[bool, typing.Optional[Exception]]:
 
         """
 
         Tests the validity of the credentials for the specified API type.
 
         Parameters:
-        api_type (literal["deepl", "gemini", "openai", "google translate"]) : The API type to test the credentials for.
+        api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic"]) : The API type to test the credentials for.
 
         Returns:
         (bool) : Whether the credentials are valid.
@@ -160,10 +162,11 @@ class EasyTL:
             "deepl": {"service": DeepLService, "exception": DeepLException, "test_func": DeepLService._test_api_key_validity},
             "gemini": {"service": GeminiService, "exception": GoogleAPIError, "test_func": GeminiService._test_api_key_validity},
             "openai": {"service": OpenAIService, "exception": OpenAIError, "test_func": OpenAIService._test_api_key_validity},
-            "google translate": {"service": GoogleTLService, "exception": GoogleAPIError, "test_func": GoogleTLService._test_credentials}
+            "google translate": {"service": GoogleTLService, "exception": GoogleAPIError, "test_func": GoogleTLService._test_credentials},
+            "anthropic": {"service": AnthropicService, "exception": AnthropicError, "test_func": AnthropicService._test_api_key_validity}
         }
 
-        assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai' and 'google translate'.")
+        assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', and 'anthropic'.")
 
         _is_valid, _e = api_services[api_type]["test_func"]()
 
@@ -1118,7 +1121,7 @@ class EasyTL:
         
     @staticmethod
     def calculate_cost(text:str | typing.Iterable[str],
-                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
+                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic"]] = "deepl",
                        model:typing.Optional[str] = None,
                        translation_instructions:typing.Optional[str] = None
                        ) -> typing.Tuple[int, float, str]:
@@ -1147,7 +1150,7 @@ class EasyTL:
 
         """
 
-        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
+        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
 
         if(service == "deepl"):
             return DeepLService._calculate_cost(text)
@@ -1160,3 +1163,6 @@ class EasyTL:
         
         elif(service == "google translate"):
             return GoogleTLService._calculate_cost(text)
+        
+        elif(service == "anthropic"):
+            return AnthropicService._calculate_cost(text, translation_instructions, model)
