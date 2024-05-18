@@ -18,7 +18,7 @@ from .openai_service import OpenAIService
 from .googletl_service import GoogleTLService
 from .anthropic_service import AnthropicService
 
-from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage
+from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError
 
 from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings
@@ -1107,8 +1107,22 @@ class EasyTL:
 
             assert not isinstance(_result, list) and hasattr(_result, "content"), EasyTLException("Malformed response received. Please try again.")
 
-            translation = _result if response_type == "raw" else _result.content[0].text # type: ignore Should be fine, we're not doing the tool use block
-            
+            if(response_type == "raw"):
+                translation = _result
+
+            ## response structure is different for beta
+            elif(isinstance(_result, AnthropicToolsBetaMessage)):
+                content = _result.content
+
+                if(isinstance(content[0], AnthropicTextBlock)):
+                    translation = content[0].text
+
+                elif(isinstance(content[0], AnthropicToolUseBlock)):
+                    translation = content[0].input
+
+            elif(isinstance(_result, AnthropicMessage)):
+                translation = _result.content[0].text
+                            
             translations.append(translation)
 
         ## If originally a single text was provided, return a single translation instead of a list

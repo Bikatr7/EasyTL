@@ -47,7 +47,7 @@ class AnthropicService:
     
     _json_tool = {
         "name": "format_to_json",
-        "description": "Formats text into json. This is required. Put the translated text in the 'output' field.",
+        "description": "Formats text into json. This is required.",
         "input_schema": {
             "type": "object",
             "properties": {
