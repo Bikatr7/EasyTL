@@ -21,6 +21,7 @@ from google.generativeai.types import GenerateContentResponse, AsyncGenerateCont
 
 ## anthropic api data used by anthropic_service to type check
 from anthropic.types import Message as AnthropicMessage
+from anthropic.types.beta.tools import ToolsBetaMessage as AnthropicToolsBetaMessage
 
 ##-------------------start-of-Message--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

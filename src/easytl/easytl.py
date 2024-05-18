@@ -18,7 +18,7 @@ from .openai_service import OpenAIService
 from .googletl_service import GoogleTLService
 from .anthropic_service import AnthropicService
 
-from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage
+from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError
 
 from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings
@@ -1024,7 +1024,9 @@ class EasyTL:
                             top_p:float | NotGiven = NOT_GIVEN,
                             top_k:int | NotGiven = NOT_GIVEN,
                             stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
-                            max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, AnthropicMessage, typing.List[AnthropicMessage]]:
+                            max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, 
+                                                                                          AnthropicMessage, typing.List[AnthropicMessage],
+                                                                                          AnthropicToolsBetaMessage, typing.List[AnthropicToolsBetaMessage]]:
         
         """
 
@@ -1036,7 +1038,7 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        Due to how Anthropic's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is effectively not passed to the API. 
+        Due to how Anthropic's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API. 
 
         Parameters:
         text (string or iterable) : The text to translate.
@@ -1105,7 +1107,7 @@ class EasyTL:
 
             assert not isinstance(_result, list) and hasattr(_result, "content"), EasyTLException("Malformed response received. Please try again.")
 
-            translation = _result if response_type == "raw" else _result.content[0].text
+            translation = _result if response_type == "raw" else _result.content[0].text # type: ignore Should be fine, we're not doing the tool use block
             
             translations.append(translation)
 

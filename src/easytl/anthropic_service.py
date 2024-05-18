@@ -11,7 +11,7 @@ from anthropic import Anthropic, AsyncAnthropic
 
 ## custom modules
 from .exceptions import EasyTLException
-from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage
+from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage, AnthropicToolsBetaMessage
 from .util import VALID_JSON_ANTHROPIC_MODELS, _is_iterable_of_strings, _convert_iterable_to_str, _estimate_cost
 from .decorators import _sync_logging_decorator, _async_logging_decorator
 
@@ -191,7 +191,7 @@ class AnthropicService:
     @_sync_logging_decorator
     def _translate_text(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> AnthropicMessage:
+                                ) -> AnthropicMessage | AnthropicToolsBetaMessage:
         
         """
         
@@ -221,7 +221,7 @@ class AnthropicService:
     @_async_logging_decorator
     async def _translate_text_async(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> AnthropicMessage:
+                                ) -> AnthropicMessage | AnthropicToolsBetaMessage:
         
         """
 
@@ -248,7 +248,7 @@ class AnthropicService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage | AnthropicToolsBetaMessage:
 
         """
 
@@ -283,14 +283,14 @@ class AnthropicService:
             message_args["tools"] = AnthropicService._json_tool
             message_args["tool_choice"] = "translate"
         
-        response = AnthropicService._sync_client.messages.create(**message_args)
+        response = AnthropicService._sync_client.beta.tools.messages.create(**message_args)
 
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    async def __translate_text_async(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage | AnthropicToolsBetaMessage:
 
         """
 
@@ -330,7 +330,7 @@ class AnthropicService:
                 message_args["tools"] = AnthropicService._json_tool
                 message_args["tool_choice"] = "translate"
 
-            response = await AnthropicService._async_client.messages.create(**message_args)
+            response = await AnthropicService._async_client.beta.tools.messages.create(**message_args)
 
             return response
     
