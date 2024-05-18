@@ -1265,7 +1265,7 @@ class EasyTL:
                                             typing.List[ChatCompletion], ChatCompletion,
                                             typing.List[GenerateContentResponse], GenerateContentResponse, 
                                             typing.List[typing.Any], typing.Any,
-                                            typing.List[AnthropicMessage], AnthropicMessage]
+                                            typing.List[AnthropicMessage], AnthropicMessage]:
         
         """
 
