@@ -1040,6 +1040,8 @@ class EasyTL:
 
         Due to how Anthropic's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API. 
 
+        Anthropic's JSON response is quite unsophisticated and also in Beta, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
+
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
@@ -1057,7 +1059,7 @@ class EasyTL:
         max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
 
         Returns:
-        result (string or list - string or AnthropicMessage or list - AnthropicMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise.
+        result (string or list - string or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
 
         """
 
@@ -1097,11 +1099,11 @@ class EasyTL:
 
         assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
 
-        translation_batches = AnthropicService._build_translation_batches(text)
+        _translation_batches = AnthropicService._build_translation_batches(text)
 
-        translations = []
+        _translations = []
 
-        for _text in translation_batches:
+        for _text in _translation_batches:
 
             _result = AnthropicService._translate_text(AnthropicService._system, _text)
 
@@ -1123,13 +1125,136 @@ class EasyTL:
             elif(isinstance(_result, AnthropicMessage)):
                 translation = _result.content[0].text
                             
-            translations.append(translation)
+            _translations.append(translation)
 
         ## If originally a single text was provided, return a single translation instead of a list
-        result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
+        result = _translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else _translations[0]
 
         return result
+    
+##-------------------start-of-anthropic_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    @staticmethod
+    async def anthropic_translate_async(text:typing.Union[str, typing.Iterable[str], ModelTranslationMessage, typing.Iterable[ModelTranslationMessage]],
+                                        override_previous_settings:bool = True,
+                                        decorator:typing.Callable | None = None,
+                                        logging_directory:str | None = None,
+                                        response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                        response_schema:str | typing.Mapping[str, typing.Any] | None = None,
+                                        semaphore:int | None = None,
+                                        translation_delay:float | None = None,
+                                        translation_instructions:str | None = None,
+                                        model:str="claude-3-haiku-20240307",
+                                        temperature:float | NotGiven = NOT_GIVEN,
+                                        top_p:float | NotGiven = NOT_GIVEN,
+                                        top_k:int | NotGiven = NOT_GIVEN,
+                                        stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
+                                        max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, 
+                                                                                                    AnthropicMessage, typing.List[AnthropicMessage],
+                                                                                                    AnthropicToolsBetaMessage, typing.List[AnthropicToolsBetaMessage]]:
+        
+        """
+
+        Asynchronous version of anthropic_translate().
+
+        Will generally be faster for iterables. Order is preserved.
+
+        This function assumes that the API key has already been set.
+
+        Translation instructions default to translating the text to English. To change this, specify the instructions.
+
+        This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
+
+        Due to how Anthropic's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API.
+
+        Anthropic's JSON response is quite unsophisticated and also in Beta, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
+
+        Parameters:
+        text (string | ModelTranslationMessage or iterable) : The text to translate.
+        override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
+        decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, Anthropic will retry the request twice if it fails.
+        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
+        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. Anthropic's API is unsophisticated in this regard, it costs a lot of extra tokens to return a json response.
+        response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
+        semaphore (int) : The number of concurrent requests to make. Default is 5.
+        translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
+        translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
+        model (string) : The model to use.
+        temperature (float or NotGiven) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
+        top_p (float or NotGiven) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
+        top_k (int or NotGiven) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
+        stop_sequences (list or NotGiven) : The sequences to stop at.
+        max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
+
+        Returns:
+        result (string or list - string or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
+
+        """
+
+        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+
+        _settings = _return_curated_anthropic_settings(locals())
+
+        _validate_easytl_translation_settings(_settings, "anthropic")
+
+        _validate_stop_sequences(stop_sequences)
+
+        response_schema = _validate_response_schema(response_schema)
+
+        ## Should be done after validating the settings to reduce cost to the user
+        EasyTL.test_credentials("anthropic")
+
+        json_mode = True if response_type == "json" else False
+
+        if(override_previous_settings == True):
+            AnthropicService._set_attributes(model=model,
+                                            system=translation_instructions,
+                                            temperature=temperature,
+                                            top_p=top_p,
+                                            top_k=top_k,
+                                            stop_sequences=stop_sequences,
+                                            stream=False,
+                                            max_tokens=max_output_tokens,
+                                            decorator=decorator,
+                                            logging_directory=logging_directory,
+                                            semaphore=semaphore,
+                                            rate_limit_delay=translation_delay,
+                                            json_mode=json_mode,
+                                            response_schema=response_schema)
+            
+            ## Done afterwards, cause default translation instructions can change based on set_attributes()
+            AnthropicService._system = translation_instructions or AnthropicService._default_translation_instructions
+        
+        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
+
+        _translation_batches = AnthropicService._build_translation_batches(text)
+
+        _translations_tasks = []
+
+        for _text in _translation_batches:
+            _task = AnthropicService._translate_text_async(AnthropicService._system, _text)
+            _translations_tasks.append(_task)
+
+        _results = await asyncio.gather(*_translations_tasks)
+
+        _results:typing.List[AnthropicMessage | AnthropicToolsBetaMessage] = _results
+
+        assert all([hasattr(_r, "content") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
+
+        if(response_type == "raw"):
+            translations = _results
+
+        ## response structure is different for beta
+        elif(isinstance(_results[0], AnthropicToolsBetaMessage)):
+            translations = [result.content[0].input if isinstance(result.content[0], AnthropicToolUseBlock) else result.content[0].text for result in _results]
+        
+        elif(isinstance(_results[0], AnthropicMessage)):
+            translations = [result.content[0].text for result in _results if isinstance(result.content[0], AnthropicTextBlock)]
+                
+        result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
+
+        return result # type: ignore
+        
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
