@@ -1103,7 +1103,7 @@ class EasyTL:
 
             _result = AnthropicService._translate_text(AnthropicService._system, _text)
 
-            assert not isinstance(_result, list) and hasattr(_result, "text"), EasyTLException("Malformed response received. Please try again.")
+            assert not isinstance(_result, list) and hasattr(_result, "content"), EasyTLException("Malformed response received. Please try again.")
 
             translation = _result if response_type == "raw" else _result.content[0].text
             
