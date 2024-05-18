@@ -1259,12 +1259,13 @@ class EasyTL:
         
     @staticmethod
     def translate(text:str | typing.Iterable[str],
-                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
+                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic"]] = "deepl",
                   **kwargs) -> typing.Union[typing.List[str], str, 
                                             typing.List[TextResult], TextResult, 
                                             typing.List[ChatCompletion], ChatCompletion,
                                             typing.List[GenerateContentResponse], GenerateContentResponse, 
-                                            typing.List[typing.Any], typing.Any]:
+                                            typing.List[typing.Any], typing.Any,
+                                            typing.List[AnthropicMessage], AnthropicMessage]
         
         """
 
@@ -1276,12 +1277,14 @@ class EasyTL:
         OpenAI: openai_translate() 
         Gemini: gemini_translate() 
         Google Translate: googletl_translate() 
+        Anthropic: anthropic_translate()
 
         All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
         DeepL: TextResult
         OpenAI: ChatCompletion
         Gemini: GenerateContentResponse
         Google Translate: any
+        Anthropic: AnthropicMessage or AnthropicToolsBetaMessage
 
         Parameters:
         service (string) : The service to use for translation.
@@ -1289,11 +1292,11 @@ class EasyTL:
         **kwargs : The keyword arguments to pass to the translation function.
 
         Returns:
-        result (string or list - string or TextResult or list - TextResult or ChatCompletion or list - ChatCompletion or GenerateContentResponse or list - GenerateContentResponse or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
+        result (string or list - string or TextResult or list - TextResult or GenerateContentResponse or list - GenerateContentResponse or ChatCompletion or list - ChatCompletion or any or list - any or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
 
         """
 
-        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
+        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
 
         if(service == "deepl"):
             return EasyTL.deepl_translate(text, **kwargs)
@@ -1307,16 +1310,20 @@ class EasyTL:
         elif(service == "google translate"):
             return EasyTL.googletl_translate(text, **kwargs)
         
+        elif(service == "anthropic"):
+            return EasyTL.anthropic_translate(text, **kwargs)
+        
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
     async def translate_async(text:str | typing.Iterable[str],
-                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate"]] = "deepl",
+                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic"]] = "deepl",
                               **kwargs) -> typing.Union[typing.List[str], str, 
                                                         typing.List[TextResult], TextResult,  
                                                         typing.List[ChatCompletion], ChatCompletion,
                                                         typing.List[AsyncGenerateContentResponse], AsyncGenerateContentResponse,
-                                                        typing.List[typing.Any], typing.Any]:
+                                                        typing.List[typing.Any], typing.Any,
+                                                        typing.List[AnthropicMessage], AnthropicMessage]:
 
         
         """
@@ -1333,12 +1340,14 @@ class EasyTL:
         OpenAI: openai_translate_async() 
         Gemini: gemini_translate_async() 
         Google Translate: googletl_translate_async()
+        Anthropic: anthropic_translate_async()
 
         All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
         DeepL: TextResult
         OpenAI: ChatCompletion
         Gemini: AsyncGenerateContentResponse
         Google Translate: any
+        Anthropic: AnthropicMessage or AnthropicToolsBetaMessage
 
         Parameters:
         service (string) : The service to use for translation.
@@ -1346,11 +1355,11 @@ class EasyTL:
         **kwargs : The keyword arguments to pass to the translation function.
 
         Returns:
-        result (string or list - string or TextResult or list - TextResult or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse or ChatCompletion or list - ChatCompletion or any or list - any) : The translation result according to the service used.
+        result (string or list - string or TextResult or list - TextResult or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse or ChatCompletion or list - ChatCompletion or any or list - any or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise. A list of AsyncGenerateContentResponse objects if the response type is 'raw' and input was an iterable, an AsyncGenerateContentResponse object otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
 
         """
 
-        assert service in ["deepl", "openai", "gemini", "google translate"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini' or 'google translate'.")
+        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
 
         if(service == "deepl"):
             return await EasyTL.deepl_translate_async(text, **kwargs)
@@ -1363,6 +1372,9 @@ class EasyTL:
         
         elif(service == "google translate"):
             return await EasyTL.googletl_translate_async(text, **kwargs)
+        
+        elif(service == "anthropic"):
+            return await EasyTL.anthropic_translate_async(text, **kwargs)
 
 ##-------------------start-of-calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -1383,6 +1395,8 @@ class EasyTL:
 
         For deepl, number of tokens is the number of characters, the returned model is always "deepl".
         The same applies for google translate, but the model is "google translate".
+
+        Note that Anthropic's cost is pretty sketchy and can be inaccurate. Refer to the actual response object for the cost or the API panel.
 
         Parameters:
         text (string or iterable) : The text to translate.
