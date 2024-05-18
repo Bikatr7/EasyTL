@@ -44,27 +44,25 @@ class AnthropicService:
 
     _json_mode:bool = False
     _response_schema:typing.Mapping[str, typing.Any] | None = None
-
-    _input_schema_placeholder = {
-        "type": "object",
-        "properties": {
-            "input": {
-            "type": "string",
-            "description": "The original text that was translated."
-            },
-            "output": {
-            "type": "string",
-            "description": "The translated text."
-            }
-        },
-        "required": ["input", "output"],
-        }
-
+    
     _json_tool = {
-            "name": "translate",
-            "description": "Translate the text into well-structured JSON. This is required.",
-            "input_schema": _input_schema_placeholder,
+        "name": "translate",
+        "description": "Translate the text into well-structured JSON. This is required.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "description": "The original text that was translated."
+                },
+                "output": {
+                    "type": "string",
+                    "description": "The translated text."
+                }
+            },
+            "required": ["input", "output"]
         }
+    }
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -280,8 +278,8 @@ class AnthropicService:
             message_args["max_tokens"] = 4096
         
         if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-            message_args["tools"] = AnthropicService._json_tool
-            message_args["tool_choice"] = "translate"
+            message_args["tools"] = [AnthropicService._json_tool]
+            message_args["tool_choice"] = {"type": "tool", "name": "translate"}
         
         response = AnthropicService._sync_client.beta.tools.messages.create(**message_args)
 
@@ -327,8 +325,8 @@ class AnthropicService:
                 message_args["max_tokens"] = 4096
             
             if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-                message_args["tools"] = AnthropicService._json_tool
-                message_args["tool_choice"] = "translate"
+                message_args["tools"] = [AnthropicService._json_tool]
+                message_args["tool_choice"] = {"type": "tool", "name": "translate"}
 
             response = await AnthropicService._async_client.beta.tools.messages.create(**message_args)
 
