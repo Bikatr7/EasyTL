@@ -46,18 +46,18 @@ class AnthropicService:
     _response_schema:typing.Mapping[str, typing.Any] | None = None
     
     _json_tool = {
-        "name": "translate",
-        "description": "Translate the text into well-structured JSON. This is required.",
+        "name": "format_to_json",
+        "description": "Formats text into json. This is required. Put the translated text in the 'output' field.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "input": {
                     "type": "string",
-                    "description": "The original text that was translated."
+                    "description": "The text you were given to translate"
                 },
                 "output": {
                     "type": "string",
-                    "description": "The translated text."
+                    "description": "The translated text"
                 }
             },
             "required": ["input", "output"]
@@ -279,7 +279,7 @@ class AnthropicService:
         
         if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
             message_args["tools"] = [AnthropicService._json_tool]
-            message_args["tool_choice"] = {"type": "tool", "name": "translate"}
+            message_args["tool_choice"] = {"type": "tool", "name": "format_to_json"}
         
         response = AnthropicService._sync_client.beta.tools.messages.create(**message_args)
 
@@ -326,7 +326,7 @@ class AnthropicService:
             
             if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
                 message_args["tools"] = [AnthropicService._json_tool]
-                message_args["tool_choice"] = {"type": "tool", "name": "translate"}
+                message_args["tool_choice"] = {"type": "tool", "name": "format_to_json"}
 
             response = await AnthropicService._async_client.beta.tools.messages.create(**message_args)
 
