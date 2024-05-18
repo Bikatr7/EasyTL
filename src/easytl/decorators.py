@@ -20,7 +20,7 @@ def _get_nested_attribute(obj, attrs):
                 obj = obj[int(attr)]
             else:
                 try:
-                    if type_hint is None or isinstance(obj, type_hint):
+                    if(type_hint is None or isinstance(obj, type_hint)):
                         obj = getattr(obj, attr)
                 except AttributeError:
                     ## Try dictionary access
@@ -61,10 +61,13 @@ def _async_logging_decorator(func):
 
         ## Get the attribute to log
         attr_to_logs = log_attributes.get(cls_name, None)
-        if attr_to_logs:
+        if(attr_to_logs):
             log_data = []
             for attr_to_log in attr_to_logs:
-                if not isinstance(result, str):
+                if(not isinstance(attr_to_log, list) and cls_name != 'OpenAIService'):
+                    ## coerce to list
+                    attr_to_log = [attr_to_log]
+                if(not isinstance(result, str)):
                     log_data.append(_get_nested_attribute(result, attr_to_log))
             log_data = '\n'.join(log_data)
         
@@ -121,10 +124,13 @@ def _sync_logging_decorator(func):
 
         ## Get the attribute to log
         attr_to_logs = log_attributes.get(cls_name, None)
-        if attr_to_logs:
+        if(attr_to_logs):
             log_data = []
             for attr_to_log in attr_to_logs:
-                if not isinstance(result, str):
+                if(not isinstance(attr_to_log, list) and cls_name != 'OpenAIService'):
+                    ## coerce to list
+                    attr_to_log = [attr_to_log]
+                if(not isinstance(result, str)):
                     log_data.append(_get_nested_attribute(result, attr_to_log))
             log_data = '\n'.join(log_data)
         
@@ -156,8 +162,11 @@ Timestamp: {timestamp}
 ## Since we're dealing with objects here...
 log_attributes = {
     'GeminiService': [('text', None)],
-    'DeepLService': [('text', None)],
-    'OpenAIService': [('choices', None), ('0', None), ('message', None), ('content', None)],
+    'DeepLService': [
+('text', None)],
+    'OpenAIService': [[('choices', None), ('0', None), ('message', None), ('content', None)],
+                      [('choices', None), ('0', None), ('message', None), ('content', None)],
+                      ],
     'GoogleTLService': [('translatedText', None)],
     'AnthropicService': [
         [('content', None), ('0', None), ('text', AnthropicTextBlock)],

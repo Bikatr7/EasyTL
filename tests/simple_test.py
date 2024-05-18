@@ -79,20 +79,21 @@ async def main():
         "type": "object",
         "properties": {
             "input": {
-            "type": "string",
-            "description": "The original text that was translated."
+                "type": "string",
+                "description": "The text you were given to translate"
             },
             "output": {
-            "type": "string",
-            "description": "The translated text."
+                "type": "string",
+                "description": "The translated text"
             }
         },
-        "required": ["input", "output"],
-        }
+        "required": ["input", "output"]
+    }
 
-    #print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
-    print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", logging_directory=logging_directory,decorator=decorator))
-    
+    print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
