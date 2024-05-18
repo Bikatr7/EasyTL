@@ -13,7 +13,7 @@ from .classes import Message, SystemTranslationMessage, ModelTranslationMessage
 from .classes import ChatCompletion
 from .classes import GenerateContentResponse, AsyncGenerateContentResponse, GenerationConfig
 from .classes import AnthropicMessage
-from .classes import NOT_GIVEN
+from .classes import NOT_GIVEN, NotGiven
 
 from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS, ALLOWED_ANTHROPIC_MODELS, VALID_JSON_OPENAI_MODELS, VALID_JSON_GEMINI_MODELS, VALID_JSON_ANTHROPIC_MODELS
 
@@ -42,7 +42,7 @@ __all__ = [
     "ChatCompletion",
     "GenerateContentResponse", "AsyncGenerateContentResponse", "GenerationConfig",
     "AnthropicMessage",
-    "NOT_GIVEN",
+    "NOT_GIVEN","NotGiven",
     "MODEL_COSTS", "ALLOWED_GEMINI_MODELS", "ALLOWED_OPENAI_MODELS", "ALLOWED_ANTHROPIC_MODELS", "VALID_JSON_OPENAI_MODELS", "VALID_JSON_GEMINI_MODELS", "VALID_JSON_ANTHROPIC_MODELS",
     "DeepLException",
     "GoogleAPIError",

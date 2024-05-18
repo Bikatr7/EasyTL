@@ -90,9 +90,9 @@ async def main():
         "required": ["input", "output"],
         }
 
-
-    print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
-     
+    ## print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", logging_directory=logging_directory,decorator=decorator))
+    
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

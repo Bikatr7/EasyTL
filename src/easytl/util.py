@@ -239,25 +239,23 @@ def _validate_easytl_translation_settings(settings:dict, type:typing.Literal["ge
     ]
 
     _validation_rules = {
-
-        "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS,
-        "openai_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
-        "openai_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
-        "openai_max_tokens": lambda x: x is None or isinstance(x, int) and x > 0,
-        "openai_presence_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
-        "openai_frequency_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
-        "gemini_model": lambda x: isinstance(x, str) and x in ALLOWED_GEMINI_MODELS,
-        "gemini_prompt": lambda x: x not in ["", "None", None],
-        "gemini_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
-        "gemini_top_p": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2),
-        "gemini_top_k": lambda x: x is None or (isinstance(x, int) and x >= 0),
-        "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
-##        "gemini_stop_sequences": lambda x: x is None or all(isinstance(i, str) for i in x)
-        "anthropic_model": lambda x: isinstance(x, str) and x in ALLOWED_ANTHROPIC_MODELS,
-        "anthropic_temperature": lambda x: isinstance(x, float) and 0 <= x <= 1,
-        "anthropic_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
-        "anthropic_top_k": lambda x: isinstance(x, int) and x > 0,
-        "anthropic_max_output_tokens": lambda x: x is None or isinstance(x, int) and x > 0
+        "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS or x is None or x is NOT_GIVEN,
+        "openai_temperature": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN,
+        "openai_top_p": lambda x: isinstance(x, (int, float)) and 0 <= x <= 1 or x is None or x is NOT_GIVEN,
+        "openai_max_tokens": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0),
+        "openai_presence_penalty": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN,
+        "openai_frequency_penalty": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN,
+        "gemini_model": lambda x: isinstance(x, str) and x in ALLOWED_GEMINI_MODELS or x is None or x is NOT_GIVEN,
+        "gemini_prompt": lambda x: x not in ["", "None", None, NOT_GIVEN],
+        "gemini_temperature": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN,
+        "gemini_top_p": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, (int, float)) and 0 <= x <= 2),
+        "gemini_top_k": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x >= 0),
+        "gemini_max_output_tokens": lambda x: x is None or x is NOT_GIVEN or isinstance(x, int),
+        "anthropic_model": lambda x: isinstance(x, str) and x in ALLOWED_ANTHROPIC_MODELS or x is None or x is NOT_GIVEN,
+        "anthropic_temperature": lambda x: isinstance(x, (int, float)) and 0 <= x <= 1 or x is None or x is NOT_GIVEN,
+        "anthropic_top_p": lambda x: isinstance(x, (int, float)) and 0 <= x <= 1 or x is None or x is NOT_GIVEN,
+        "anthropic_top_k": lambda x: isinstance(x, int) and x > 0 or x is None or x is NOT_GIVEN,
+        "anthropic_max_output_tokens": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0)
     }
     
     try:
@@ -324,33 +322,33 @@ def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
     _value = initial_value
     
     _type_expectations = {
-        "openai_model": {"_type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS},
-       ## "openai_system_message": {"_type": str, "constraints": lambda x: x not in ["", "None", None]},
-        "openai_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
-        "openai_top_p": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
-       ## "openai_n": {"_type": int, "constraints": lambda x: x == 1},
-    ##    "openai_stream": {"_type": bool, "constraints": lambda x: x is False},
-      ##  "openai_stop": {"_type": None, "constraints": lambda x: x is None},
-    ##    "openai_logit_bias": {"_type": None, "constraints": lambda x: x is None},
-        "openai_max_tokens": {"_type": int, "constraints": lambda x: x is None or isinstance(x, int)},
-        "openai_presence_penalty": {"_type": float, "constraints": lambda x: -2 <= x <= 2},
-        "openai_frequency_penalty": {"_type": float, "constraints": lambda x: -2 <= x <= 2},
-        "gemini_model": {"_type": str, "constraints": lambda x: x in ALLOWED_GEMINI_MODELS},
-       ## "gemini_prompt": {"_type": str, "constraints": lambda x: x not in ["", "None", None]},
-        "gemini_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 2},
-        "gemini_top_p": {"_type": float, "constraints": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2)},
-        "gemini_top_k": {"_type": int, "constraints": lambda x: x is None or x >= 0},
-  ##      "gemini_candidate_count": {"_type": int, "constraints": lambda x: x == 1},
-      ##  "gemini_stream": {"_type": bool, "constraints": lambda x: x is False},
-   ## "gemini_stop_sequences": {"_type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
-        "gemini_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or isinstance(x, int)},
-        "anthropic_model": {"_type": str, "constraints": lambda x: x in ALLOWED_ANTHROPIC_MODELS},
-        "anthropic_temperature": {"_type": float, "constraints": lambda x: 0 <= x <= 1},
-        "anthropic_top_p": {"_type": float, "constraints": lambda x: 0 <= x <= 1},
-        "anthropic_top_k": {"_type": int, "constraints": lambda x: x > 0},
-    ##    "anthropic_stream": {"_type": bool, "constraints": lambda x: x is False},
-    ##    "anthropic_stop_sequences": {"_type": list, "constraints": lambda x: x is None or all(isinstance(i, str) for i in x)},
-        "anthropic_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or x > 0}
+        "openai_model": {"_type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS or x is None or x is NOT_GIVEN},
+        ## "openai_system_message": {"_type": str, "constraints": lambda x: x not in ["", "None", None, NOT_GIVEN]},
+        "openai_temperature": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN},
+        "openai_top_p": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN},
+        ## "openai_n": {"_type": int, "constraints": lambda x: x == 1},
+        ## "openai_stream": {"_type": bool, "constraints": lambda x: x is False},
+        ## "openai_stop": {"_type": None, "constraints": lambda x: x is None or x is NOT_GIVEN},
+        ## "openai_logit_bias": {"_type": None, "constraints": lambda x: x is None or x is NOT_GIVEN},
+        "openai_max_tokens": {"_type": int, "constraints": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0)},
+        "openai_presence_penalty": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN},
+        "openai_frequency_penalty": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN},
+        "gemini_model": {"_type": str, "constraints": lambda x: x in ALLOWED_GEMINI_MODELS or x is None or x is NOT_GIVEN},
+        ## "gemini_prompt": {"_type": str, "constraints": lambda x: x not in ["", "None", None, NOT_GIVEN]},
+        "gemini_temperature": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN},
+        "gemini_top_p": {"_type": float, "constraints": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, float) and 0 <= x <= 2)},
+        "gemini_top_k": {"_type": int, "constraints": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x >= 0)},
+        ## "gemini_candidate_count": {"_type": int, "constraints": lambda x: x == 1},
+        ## "gemini_stream": {"_type": bool, "constraints": lambda x: x is False},
+        ## "gemini_stop_sequences": {"_type": list, "constraints": lambda x: x is None or x is NOT_GIVEN or all(isinstance(i, str) for i in x)},
+        "gemini_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or x is NOT_GIVEN or isinstance(x, int)},
+        "anthropic_model": {"_type": str, "constraints": lambda x: x in ALLOWED_ANTHROPIC_MODELS or x is None or x is NOT_GIVEN},
+        "anthropic_temperature": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and 0 <= x <= 1 or x is None or x is NOT_GIVEN},
+        "anthropic_top_p": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and 0 <= x <= 1 or x is None or x is NOT_GIVEN},
+        "anthropic_top_k": {"_type": int, "constraints": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0)},
+        ## "anthropic_stream": {"_type": bool, "constraints": lambda x: x is False},
+        ## "anthropic_stop_sequences": {"_type": list, "constraints": lambda x: x is None or x is NOT_GIVEN or all(isinstance(i, str) for i in x)},
+        "anthropic_max_output_tokens": {"_type": int, "constraints": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0)}
     }
 
     if(setting_name not in _type_expectations):
@@ -367,10 +365,16 @@ def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
     if(_setting_info["_type"] is None):
         _converted_value = None
 
+    elif(_setting_info["_type"] == NOT_GIVEN or NotGiven):
+        _converted_value = NOT_GIVEN
+
     elif(_setting_info["_type"] == int) or (_setting_info["_type"] == float):
 
         if(_value is None or _value == ''):
             _converted_value = None
+
+        elif(_value == "NOT_GIVEN" or _value == NotGiven or _value == NOT_GIVEN):
+            _converted_value = NOT_GIVEN
             
         elif(_setting_info["_type"] == int):
             _converted_value = int(_value)

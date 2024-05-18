@@ -326,7 +326,7 @@ class AnthropicService:
                 message_args["max_tokens"] = AnthropicService._max_tokens
 
             if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-                message_args["json_tool"] = AnthropicService._json_tool
+                message_args["tools"] = AnthropicService._json_tool
                 message_args["tool_choice"] = "translate"
 
             response = await AnthropicService._async_client.messages.create(**message_args)
