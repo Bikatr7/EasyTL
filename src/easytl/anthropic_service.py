@@ -11,7 +11,7 @@ from anthropic import Anthropic, AsyncAnthropic
 
 ## custom modules
 from .exceptions import EasyTLException
-from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage
+from .classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage, AnthropicToolsBetaMessage
 from .util import VALID_JSON_ANTHROPIC_MODELS, _is_iterable_of_strings, _convert_iterable_to_str, _estimate_cost
 from .decorators import _sync_logging_decorator, _async_logging_decorator
 
@@ -20,7 +20,7 @@ class AnthropicService:
     _default_model:str = "claude-3-haiku-20240307"
     _default_translation_instructions:str = "Please translate the following text into English."
 
-    _system:str = _default_translation_instructions
+    _system:str | None   = _default_translation_instructions 
 
     _model:str = _default_model
     _temperature:float | NotGiven = NOT_GIVEN
@@ -44,27 +44,25 @@ class AnthropicService:
 
     _json_mode:bool = False
     _response_schema:typing.Mapping[str, typing.Any] | None = None
-
-    _input_schema_placeholder = {
-        "type": "object",
-        "properties": {
-            "input": {
-            "type": "string",
-            "description": "The original text that was translated."
-            },
-            "output": {
-            "type": "string",
-            "description": "The translated text."
-            }
-        },
-        "required": ["input", "output"],
-        }
-
+    
     _json_tool = {
-            "name": "translate",
-            "description": "Translate the text into well-structured JSON. This is required.",
-            "input_schema": _input_schema_placeholder,
+        "name": "format_to_json",
+        "description": "Formats text into json. This is required.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "description": "The text you were given to translate"
+                },
+                "output": {
+                    "type": "string",
+                    "description": "The translated text"
+                }
+            },
+            "required": ["input", "output"]
         }
+    }
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -87,6 +85,7 @@ class AnthropicService:
         
     @staticmethod
     def _set_attributes(model:str = _default_model,
+                        system:str | None = _default_translation_instructions,
                         temperature:float | NotGiven = NOT_GIVEN,
                         top_p:float | NotGiven = NOT_GIVEN,
                         top_k:int | NotGiven = NOT_GIVEN,
@@ -108,6 +107,7 @@ class AnthropicService:
             """
     
             AnthropicService._model = model
+            AnthropicService._system = system
             AnthropicService._temperature = temperature
             AnthropicService._top_p = top_p
             AnthropicService._top_k = top_k
@@ -189,7 +189,7 @@ class AnthropicService:
     @_sync_logging_decorator
     def _translate_text(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> AnthropicMessage:
+                                ) -> AnthropicMessage | AnthropicToolsBetaMessage:
         
         """
         
@@ -219,7 +219,7 @@ class AnthropicService:
     @_async_logging_decorator
     async def _translate_text_async(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> AnthropicMessage:
+                                ) -> AnthropicMessage | AnthropicToolsBetaMessage:
         
         """
 
@@ -246,7 +246,7 @@ class AnthropicService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage | AnthropicToolsBetaMessage:
 
         """
 
@@ -261,32 +261,34 @@ class AnthropicService:
 
         """
         
+        attributes = ["temperature", "top_p", "top_k", "stream", "stop_sequences", "max_tokens"]
         message_args = {
             "model": AnthropicService._model,
             "system": instructions,
             "messages": [prompt.to_dict()],  # type: ignore
-            "temperature": AnthropicService._temperature,
-            "top_p": AnthropicService._top_p,
-            "top_k": AnthropicService._top_k,
-            "stream": AnthropicService._stream,
-            "stop_sequences": AnthropicService._stop_sequences,
         }
-
-        if(AnthropicService._max_tokens != NOT_GIVEN):
-            message_args["max_tokens"] = AnthropicService._max_tokens
-
+        
+        for attr in attributes:
+            value = getattr(AnthropicService, f"_{attr}")
+            if(value != NOT_GIVEN):
+                message_args[attr] = value
+        
+        # Special case for max_tokens
+        if("max_tokens" not in message_args):
+            message_args["max_tokens"] = 4096
+        
         if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-            message_args["json_tool"] = AnthropicService._json_tool
-            message_args["tool_choice"] = "translate"
-
-        response = AnthropicService._sync_client.messages.create(**message_args)
+            message_args["tools"] = [AnthropicService._json_tool]
+            message_args["tool_choice"] = {"type": "tool", "name": "format_to_json"}
+        
+        response = AnthropicService._sync_client.beta.tools.messages.create(**message_args)
 
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instruction:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    async def __translate_text_async(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage | AnthropicToolsBetaMessage:
 
         """
 
@@ -306,25 +308,27 @@ class AnthropicService:
             if(AnthropicService._rate_limit_delay is not None):
                 await asyncio.sleep(AnthropicService._rate_limit_delay)
 
+            attributes = ["temperature", "top_p", "top_k", "stream", "stop_sequences", "max_tokens"]
             message_args = {
                 "model": AnthropicService._model,
-                "system": instruction,
+                "system": instructions,
                 "messages": [prompt.to_dict()],  # type: ignore
-                "temperature": AnthropicService._temperature,
-                "top_p": AnthropicService._top_p,
-                "top_k": AnthropicService._top_k,
-                "stream": AnthropicService._stream,
-                "stop_sequences": AnthropicService._stop_sequences,
             }
-
-            if(AnthropicService._max_tokens != NOT_GIVEN):
-                message_args["max_tokens"] = AnthropicService._max_tokens
-
+            
+            for attr in attributes:
+                value = getattr(AnthropicService, f"_{attr}")
+                if(value != NOT_GIVEN):
+                    message_args[attr] = value
+            
+            # Special case for max_tokens
+            if("max_tokens" not in message_args):
+                message_args["max_tokens"] = 4096
+            
             if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-                message_args["json_tool"] = AnthropicService._json_tool
-                message_args["tool_choice"] = "translate"
+                message_args["tools"] = [AnthropicService._json_tool]
+                message_args["tool_choice"] = {"type": "tool", "name": "format_to_json"}
 
-            response = await AnthropicService._async_client.messages.create(**message_args)
+            response = await AnthropicService._async_client.beta.tools.messages.create(**message_args)
 
             return response
     

@@ -7,7 +7,7 @@ import logging
 
 import backoff
 
-from easytl.exceptions import DeepLException, GoogleAPIError, OpenAIError
+from easytl.exceptions import DeepLException, GoogleAPIError, OpenAIError, AnthropicError
 
 ##-------------------start-of-read_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ def setup_preconditions():
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
+    anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
     json_value = os.environ.get('GOOGLE_TRANSLATE_SERVICE_KEY_VALUE')
 
     if(json_value is not None):
@@ -43,6 +44,8 @@ def setup_preconditions():
         gemini_api_key = read_api_key("tests/gemini.txt")
     if(openai_api_key is None):
         openai_api_key = read_api_key("tests/openai.txt")
+    if(anthropic_api_key is None):
+        anthropic_api_key = read_api_key("tests/anthropic.txt")
 
     if(json_value is None):
         google_tl_key_path = "tests/google_translate_key.json"
@@ -54,11 +57,13 @@ def setup_preconditions():
     assert gemini_api_key is not None, "GEMINI_API_KEY environment variable must be set"
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
+    assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
 
     EasyTL.set_credentials("deepl", deepl_api_key)
     EasyTL.set_credentials("gemini", gemini_api_key)
     EasyTL.set_credentials("openai", openai_api_key)
     EasyTL.set_credentials("google translate", google_tl_key_path)
+    EasyTL.set_credentials("anthropic", anthropic_api_key)
 
     return gemini_time_delay, logging_directory
 
@@ -68,26 +73,35 @@ async def main():
 
     gemini_time_delay, logging_directory = setup_preconditions()
 
-    decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError), logger=logging.getLogger())
+    decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError, AnthropicError), logger=logging.getLogger())
 
     schema = {
         "type": "object",
         "properties": {
             "input": {
-            "type": "string",
-            "description": "The original text that was translated."
+                "type": "string",
+                "description": "The text you were given to translate"
             },
             "output": {
-            "type": "string",
-            "description": "The translated text."
+                "type": "string",
+                "description": "The translated text"
             }
         },
-        "required": ["input", "output"],
-        }
+        "required": ["input", "output"]
+    }
+
+    print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
 
-    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON parseable string must have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
-     
+ ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+
+##    print(EasyTL.deepl_translate("Hello, world!", target_lang="DE", response_type="text", logging_directory=logging_directory,decorator=decorator))
+
+ ##   print(EasyTL.googletl_translate("Hello, world!", target_lang="de", response_type="text", logging_directory=logging_directory,decorator=decorator))
+
+  ##  print(EasyTL.gemini_translate("Hello, world!", model="gemini-pro", response_type="text", logging_directory=logging_directory,decorator=decorator))
+
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

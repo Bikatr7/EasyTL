@@ -64,15 +64,15 @@ def setup_preconditions():
         "type": "object",
         "properties": {
             "input": {
-            "type": "string",
-            "description": "The original text that was translated."
+                "type": "string",
+                "description": "The text you were given to translate"
             },
             "output": {
-            "type": "string",
-            "description": "The translated text."
+                "type": "string",
+                "description": "The translated text"
             }
         },
-        "required": ["input", "output"],
+        "required": ["input", "output"]
     }
 
     return gemini_time_delay, logging_directory, schema
