@@ -263,27 +263,26 @@ class AnthropicService:
 
         """
         
+        attributes = ["temperature", "top_p", "top_k", "stream", "stop_sequences", "max_tokens"]
         message_args = {
             "model": AnthropicService._model,
             "system": instructions,
             "messages": [prompt.to_dict()],  # type: ignore
-            "temperature": AnthropicService._temperature,
-            "top_p": AnthropicService._top_p,
-            "top_k": AnthropicService._top_k,
-            "stream": AnthropicService._stream,
-            "stop_sequences": AnthropicService._stop_sequences,
         }
-
-        if(AnthropicService._max_tokens != NOT_GIVEN):
-            message_args["max_tokens"] = AnthropicService._max_tokens
-
-        else:
-            message_args["max_tokens"] = 4098
-
+        
+        for attr in attributes:
+            value = getattr(AnthropicService, f"_{attr}")
+            if(value != NOT_GIVEN):
+                message_args[attr] = value
+        
+        # Special case for max_tokens
+        if("max_tokens" not in message_args):
+            message_args["max_tokens"] = 4096
+        
         if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-            message_args["json_tool"] = AnthropicService._json_tool
+            message_args["tools"] = AnthropicService._json_tool
             message_args["tool_choice"] = "translate"
-
+        
         response = AnthropicService._sync_client.messages.create(**message_args)
 
         return response
@@ -291,7 +290,7 @@ class AnthropicService:
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instruction:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    async def __translate_text_async(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
 
         """
 
@@ -311,20 +310,22 @@ class AnthropicService:
             if(AnthropicService._rate_limit_delay is not None):
                 await asyncio.sleep(AnthropicService._rate_limit_delay)
 
+            attributes = ["temperature", "top_p", "top_k", "stream", "stop_sequences", "max_tokens"]
             message_args = {
                 "model": AnthropicService._model,
-                "system": instruction,
+                "system": instructions,
                 "messages": [prompt.to_dict()],  # type: ignore
-                "temperature": AnthropicService._temperature,
-                "top_p": AnthropicService._top_p,
-                "top_k": AnthropicService._top_k,
-                "stream": AnthropicService._stream,
-                "stop_sequences": AnthropicService._stop_sequences,
             }
-
-            if(AnthropicService._max_tokens != NOT_GIVEN):
-                message_args["max_tokens"] = AnthropicService._max_tokens
-
+            
+            for attr in attributes:
+                value = getattr(AnthropicService, f"_{attr}")
+                if(value != NOT_GIVEN):
+                    message_args[attr] = value
+            
+            # Special case for max_tokens
+            if("max_tokens" not in message_args):
+                message_args["max_tokens"] = 4096
+            
             if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
                 message_args["tools"] = AnthropicService._json_tool
                 message_args["tool_choice"] = "translate"
