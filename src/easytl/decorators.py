@@ -8,16 +8,20 @@ from functools import wraps
 import datetime
 import os
 
+## custom modules
+from .classes import AnthropicTextBlock, AnthropicToolUseBlock
+
 ##-------------------start-of-get_nested_attribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _get_nested_attribute(obj, attrs):
-    for attr in attrs:
+    for attr, type_hint in attrs:
         try:
             if(isinstance(obj, list) and attr.isdigit()):
                 obj = obj[int(attr)]
             else:
                 try:
-                    obj = getattr(obj, attr)
+                    if type_hint is None or isinstance(obj, type_hint):
+                        obj = getattr(obj, attr)
                 except AttributeError:
                     ## Try dictionary access
                     obj = obj[attr]
@@ -25,7 +29,7 @@ def _get_nested_attribute(obj, attrs):
         except (AttributeError, IndexError, KeyError):
             raise ValueError(f"Attribute {attr} in object {obj} not found.")
         
-    return obj
+    return str(obj)
 
 ##-------------------start-of-logging_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,9 +60,13 @@ def _async_logging_decorator(func):
         result = await func(*args, **kwargs)
 
         ## Get the attribute to log
-        attr_to_log = log_attributes.get(cls_name, None)
-        if(attr_to_log and not isinstance(result, str)):
-            log_data = _get_nested_attribute(result, attr_to_log)
+        attr_to_logs = log_attributes.get(cls_name, None)
+        if attr_to_logs:
+            log_data = []
+            for attr_to_log in attr_to_logs:
+                if not isinstance(result, str):
+                    log_data.append(_get_nested_attribute(result, attr_to_log))
+            log_data = '\n'.join(log_data)
         
         ## did you know multi-line f-strings take leading spaces into account?
         log_data = f"""
@@ -112,9 +120,13 @@ def _sync_logging_decorator(func):
         result = func(*args, **kwargs)
 
         ## Get the attribute to log
-        attr_to_log = log_attributes.get(cls_name, None)
-        if(attr_to_log and not isinstance(result, str)):
-            log_data = _get_nested_attribute(result, attr_to_log)
+        attr_to_logs = log_attributes.get(cls_name, None)
+        if attr_to_logs:
+            log_data = []
+            for attr_to_log in attr_to_logs:
+                if not isinstance(result, str):
+                    log_data.append(_get_nested_attribute(result, attr_to_log))
+            log_data = '\n'.join(log_data)
         
         ## did you know multi-line f-strings take leading spaces into account?
         log_data = f"""
@@ -143,9 +155,12 @@ Timestamp: {timestamp}
 
 ## Since we're dealing with objects here...
 log_attributes = {
-    'GeminiService': ['text'],
-    'DeepLService': ['text'],
-    'OpenAIService': ['choices', '0', 'message', 'content'],
-    'GoogleTLService': ['translatedText'],
-    'AnthropicService': ['content','0', 'text']
+    'GeminiService': [('text', None)],
+    'DeepLService': [('text', None)],
+    'OpenAIService': [('choices', None), ('0', None), ('message', None), ('content', None)],
+    'GoogleTLService': [('translatedText', None)],
+    'AnthropicService': [
+        [('content', None), ('0', None), ('text', AnthropicTextBlock)],
+        [('content', None), ('0', None), ('input', AnthropicToolUseBlock)]
+    ]
 }
