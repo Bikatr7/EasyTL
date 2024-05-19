@@ -169,7 +169,7 @@ def _is_iterable_of_strings(value):
 
 ##-------------------start-of-_gemini_count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-@backoff.on_exception(backoff.expo, exception=(GoogleAPIError), logger=logging.getLogger())
+@backoff.on_exception(backoff.expo, exception=(GoogleAPIError), logger=logging.getLogger(), max_tries=50, raise_on_giveup=True)
 def _gemini_count_tokens(text:str, model:str="gemini-pro") -> int:
 
     """
@@ -568,25 +568,30 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         ## break down the text into a string than into tokens
         text = ''.join(text)
 
-        if(model in ALLOWED_OPENAI_MODELS):
-            _LLM_TYPE = "openai"
-
-        elif(model in ALLOWED_GEMINI_MODELS):
-            _LLM_TYPE = "gemini"
-
-        elif(model in ALLOWED_ANTHROPIC_MODELS):
-            _LLM_TYPE = "anthropic"
-
+        model_types = {
+            "openai": ALLOWED_OPENAI_MODELS,
+            "gemini": ALLOWED_GEMINI_MODELS,
+            "anthropic": ALLOWED_ANTHROPIC_MODELS
+        }
+        
+        _LLM_TYPE = next((model_type for model_type, allowed_models in model_types.items() if model in allowed_models))
 
         if(_LLM_TYPE == "openai"):
             _encoding = tiktoken.encoding_for_model(model)
             _num_tokens = len(_encoding.encode(text))
 
         elif(_LLM_TYPE == "gemini"):
-            _num_tokens = _gemini_count_tokens(text, model=model)
+            ## no local option, and it seems to rate limit too lol, so we'll try 5 times before giving up and doing it openai style
+            try:
+                _num_tokens = _gemini_count_tokens(text, model=model)
+            except:
+                _encoding = tiktoken.encoding_for_model("gpt-4-turbo-0125")
+                _num_tokens = len(_encoding.encode(text))
 
         else:
-            ## need to do anthropic here shortly
+            ## literally no way exists to get the number of tokens for anthropic, so we'll just use the gpt-4-turbo-0125 model as a stand-in
+            _encoding = tiktoken.encoding_for_model("gpt-4-turbo-0125")
+            _num_tokens = len(_encoding.encode(text))
             pass
 
         _input_cost = _cost_details["_input_cost"]
@@ -598,7 +603,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
         return _num_tokens, _min_cost, model
     
-    ## _type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point, which it shouldn't
+    ## type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point, which it shouldn't
     raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
