@@ -11,10 +11,14 @@ from google.api_core.exceptions import GoogleAPIError
 ## openai generic exception
 from openai import OpenAIError
 
+## anthropic generic exception
+from anthropic import AnthropicError
+
 ## service specific exceptions
-from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
-from deepl.exceptions import AuthorizationException, QuotaExceededException
-from google.auth.exceptions import GoogleAuthError
+from openai import APIError as OpenAIAPIError, ConflictError as OpenAIConflictError, NotFoundError as OpenAINotFoundError, APIStatusError as OpenAIAPIStatusError, RateLimitError as OpenAIRateLimitError, APITimeoutError as OpenAIAPITimeoutError, BadRequestError as OpenAIBadRequestError, APIConnectionError as OpenAIAPIConnectionError, AuthenticationError as OpenAIAuthenticationError, InternalServerError as OpenAIInternalServerError, PermissionDeniedError as OpenAIPermissionDeniedError, UnprocessableEntityError as OpenAIUnprocessableEntityError, APIResponseValidationError as OpenAIAPIResponseValidationError
+from deepl.exceptions import AuthorizationException as DeepLAuthorizationException, QuotaExceededException as DeepLQuotaExceededException, ConnectionException as DeepLConnectionException, TooManyRequestsException as DeepLTooManyRequestsException, DocumentNotReadyException as DeepLDocumentNotReadyException, GlossaryNotFoundException as DeepLGlossaryNotFoundException, DocumentTranslationException as DeepLDocumentTranslationException
+from google.auth.exceptions import GoogleAuthError, DefaultCredentialsError as GoogleDefaultCredentialsError
+from anthropic import APIError as AnthropicAPIError, ConflictError as AnthropicConflictError, NotFoundError as AnthropicNotFoundError, APIStatusError as AnthropicAPIStatusError, RateLimitError as AnthropicRateLimitError, APITimeoutError as AnthropicAPITimeoutError, BadRequestError as AnthropicBadRequestError, APIConnectionError as AnthropicAPIConnectionError, AuthenticationError as AnthropicAuthenticationError, InternalServerError as AnthropicInternalServerError, PermissionDeniedError as AnthropicPermissionDeniedError, UnprocessableEntityError as AnthropicUnprocessableEntityError, APIResponseValidationError as AnthropicAPIResponseValidationError
 
 class EasyTLException(Exception):
 

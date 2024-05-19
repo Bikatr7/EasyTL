@@ -9,7 +9,8 @@ import asyncio
 import google.generativeai as genai
 
 ## custom modules
-from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings
+from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings, VALID_JSON_GEMINI_MODELS
+from .util import VALID_JSON_GEMINI_MODELS as VALID_SYSTEM_MESSAGE_MODELS
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 
 from .classes import GenerationConfig, GenerateContentResponse, AsyncGenerateContentResponse
@@ -68,6 +69,7 @@ class GeminiService:
     ]
 
     _json_mode:bool = False
+    _response_schema:typing.Mapping[str, typing.Any] | None = None
 
 ##-------------------start-of-_set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,7 +103,8 @@ class GeminiService:
                         logging_directory:str | None=None,
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
-                        json_mode:bool=False
+                        json_mode:bool=False,
+                        response_schema:typing.Mapping[str, typing.Any] | None = None
                         ) -> None:
         
         """
@@ -127,16 +130,29 @@ class GeminiService:
         GeminiService._rate_limit_delay = rate_limit_delay
 
         GeminiService._json_mode = json_mode
+        GeminiService._response_schema = response_schema
 
         # if a semaphore is not provided, set it to the default value based on the model
-        semaphore_values = {"gemini-1.5-pro-latest": 2}
+        ## rate limits for 1.5 models are 2 requests per second
+        ## rate limits for 1.0B models are 15 requests per second
+        semaphore_values = {"gemini-1.5-pro": 2,
+                            "gemini-1.5-flash": 2,
+                            "gemini-1.5-pro-latest": 2,
+                            "gemini-1.5-flash-latest": 2,
+                            }
+        
         GeminiService._semaphore_value = semaphore or semaphore_values.get(GeminiService._model, 15)
+        GeminiService._semaphore = asyncio.Semaphore(GeminiService._semaphore_value)
 
-        if(GeminiService._json_mode and GeminiService._model == "gemini-1.5-pro-latest"):
-            GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format. The JSON should be in the following format: {\"text\": \"translated text\"}"
+        if(GeminiService._json_mode and GeminiService._model in VALID_JSON_GEMINI_MODELS and response_schema is not None):
+            GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format. The JSON should be in the format specified in the response schema."
+
+        elif(GeminiService._json_mode and GeminiService._model in VALID_JSON_GEMINI_MODELS):
+            GeminiService._default_translation_instructions = "Please translate the following text into English. Make sure to return the translated text in JSON format."
 
         elif(GeminiService._json_mode):
-            raise EasyTLException("JSON mode for Gemini is only supported for the gemini-1.5-pro-latest model.")
+            allowed_models_string = ", ".join(VALID_JSON_GEMINI_MODELS)
+            raise EasyTLException(f"JSON mode for Gemini is only supported for the following models: {allowed_models_string}")
         
         else:
             GeminiService._default_translation_instructions = "Please translate the following text into English."
@@ -157,7 +173,7 @@ class GeminiService:
         gen_model_params = {
             "model_name": GeminiService._model,
             "safety_settings": GeminiService._safety_settings,
-            "system_instruction": GeminiService._system_message if GeminiService._model == "gemini-1.5-pro-latest" else None
+            "system_instruction": GeminiService._system_message if GeminiService._model in VALID_SYSTEM_MESSAGE_MODELS else None
         }
         
         GeminiService._client = genai.GenerativeModel(**gen_model_params)
@@ -169,7 +185,8 @@ class GeminiService:
             "temperature": GeminiService._temperature,
             "top_p": GeminiService._top_p,
             "top_k": GeminiService._top_k,
-            "response_mime_type": response_mime_type
+            "response_mime_type": response_mime_type,
+            "response_schema": GeminiService._response_schema if GeminiService._response_schema and GeminiService._json_mode else None
         }
         
         GeminiService._generation_config = GenerationConfig(**generation_config_params)
@@ -268,7 +285,7 @@ class GeminiService:
 
         """
 
-        text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+        text_request = f"{text_to_translate}" if GeminiService._model in VALID_SYSTEM_MESSAGE_MODELS else f"{GeminiService._system_message}\n{text_to_translate}"
 
         _response = GeminiService._client.generate_content(
             contents=text_request,
@@ -301,7 +318,7 @@ class GeminiService:
             if(GeminiService._rate_limit_delay is not None):
                 await asyncio.sleep(GeminiService._rate_limit_delay)
 
-            text_request = f"{text_to_translate}" if GeminiService._model == "gemini--1.5-pro-latest" else f"{GeminiService._system_message}\n{text_to_translate}"
+            text_request = f"{text_to_translate}" if GeminiService._model in VALID_SYSTEM_MESSAGE_MODELS else f"{GeminiService._system_message}\n{text_to_translate}"
 
             _response = await GeminiService._client.generate_content_async(
                 contents=text_request,

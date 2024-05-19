@@ -14,6 +14,7 @@ from deepl.translator import Translator
 import deepl
 
 ## custom modules
+from .version import VERSION
 from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
@@ -245,7 +246,7 @@ class DeepLService:
 
         try:
 
-            DeepLService._translator = Translator(DeepLService._api_key)
+            DeepLService._translator = Translator(DeepLService._api_key).set_app_info("EasyTL", VERSION)
 
             DeepLService._translator.translate_text("私", target_lang="JA")
 
