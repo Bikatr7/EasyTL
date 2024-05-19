@@ -5,14 +5,16 @@
 ## built-in libraries
 import typing
 import json
+import logging
 
 ## third-party libraries
 import tiktoken
+import backoff
 
 ## custom modules
 import google.generativeai as genai
 
-from .exceptions import InvalidEasyTLSettingsException
+from .exceptions import InvalidEasyTLSettingsException, GoogleAPIError
 from .classes import NotGiven, NOT_GIVEN
 
 ##-------------------start-of-_return_curated_anthropic_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -165,9 +167,10 @@ def _is_iterable_of_strings(value):
     
     return all(isinstance(_item, str) for _item in _iterator)
 
-##-------------------start-of-_count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_gemini_count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def _count_tokens(text:str) -> int:
+@backoff.on_exception(backoff.expo, exception=(GoogleAPIError), logger=logging.getLogger())
+def _gemini_count_tokens(text:str, model:str="gemini-pro") -> int:
 
     """
 
@@ -565,15 +568,26 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         ## break down the text into a string than into tokens
         text = ''.join(text)
 
-        _LLM_TYPE = "openai" if model in ALLOWED_OPENAI_MODELS else "gemini"
+        if(model in ALLOWED_OPENAI_MODELS):
+            _LLM_TYPE = "openai"
+
+        elif(model in ALLOWED_GEMINI_MODELS):
+            _LLM_TYPE = "gemini"
+
+        elif(model in ALLOWED_ANTHROPIC_MODELS):
+            _LLM_TYPE = "anthropic"
 
 
         if(_LLM_TYPE == "openai"):
             _encoding = tiktoken.encoding_for_model(model)
             _num_tokens = len(_encoding.encode(text))
 
+        elif(_LLM_TYPE == "gemini"):
+            _num_tokens = _gemini_count_tokens(text, model=model)
+
         else:
-            _num_tokens = _count_tokens(text)
+            ## need to do anthropic here shortly
+            pass
 
         _input_cost = _cost_details["_input_cost"]
         _output_cost = _cost_details["_output_cost"]
