@@ -547,10 +547,10 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "claude-3-opus-20240229"):
-            return _estimate_cost(text, model=model, price_case=11)
+            return _estimate_cost(text, model=model, price_case=13)
         
         elif(model == "claude-3-sonnet-20240229"):
-            return _estimate_cost(text, model=model, price_case=11)
+            return _estimate_cost(text, model=model, price_case=12)
         
         elif(model == "claude-3-haiku-20240307"):
             return _estimate_cost(text, model=model, price_case=11)
@@ -588,7 +588,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
     raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-19
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -629,7 +629,6 @@ VALID_JSON_OPENAI_MODELS = [
     "gpt-4o"    
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
 ## https://ai.google.dev/models/gemini
 ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-001",
@@ -655,6 +654,7 @@ VALID_JSON_GEMINI_MODELS = [
     "gemini-1.5-flash",
 ]
 
+## https://docs.anthropic.com/en/docs/models-overview
 ALLOWED_ANTHROPIC_MODELS = [
     "claude-3-opus-20240229",
     "claude-3-sonnet-20240229",
@@ -667,7 +667,6 @@ VALID_JSON_ANTHROPIC_MODELS = [
     "claude-3-haiku-20240307"
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-13
 MODEL_COSTS = {
     # Grouping GPT-3.5 models together
     "gpt-3.5-turbo-0125": {"price_case": 7, "_input_cost": 0.0005, "_output_cost": 0.0015},
