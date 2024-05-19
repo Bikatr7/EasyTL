@@ -8,6 +8,8 @@ load_dotenv()
 
 import requests, uuid, json
 
+from .azure_service import AzureService
+
 # Add your key and endpoint
 key = os.getenv('AZURE_TRANSLATOR_KEY')
 endpoint = os.getenv('AZURE_TRANSLATOR_ENDPOINT')
@@ -42,3 +44,7 @@ request = requests.post(constructed_url, params=params, headers=headers, json=bo
 response = request.json()
 
 print(json.dumps(response, sort_keys=True, ensure_ascii=False, indent=4, separators=(',', ': ')))
+
+azure = AzureService()
+
+azure.set_credentials(api_key=key, location=location, endpoint=endpoint)

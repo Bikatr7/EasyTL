@@ -13,7 +13,7 @@ import time
 import requests
 
 ## custom modules
-from .util import _convert_iterable_to_st
+from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .exceptions import EasyTLException
 
@@ -110,8 +110,8 @@ class AzureService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_async_logging_decorator
-    def _translate_text(text: str) -> typing.Union[typing.List[typing.Any], typing:Any]:
+    @_sync_logging_decorator
+    def _translate_text(text: str) -> typing.Union[typing.List[typing.Any], typing.Any]:
 
         """
         Translates the text using the Azure service.
@@ -152,3 +152,33 @@ class AzureService:
          
         except Exception as _e:
             raise _e
+        
+##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    @_async_logging_decorator
+    async def _translate_text_async(text: str) -> typing.Union[typing.List[typing.Any], typing.Any]:
+
+        """
+        Translates the text using the Azure service asynchronously.
+
+        Parameters:
+        - text (str): The text to translate.
+
+        Returns:
+        - response (list): The list of translations.
+        """
+
+        async with AzureService._semaphore:
+
+            if (AzureService._rate_limit_delay is not None):
+                await asyncio.sleep(AzureService._rate_limit_delay)
+
+            try:
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(None, lambda: AzureService._translate_text(text))
+
+            except Exception as _e:
+                raise _e
+            
+##-------------------start-of-_test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
