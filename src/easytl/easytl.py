@@ -1396,7 +1396,7 @@ class EasyTL:
         For deepl, number of tokens is the number of characters, the returned model is always "deepl".
         The same applies for google translate, but the model is "google translate".
 
-        Note that Anthropic's cost is pretty sketchy and can be inaccurate. Refer to the actual response object for the cost or the API panel.
+        Note that Anthropic's cost estimate is pretty sketchy and can be inaccurate. Refer to the actual response object for the cost or the API panel. This is because their tokenizer is not public and we're forced to estimate.
 
         Parameters:
         text (string or iterable) : The text to translate.
