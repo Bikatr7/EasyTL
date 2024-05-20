@@ -619,11 +619,11 @@ class EasyTL:
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
-        model (string) : The model to use. 
+        model (string) : The model to use. (E.g. 'gemini-pro' or 'gemini-pro-1.5-latest')
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
         top_k (int) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
-        stop_sequences (list or None) : The sequences to stop at.
+        stop_sequences (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or None) : The maximum number of tokens to output.
 
         Returns:
@@ -730,11 +730,11 @@ class EasyTL:
         semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
-        model (string) : The model to use.
+        model (string) : The model to use. (E.g. 'gemini-pro' or 'gemini-pro-1.5-latest')
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
         top_k (int) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
-        stop_sequences (list or None) : The sequences to stop at.
+        stop_sequences (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or None) : The maximum number of tokens to output.
 
         Returns:
@@ -830,12 +830,13 @@ class EasyTL:
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
+        model (string) : The model to use. (E.g. 'gpt-4', 'gpt-3.5-turbo-0125', 'gpt-4o', etc.)
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
-        stop (list or None) : The sequences to stop at.
+        stop (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_tokens (int or None) : The maximum number of tokens to output.
-        presence_penalty (float) : The presence penalty to use.
-        frequency_penalty (float) : The frequency penalty to use.
+        presence_penalty (float) : The presence penalty to use. This penalizes the model from repeating the same content in the output. Shouldn't be messed with for translation.
+        frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
 
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
@@ -938,13 +939,13 @@ class EasyTL:
         semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
-        model (string) : The model to use.
+        model (string) : The model to use. (E.g. 'gpt-4', 'gpt-3.5-turbo-0125', 'gpt-4o', etc.)
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
-        stop (list or None) : The sequences to stop at.
+        stop (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_tokens (int or None) : The maximum number of tokens to output.
-        presence_penalty (float) : The presence penalty to use.
-        frequency_penalty (float) : The frequency penalty to use.
+        presence_penalty (float) : The presence penalty to use. This penalizes the model from repeating the same content in the output. Shouldn't be messed with for translation.
+        frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
 
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
@@ -1051,11 +1052,11 @@ class EasyTL:
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json. 
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
-        model (string) : The model to use.
+        model (string) : The model to use. (E.g. 'claude-3-haiku-20240307', 'claude-3-sonnet-20240229' or 'claude-3-opus-20240229')
         temperature (float or NotGiven) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float or NotGiven) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
         top_k (int or NotGiven) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
-        stop_sequences (list or NotGiven) : The sequences to stop at.
+        stop_sequences (list or NotGiven) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
 
         Returns:
@@ -1179,11 +1180,11 @@ class EasyTL:
         semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
-        model (string) : The model to use.
+        model (string) : The model to use. (E.g. 'claude-3-haiku-20240307', 'claude-3-sonnet-20240229' or 'claude-3-opus-20240229')
         temperature (float or NotGiven) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
         top_p (float or NotGiven) : The nucleus sampling probability. The higher the value, the more words are considered for the next token. Generally, alter this or temperature, not both.
         top_k (int or NotGiven) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
-        stop_sequences (list or NotGiven) : The sequences to stop at.
+        stop_sequences (list or NotGiven) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
 
         Returns:
