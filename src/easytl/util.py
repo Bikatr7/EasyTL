@@ -14,8 +14,8 @@ import backoff
 ## custom modules
 import google.generativeai as genai
 
-from .exceptions import InvalidEasyTLSettingsException, GoogleAPIError
-from .classes import NotGiven, NOT_GIVEN
+from .exceptions import InvalidEasyTLSettingsException, GoogleAPIError, TooManyInputTokensException
+from .classes import NotGiven, NOT_GIVEN, ModelTranslationMessage
 
 ##-------------------start-of-_return_curated_anthropic_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -141,6 +141,63 @@ def _validate_response_schema(response_schema:str | typing.Mapping[str, typing.A
 
     raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON, a valid JSON string, or None.")
 
+
+##-------------------start-of-validate_text_length()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _validate_text_length(text:str | typing.Iterable[str] | ModelTranslationMessage | typing.Iterable[ModelTranslationMessage] , model:str, service:str) -> None:
+
+    """
+
+    Validates the length of the input text.
+
+    Parameters:
+    text (string | typing.Iterable[string]) : The text to validate the length of.
+    model (string) : The model to validate the text length for.
+    service (string) : The service to validate the text length for.
+
+    """
+
+    try:
+
+        if(isinstance(text, ModelTranslationMessage)):
+            text = str(text)
+
+        text = _convert_iterable_to_str(text) 
+
+        if(service == "openai"):
+            _encoding = tiktoken.encoding_for_model(model)
+            _num_tokens = len(_encoding.encode(text))
+
+            _max_tokens_allowed = MODEL_MAX_TOKENS.get(model, {}).get("max_input_tokens")
+
+            ## silently return if the model is not in the list of models with a max token limit
+            if(not _max_tokens_allowed):
+                return
+
+            ## we can do a hard error with openai since we can accurately count tokens
+            if(_num_tokens > _max_tokens_allowed):
+                raise TooManyInputTokensException(f"Input text exceeds the maximum token limit of {model}.")
+            
+        else:
+            _num_tokens = _gemini_count_tokens(text, model)
+
+            _max_tokens_allowed = MODEL_MAX_TOKENS.get(model, {}).get("max_input_tokens")
+
+            ## silently return if the model is not in the list of models with a max token limit
+            if(not _max_tokens_allowed):
+                return
+
+            ## we can't accurately count tokens with gemini/anthropic, so we'll just do a warning
+            if(_num_tokens > _max_tokens_allowed):
+                logging.warning(f"Input text may exceed the maximum token limit of {model}.")
+
+    except TooManyInputTokensException:
+        raise
+
+    ## soft error, pretty sure this thing will break randomly
+    except Exception as e:
+        logging.error(f"Error validating text length: {str(e)}")
+
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _string_to_bool(string:str) -> bool:
@@ -150,6 +207,10 @@ def _string_to_bool(string:str) -> bool:
 ##-------------------start-of-_convert_iterable_to_str()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _convert_iterable_to_str(iterable:typing.Iterable) -> str:
+
+    if(isinstance(iterable, str)):
+        return iterable
+
     return "".join(map(str, iterable))
 
 ##-------------------start-of-is_iterable_of_strings()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------

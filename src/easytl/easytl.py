@@ -21,7 +21,7 @@ from .anthropic_service import AnthropicService
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError
 
-from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings
+from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings, _validate_text_length
 
 class EasyTL:
 
@@ -639,6 +639,8 @@ class EasyTL:
 
         _validate_stop_sequences(stop_sequences)
 
+        _validate_text_length(text, model, service="gemini")
+
         response_schema = _validate_response_schema(response_schema)
 
         ## Should be done after validating the settings to reduce cost to the user
@@ -750,6 +752,8 @@ class EasyTL:
 
         _validate_stop_sequences(stop_sequences)
 
+        _validate_text_length(text, model, service="gemini")
+
         response_schema = _validate_response_schema(response_schema)
 
         ## Should be done after validating the settings to reduce cost to the user
@@ -850,6 +854,8 @@ class EasyTL:
         _validate_easytl_translation_settings(_settings, "openai")
 
         _validate_stop_sequences(stop)
+
+        _validate_text_length(text, model, service="openai")
 
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")
@@ -959,6 +965,8 @@ class EasyTL:
         _validate_easytl_translation_settings(_settings, "openai")
 
         _validate_stop_sequences(stop)
+
+        _validate_text_length(text, model, service="openai")
 
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")
@@ -1071,6 +1079,8 @@ class EasyTL:
         _validate_easytl_translation_settings(_settings, "anthropic")
 
         _validate_stop_sequences(stop_sequences)
+
+        _validate_text_length(text, model, service="anthropic")
 
         response_schema = _validate_response_schema(response_schema)
 
@@ -1199,6 +1209,8 @@ class EasyTL:
         _validate_easytl_translation_settings(_settings, "anthropic")
 
         _validate_stop_sequences(stop_sequences)
+
+        _validate_text_length(text, model, service="anthropic")
 
         response_schema = _validate_response_schema(response_schema)
 

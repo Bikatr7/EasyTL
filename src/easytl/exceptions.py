@@ -134,3 +134,22 @@ class InvalidTextInputException(EasyTLException):
         """
 
         self.message = message
+
+class TooManyInputTokensException(EasyTLException):
+
+    """
+
+    TooManyInputTokensException is an exception that is raised when the input text contains too many tokens to be accepted by the API
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display when the exception is raised.
+
+        """
+
+        self.message = message
