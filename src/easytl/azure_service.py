@@ -13,7 +13,6 @@ import time
 import requests
 
 ## custom modules
-from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .exceptions import EasyTLException
 
@@ -40,35 +39,34 @@ class AzureService:
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
-    _logging_directory:str | None = None
+    _log_directory:str | None = None
 
-##-------------------start-of-_set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def _set_credentials(api_key: str,
-                         location: str = 'westus2',
-                         endpoint: str = 'https://api.cognitive.microsofttranslator.com'):
+    def _set_api_key(api_key: str): #
         """
-        Sets the credentials for the Azure service.
+        Sets the API key for the Azure service.
 
         Parameters:
         - api_key (str): The API key for accessing the Azure service.
-        - location (str): The location of the Azure service. Default is 'westus2'.
-        - endpoint (str): The endpoint URL of the Azure service. Default is 'https://api.cognitive.microsofttranslator.com'.
+        
         """
+        # I changed this, so that the location and endpoint are part of the attributes instead of
+        # of the credentials. Makes it easier to integrate in the core file.
 
         AzureService._api_key = api_key
-        AzureService._location = location
-        AzureService._endpoint = endpoint
 
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def _set_attributes(target_language:str = 'en',
                         api_version:str = '3.0',
+                        azure_region:str = "westus",
+                        azure_endpoint:str = 'https://api.cognitive.microsofttranslator.com/',
                         source_language:str | None = None,
                         decorator:typing.Callable | None = None,
-                        logging_directory:str | None = None,
+                        log_directory:str | None = None,
                         semaphore:int | None = None,
                         rate_limit_delay:float | None = None
                         ) -> None:
@@ -80,11 +78,13 @@ class AzureService:
 
         AzureService._target_lang = target_language
         AzureService._api_version = api_version
+        AzureService._location = azure_region
+        AzureService._endpoint = azure_endpoint
         AzureService._source_lang = source_language
 
         ## Service Attributes
         AzureService._decorator_to_use = decorator
-        AzureService._logging_directory = logging_directory
+        AzureService._log_directory = log_directory
 
         if(semaphore is not None):
             AzureService._semaphore_value = semaphore
@@ -182,3 +182,20 @@ class AzureService:
                 raise _e
             
 ##-------------------start-of-_test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@staticmethod
+def _test_credentials() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+    """
+    Tests the credentials for the Azure service.
+
+    Returns:
+    - success (bool): True if the credentials are valid, False otherwise.
+    - error (Exception): The error that occurred during the test.
+    """
+
+    try:
+        AzureService._translate_text('Hola')
+        return True, None
+
+    except Exception as _e:
+        return False, _e

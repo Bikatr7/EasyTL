@@ -17,9 +17,12 @@ from .gemini_service import GeminiService
 from .openai_service import OpenAIService
 from .googletl_service import GoogleTLService
 from .anthropic_service import AnthropicService
+from .azure_service import AzureService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError
+
+from requests import RequestException
 
 from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings
 
@@ -75,7 +78,7 @@ class EasyTL:
 ##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic"], credentials:str) -> None:
+    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], credentials:str) -> None:
 
         """
 
@@ -92,7 +95,8 @@ class EasyTL:
             "gemini": GeminiService._set_api_key,
             "openai": OpenAIService._set_api_key,
             "google translate": GoogleTLService._set_credentials,
-            "anthropic": AnthropicService._set_api_key
+            "anthropic": AnthropicService._set_api_key,
+            "azure": AzureService._set_api_key
 
         }
 
@@ -163,7 +167,8 @@ class EasyTL:
             "gemini": {"service": GeminiService, "exception": GoogleAPIError, "test_func": GeminiService._test_api_key_validity},
             "openai": {"service": OpenAIService, "exception": OpenAIError, "test_func": OpenAIService._test_api_key_validity},
             "google translate": {"service": GoogleTLService, "exception": GoogleAPIError, "test_func": GoogleTLService._test_credentials},
-            "anthropic": {"service": AnthropicService, "exception": AnthropicError, "test_func": AnthropicService._test_api_key_validity}
+            "anthropic": {"service": AnthropicService, "exception": AnthropicError, "test_func": AnthropicService._test_api_key_validity},
+            "azure": {"service": AzureService, "exception": RequestException, "test_func": AzureService._test_credentials}
         }
 
         assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', and 'anthropic'.")
@@ -1254,6 +1259,74 @@ class EasyTL:
         result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
 
         return result # type: ignore
+    
+##-------------------start-of-azure_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def azure_translate(text: typing.Union[str, typing.Iterable[str]],
+                        target_lang: str = 'en',
+                        api_version: str = '3.0',
+                        azure_region: str = "westus",
+                        azure_endpoint: str = "https://api.cognitive.microsofttranslator.com/",
+                        source_lang: str | None = None,
+                        override_previous_settings: bool = True,
+                        decorator: typing.Callable | None = None,
+                        log_directory: str | None = None,
+                        semaphore: int | None = None,
+                        response_type: typing.Literal["text", "raw"] | None = "text",
+                        rate_limit_delay: float | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
+        """
+        Translates the given text or list of texts using the Azure Translator service.
+
+        Args:
+            text (Union[str, Iterable[str]]): The text or list of texts to be translated.
+            target_lang (str, optional): The target language for translation. Defaults to 'en'.
+            api_version (str, optional): The version of the Azure Translator API. Defaults to '3.0'.
+            azure_region (str, optional): The Azure region to use for translation. Defaults to 'westus'.
+            azure_endpoint (str, optional): The Azure Translator API endpoint. Defaults to 'https://api.cognitive.microsofttranslator.com/'.
+            source_lang (str | None, optional): The source language of the text. If None, the service will attempt to detect the language. Defaults to None.
+            decorator (Callable | None, optional): A decorator function to apply to the translation result. Defaults to None.
+            log_directory (str | None, optional): The directory to store translation logs. Defaults to None.
+            semaphore (int | None, optional): The maximum number of concurrent translation requests. Defaults to None.
+            response_type (Literal["text", "raw"] | None, optional): The type of response to return. Defaults to "text".
+            rate_limit_delay (float | None, optional): The delay between translation requests to comply with rate limits. Defaults to None.
+
+        Returns:
+            Union[List[str], str, List[TextResult], TextResult]: The translated text or list of translated texts.
+        
+        """
+
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        EasyTL.test_credentials("azure")
+
+        if(override_previous_settings == True):
+            AzureService._set_attributes(target_lang=target_lang,
+                                        api_version=api_version,
+                                        azure_region=azure_region,
+                                        azure_endpoint=azure_endpoint,
+                                        source_lang=source_lang,
+                                        decorator=decorator,
+                                        log_directory=log_directory,
+                                        semaphore=semaphore,
+                                        rate_limit_delay=rate_limit_delay)
+            
+        def translate(text):
+            return AzureService._translate_text(text)
+        
+        if(decorator is not None):
+            translate = AzureService._decorator_to_use(AzureService._translate_text)
+
+        else:
+            translate = AzureService._translate_text
+
+        if(isinstance(text, str)):
+            result = translate(text)
+
+            result = result if response_type == "raw" else result.text
+    
+        return result
+
         
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         

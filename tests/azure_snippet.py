@@ -4,11 +4,12 @@
 
 from dotenv import load_dotenv
 import os
+import asyncio
 load_dotenv()
 
 import requests, uuid, json
 
-from .azure_service import AzureService
+from easytl.azure_service import AzureService
 
 # Add your key and endpoint
 key = os.getenv('AZURE_TRANSLATOR_KEY')
@@ -47,4 +48,12 @@ print(json.dumps(response, sort_keys=True, ensure_ascii=False, indent=4, separat
 
 azure = AzureService()
 
-azure.set_credentials(api_key=key, location=location, endpoint=endpoint)
+azure._set_credentials(api_key=key, location=location, endpoint=endpoint)
+azure._set_attributes(target_language='fr',
+                      source_language='en')
+
+async def main():
+    translation = await azure._translate_text_async('I would really like to drive your car around the block a few times!')
+    print(translation)
+
+asyncio.run(main())
