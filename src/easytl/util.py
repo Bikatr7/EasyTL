@@ -581,10 +581,8 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             _num_tokens = len(_encoding.encode(text))
 
         elif(_LLM_TYPE == "gemini"):
-            ## no local option, and it seems to rate limit too lol, so we'll try 5 times before giving up and doing it openai style
-            try:
-                _num_tokens = _gemini_count_tokens(text, model=model)
-            except:
+            ## no local option, and it seems to rate limit too lol, so we'll do it openai style
+
                 _encoding = tiktoken.encoding_for_model("gpt-4-turbo-0125")
                 _num_tokens = len(_encoding.encode(text))
 
