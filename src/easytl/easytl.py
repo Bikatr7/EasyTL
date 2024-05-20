@@ -587,7 +587,7 @@ class EasyTL:
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
-                        response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                        response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                         response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                         translation_delay:float | None = None,
                         translation_instructions:str | None = None,
@@ -615,7 +615,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a GenerateContentResponse object, 'json' returns a json-parseable string.
+        response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a GenerateContentResponse object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a GenerateContentResponse object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
@@ -631,7 +631,7 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
         _settings = _return_curated_gemini_settings(locals())
 
@@ -644,7 +644,7 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("gemini")
 
-        json_mode = True if response_type == "json" else False
+        json_mode = True if response_type in ["json", "raw_json"] else False
 
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
@@ -671,7 +671,7 @@ class EasyTL:
             
             assert not isinstance(_result, list) and hasattr(_result, "text"), EasyTLException("Malformed response received. Please try again.")
             
-            result = _result if response_type == "raw" else _result.text
+            result = _result if response_type in ["raw", "raw_json"] else _result.text
 
         elif(_is_iterable_of_strings(text)):
             
@@ -679,7 +679,7 @@ class EasyTL:
 
             assert isinstance(_results, list) and all([hasattr(_r, "text") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
-            result = [_r.text for _r in _results] if response_type == "text" else _results # type: ignore
+            result = [_r.text for _r in _results] if response_type in ["text","json"] else _results # type: ignore
             
         else:
             raise InvalidTextInputException("text must be a string or an iterable of strings.")
@@ -693,7 +693,7 @@ class EasyTL:
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
-                                    response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                    response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                                     response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                                     semaphore:int | None = None,
                                     translation_delay:float | None = None,
@@ -725,7 +725,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a AsyncGenerateContentResponse object, 'json' returns a json-parseable string.
+        response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AsyncGenerateContentResponse object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AsyncGenerateContentResponse object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -742,7 +742,7 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
         _settings = _return_curated_gemini_settings(locals())
 
@@ -755,7 +755,7 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("gemini")
 
-        json_mode = True if response_type == "json" else False
+        json_mode = True if response_type in ["json", "raw_json"] else False
 
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
@@ -780,13 +780,13 @@ class EasyTL:
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
 
-            result = _result if response_type == "raw" else _result.text
+            result = _result if response_type in ["raw", "raw_json"] else _result.text
             
         elif(_is_iterable_of_strings(text)):
             _tasks = [GeminiService._translate_text_async(_t) for _t in text]
             _results = await asyncio.gather(*_tasks)
 
-            result = [_r.text for _r in _results] if response_type == "text" else _results # type: ignore
+            result = [_r.text for _r in _results] if response_type in ["text","json"] else _results # type: ignore
 
         else:
             raise InvalidTextInputException("text must be a string or an iterable of strings.")
@@ -800,7 +800,7 @@ class EasyTL:
                         override_previous_settings:bool = True,
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
-                        response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                        response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                         translation_delay:float | None = None,
                         translation_instructions:str | SystemTranslationMessage | None = None,
                         model:str="gpt-4",
@@ -827,7 +827,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
+        response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         temperature (float) : The temperature to use. The higher the temperature, the more creative the output. Lower temperatures are typically better for translation.
@@ -842,7 +842,7 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
         _settings = _return_curated_openai_settings(locals())
 
@@ -853,7 +853,7 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")
 
-        json_mode = True if response_type == "json" else False
+        json_mode = True if response_type in ["json", "raw_json"] else False
         
         if(override_previous_settings == True):
             OpenAIService._set_attributes(model=model,
@@ -889,7 +889,7 @@ class EasyTL:
 
             assert not isinstance(_result, list) and hasattr(_result, "choices"), EasyTLException("Malformed response received. Please try again.")
 
-            translation = _result if response_type == "raw" else _result.choices[0].message.content
+            translation = _result if response_type in ["raw", "raw_json"] else _result.choices[0].message.content
             
             translations.append(translation)
         
@@ -905,7 +905,7 @@ class EasyTL:
                                     override_previous_settings:bool = True,
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
-                                    response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                    response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                                     semaphore:int | None = None,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
@@ -934,7 +934,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string.
+        response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
@@ -951,7 +951,7 @@ class EasyTL:
         
         """
 
-        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
         _settings = _return_curated_openai_settings(locals())
 
@@ -962,7 +962,7 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")
 
-        json_mode = True if response_type == "json" else False
+        json_mode = True if response_type in ["json", "raw_json"] else False
 
         if(override_previous_settings == True):
             OpenAIService._set_attributes(model=model,
@@ -1002,7 +1002,7 @@ class EasyTL:
 
         assert all([hasattr(_r, "choices") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
-        translation = _results if response_type == "raw" else [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
+        translation = _results if response_type in ["raw","raw_json"] else [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
 
         result = translation if isinstance(text, typing.Iterable) and not isinstance(text, str) else translation[0]
 
@@ -1015,7 +1015,7 @@ class EasyTL:
                             override_previous_settings:bool = True,
                             decorator:typing.Callable | None = None,
                             logging_directory:str | None = None,
-                            response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                            response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                             response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                             translation_delay:float | None = None,
                             translation_instructions:str | None = None,
@@ -1047,7 +1047,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, Anthropic will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. Anthropic's API is unsophisticated in this regard, it costs a lot of extra tokens to return a json response.
+        response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AnthropicMessage object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json. 
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
@@ -1063,7 +1063,7 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
         _settings = _return_curated_anthropic_settings(locals())
 
@@ -1076,7 +1076,7 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("anthropic")
 
-        json_mode = True if response_type == "json" else False
+        json_mode = True if response_type in ["json", "raw_json"] else False
 
         if(override_previous_settings == True):
             AnthropicService._set_attributes(model=model,
@@ -1109,7 +1109,7 @@ class EasyTL:
 
             assert not isinstance(_result, list) and hasattr(_result, "content"), EasyTLException("Malformed response received. Please try again.")
 
-            if(response_type == "raw"):
+            if(response_type in ["raw", "raw_json"]):
                 translation = _result
 
             ## response structure is different for beta
@@ -1139,7 +1139,7 @@ class EasyTL:
                                         override_previous_settings:bool = True,
                                         decorator:typing.Callable | None = None,
                                         logging_directory:str | None = None,
-                                        response_type:typing.Literal["text", "raw", "json"] | None = "text",
+                                        response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                                         response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                                         semaphore:int | None = None,
                                         translation_delay:float | None = None,
@@ -1174,7 +1174,7 @@ class EasyTL:
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, Anthropic will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
-        response_type (literal["text", "raw", "json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. Anthropic's API is unsophisticated in this regard, it costs a lot of extra tokens to return a json response.
+        response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AnthropicMessage object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -1191,7 +1191,7 @@ class EasyTL:
 
         """
 
-        assert response_type in ["text", "raw", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw' or 'json'.")
+        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
         _settings = _return_curated_anthropic_settings(locals())
 
@@ -1204,7 +1204,7 @@ class EasyTL:
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("anthropic")
 
-        json_mode = True if response_type == "json" else False
+        json_mode = True if response_type in ["json", "raw_json"] else False
 
         if(override_previous_settings == True):
             AnthropicService._set_attributes(model=model,
@@ -1241,7 +1241,7 @@ class EasyTL:
 
         assert all([hasattr(_r, "content") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
-        if(response_type == "raw"):
+        if(response_type in ["raw", "raw_json"]):
             translations = _results
 
         ## response structure is different for beta
