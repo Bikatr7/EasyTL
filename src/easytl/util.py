@@ -414,7 +414,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
     """
 
-    assert model in ALLOWED_OPENAI_MODELS or model in ALLOWED_GEMINI_MODELS, f"""EasyTL does not support : {model}"""
+    assert model in ALLOWED_OPENAI_MODELS + ALLOWED_GEMINI_MODELS + ALLOWED_ANTHROPIC_MODELS, f"""EasyTL does not support : {model}"""
 
     ## default models are first, then the rest are sorted by price case
     if(price_case is None):
