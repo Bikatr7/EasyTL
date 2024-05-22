@@ -1333,7 +1333,7 @@ class EasyTL:
         
     @staticmethod
     def translate(text:str | typing.Iterable[str],
-                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic"]] = "deepl",
+                  service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic", "azure"]] = "deepl",
                   **kwargs) -> typing.Union[typing.List[str], str, 
                                             typing.List[TextResult], TextResult, 
                                             typing.List[ChatCompletion], ChatCompletion,
@@ -1352,6 +1352,7 @@ class EasyTL:
         Gemini: gemini_translate() 
         Google Translate: googletl_translate() 
         Anthropic: anthropic_translate()
+        Azure: azure_translate()
 
         All functions can return a list of strings or a string, depending on the input. The response type can be specified to return the raw response instead:
         DeepL: TextResult
@@ -1359,6 +1360,7 @@ class EasyTL:
         Gemini: GenerateContentResponse
         Google Translate: any
         Anthropic: AnthropicMessage or AnthropicToolsBetaMessage
+        Azure: any
 
         Parameters:
         service (string) : The service to use for translation.
@@ -1386,6 +1388,9 @@ class EasyTL:
         
         elif(service == "anthropic"):
             return EasyTL.anthropic_translate(text, **kwargs)
+        
+        elif(service == "azure"):
+            return EasyTL.azure_translate(text, **kwargs)
         
 ##-------------------start-of-translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -1501,3 +1506,6 @@ class EasyTL:
         
         elif(service == "anthropic"):
             return AnthropicService._calculate_cost(text, translation_instructions, model)
+        
+        elif(service == "azure"):
+            return AzureService._calculate_cost(text)

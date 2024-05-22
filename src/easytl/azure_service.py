@@ -13,6 +13,7 @@ import time
 import requests
 
 ## custom modules
+from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
 from .exceptions import EasyTLException
 
@@ -215,3 +216,30 @@ class AzureService:
 
         except Exception as _e:
             return False, _e
+        
+##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def _calculate_cost(text: str) -> typing.Tuple[int, float, str]:
+            
+            """
+            Calculates the cost of the translation.
+    
+            Parameters:
+            - text (str): The text to calculate the cost for.
+    
+            Returns:
+            - cost (float): The cost of the translation.
+            """
+
+            # S1 Standard pricing:
+            # $10 per million characters
+
+            if(isinstance(text, typing.Iterable)):
+                text = _convert_iterable_to_str(text)
+
+            characters = len(text)
+            cost = characters * 10 / 1000000
+            model = "S1 Standard Pricing"
+    
+            return characters, cost, model

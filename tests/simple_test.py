@@ -105,7 +105,8 @@ async def main():
                                 azure_region="westus2",
                                 source_lang="en",
                                 response_type="text",
-                                decorator=decorator))
+                                decorator=decorator,
+                                logging_directory=logging_directory))
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
