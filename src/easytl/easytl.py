@@ -1325,8 +1325,19 @@ class EasyTL:
             result = translate(text)
 
             result = result if response_type == "raw" else result[0]['translations'][0]['text']
-    
-        return result
+        else:
+            _results = translate(text)
+
+            if response_type == "raw":
+                return _results
+            
+            else:
+                results = []
+                for _result in _results:
+                    results.append(_result['translations'][0]['text'])
+
+                return results
+                
 
         
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

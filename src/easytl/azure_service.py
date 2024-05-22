@@ -155,10 +155,17 @@ class AzureService:
             'X-ClientTraceId': str(uuid.uuid4())
         }
 
-        body = [{
-            'text': text
-        }]
-
+        if (isinstance(text, str)):
+            body = [{   
+                'text': text
+            }]
+        elif (isinstance(text, typing.Iterable)):
+            body = []
+            for t in text:
+                body.append({
+                    'text': t
+                })
+                
         try:
             url = AzureService._endpoint + AzureService._path
 

@@ -98,15 +98,13 @@ async def main():
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
     # print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
-    print(EasyTL.azure_translate("Hello, world!",
+    print(EasyTL.azure_translate(text=["Hello, world!", "sign up for a free trial"],
                                 target_lang="de",
                                 # Api_version is default 3.0
                                 # Azure endpoint is also default at 'https://api.cognitive.microsofttranslator.com'
                                 azure_region="westus2",
                                 source_lang="en",
-                                response_type="text",
-                                decorator=decorator,
-                                logging_directory=logging_directory))
+                                response_type="textgit "))
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
