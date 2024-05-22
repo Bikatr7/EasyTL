@@ -1311,19 +1311,20 @@ class EasyTL:
                                         semaphore=semaphore,
                                         rate_limit_delay=rate_limit_delay)
             
-        def translate(text):
-            return AzureService._translate_text(text)
+        # def translate(text):
+        #     return AzureService._translate_text(text)
         
-        if(decorator is not None):
-            translate = AzureService._decorator_to_use(AzureService._translate_text)
+        # if(decorator is not None):
+        #     translate = AzureService._decorator_to_use(AzureService._translate_text)
 
-        else:
-            translate = AzureService._translate_text
+        # else:
+        translate = AzureService._translate_text
 
         if(isinstance(text, str)):
+
             result = translate(text)
 
-            result = result if response_type == "raw" else result.text
+            result = result if response_type == "raw" else result[0]['translations'][0]['text']
     
         return result
 

@@ -123,6 +123,27 @@ class AzureService:
         - response (list): The list of translations.
         """
 
+    
+        if (AzureService._decorator_to_use is None):
+            return AzureService.__translate_text(text)
+        
+        
+        decorated_function = AzureService._decorator_to_use(AzureService.__translate_text)
+        return decorated_function(text)
+        
+    @staticmethod
+    def __translate_text(text: str) -> typing.Union[typing.List[typing.Any], typing.Any]:
+
+        """
+        Translates the text using the Azure service.
+
+        Parameters:
+        - text (str): The text to translate.
+
+        Returns:
+        - response (list): The list of translations.
+        """
+
         ## Prepare the translation parameters
         params = AzureService._prepare_translation_parameters()
 
@@ -138,18 +159,13 @@ class AzureService:
         }]
 
         try:
-            if (AzureService._decorator_to_use is None):
-                url = AzureService._endpoint + AzureService._path
+            url = AzureService._endpoint + AzureService._path
 
-                request = requests.post(url, params=params, headers=headers, json=body)
-                response = request.json()
+            request = requests.post(url, params=params, headers=headers, json=body)
+            response = request.json()
 
-                return response
-            
-            else:
-                decorated_function = AzureService._decorator_to_use(AzureService._translate_text)
-                return decorated_function(text)
-         
+            return response
+        
         except Exception as _e:
             raise _e
         

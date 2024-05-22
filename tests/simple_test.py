@@ -100,10 +100,12 @@ async def main():
 
     print(EasyTL.azure_translate("Hello, world!",
                                 target_lang="de",
-                                response_type="raw",
+                                # Api_version is default 3.0
+                                # Azure endpoint is also default at 'https://api.cognitive.microsofttranslator.com'
                                 azure_region="westus2",
-                                source_lang="en"
-                                ))
+                                source_lang="en",
+                                response_type="text",
+                                decorator=decorator))
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
