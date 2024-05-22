@@ -1271,7 +1271,7 @@ class EasyTL:
                         source_lang: str | None = None,
                         override_previous_settings: bool = True,
                         decorator: typing.Callable | None = None,
-                        log_directory: str | None = None,
+                        logging_directory: str | None = None,
                         semaphore: int | None = None,
                         response_type: typing.Literal["text", "raw"] | None = "text",
                         rate_limit_delay: float | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
@@ -1301,13 +1301,13 @@ class EasyTL:
         EasyTL.test_credentials("azure")
 
         if(override_previous_settings == True):
-            AzureService._set_attributes(target_lang=target_lang,
+            AzureService._set_attributes(target_language=target_lang,
                                         api_version=api_version,
                                         azure_region=azure_region,
                                         azure_endpoint=azure_endpoint,
-                                        source_lang=source_lang,
+                                        source_language=source_lang,
                                         decorator=decorator,
-                                        log_directory=log_directory,
+                                        log_directory=logging_directory,
                                         semaphore=semaphore,
                                         rate_limit_delay=rate_limit_delay)
             

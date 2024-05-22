@@ -183,19 +183,19 @@ class AzureService:
             
 ##-------------------start-of-_test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-@staticmethod
-def _test_credentials() -> typing.Tuple[bool, typing.Union[Exception, None]]:
-    """
-    Tests the credentials for the Azure service.
+    @staticmethod
+    def _test_credentials() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+        """
+        Tests the credentials for the Azure service.
 
-    Returns:
-    - success (bool): True if the credentials are valid, False otherwise.
-    - error (Exception): The error that occurred during the test.
-    """
+        Returns:
+        - success (bool): True if the credentials are valid, False otherwise.
+        - error (Exception): The error that occurred during the test.
+        """
 
-    try:
-        AzureService._translate_text('Hola')
-        return True, None
+        try:
+            AzureService._translate_text('Hola')
+            return True, None
 
-    except Exception as _e:
-        return False, _e
+        except Exception as _e:
+            return False, _e
