@@ -98,7 +98,12 @@ async def main():
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
     # print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
-    print(EasyTL.azure_translate("Hello, world!", target_lang="de", response_type="text", logging_directory=logging_directory,decorator=decorator))
+    print(EasyTL.azure_translate("Hello, world!",
+                                target_lang="de",
+                                response_type="raw",
+                                azure_region="westus2",
+                                source_lang="en"
+                                ))
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
