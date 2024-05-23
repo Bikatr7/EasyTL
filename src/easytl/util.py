@@ -5,15 +5,17 @@
 ## built-in libraries
 import typing
 import json
+import logging
 
 ## third-party libraries
 import tiktoken
+import backoff
 
 ## custom modules
 import google.generativeai as genai
 
-from .exceptions import InvalidEasyTLSettingsException
-from .classes import NotGiven, NOT_GIVEN
+from .exceptions import InvalidEasyTLSettingsException, GoogleAPIError, TooManyInputTokensException
+from .classes import NotGiven, NOT_GIVEN, ModelTranslationMessage
 
 ##-------------------start-of-_return_curated_anthropic_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -139,6 +141,63 @@ def _validate_response_schema(response_schema:str | typing.Mapping[str, typing.A
 
     raise InvalidEasyTLSettingsException("Invalid response_schema. Must be a valid JSON, a valid JSON string, or None.")
 
+
+##-------------------start-of-validate_text_length()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _validate_text_length(text:str | typing.Iterable[str] | ModelTranslationMessage | typing.Iterable[ModelTranslationMessage] , model:str, service:str) -> None:
+
+    """
+
+    Validates the length of the input text.
+
+    Parameters:
+    text (string | typing.Iterable[string]) : The text to validate the length of.
+    model (string) : The model to validate the text length for.
+    service (string) : The service to validate the text length for.
+
+    """
+
+    try:
+
+        if(isinstance(text, ModelTranslationMessage)):
+            text = str(text)
+
+        text = _convert_iterable_to_str(text) 
+
+        if(service == "openai"):
+            _encoding = tiktoken.encoding_for_model(model)
+            _num_tokens = len(_encoding.encode(text))
+
+            _max_tokens_allowed = MODEL_MAX_TOKENS.get(model, {}).get("max_input_tokens")
+
+            ## silently return if the model is not in the list of models with a max token limit
+            if(not _max_tokens_allowed):
+                return
+
+            ## we can do a hard error with openai since we can accurately count tokens
+            if(_num_tokens > _max_tokens_allowed):
+                raise TooManyInputTokensException(f"Input text exceeds the maximum token limit of {model}.")
+            
+        else:
+            _num_tokens = _gemini_count_tokens(text, model)
+
+            _max_tokens_allowed = MODEL_MAX_TOKENS.get(model, {}).get("max_input_tokens")
+
+            ## silently return if the model is not in the list of models with a max token limit
+            if(not _max_tokens_allowed):
+                return
+
+            ## we can't accurately count tokens with gemini/anthropic, so we'll just do a warning
+            if(_num_tokens > _max_tokens_allowed):
+                logging.warning(f"Input text may exceed the maximum token limit of {model}.")
+
+    except TooManyInputTokensException:
+        raise
+
+    ## soft error, pretty sure this thing will break randomly
+    except Exception as e:
+        logging.error(f"Error validating text length: {str(e)}")
+
 ##-------------------start-of-_string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _string_to_bool(string:str) -> bool:
@@ -148,6 +207,10 @@ def _string_to_bool(string:str) -> bool:
 ##-------------------start-of-_convert_iterable_to_str()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def _convert_iterable_to_str(iterable:typing.Iterable) -> str:
+
+    if(isinstance(iterable, str)):
+        return iterable
+
     return "".join(map(str, iterable))
 
 ##-------------------start-of-is_iterable_of_strings()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -165,9 +228,10 @@ def _is_iterable_of_strings(value):
     
     return all(isinstance(_item, str) for _item in _iterator)
 
-##-------------------start-of-_count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-_gemini_count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def _count_tokens(text:str) -> int:
+@backoff.on_exception(backoff.expo, exception=(GoogleAPIError), logger=logging.getLogger(), max_tries=50, raise_on_giveup=True)
+def _gemini_count_tokens(text:str, model:str="gemini-pro") -> int:
 
     """
 
@@ -411,7 +475,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
     """
 
-    assert model in ALLOWED_OPENAI_MODELS or model in ALLOWED_GEMINI_MODELS, f"""EasyTL does not support : {model}"""
+    assert model in ALLOWED_OPENAI_MODELS + ALLOWED_GEMINI_MODELS + ALLOWED_ANTHROPIC_MODELS, f"""EasyTL does not support : {model}"""
 
     ## default models are first, then the rest are sorted by price case
     if(price_case is None):
@@ -547,10 +611,10 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "claude-3-opus-20240229"):
-            return _estimate_cost(text, model=model, price_case=11)
+            return _estimate_cost(text, model=model, price_case=13)
         
         elif(model == "claude-3-sonnet-20240229"):
-            return _estimate_cost(text, model=model, price_case=11)
+            return _estimate_cost(text, model=model, price_case=12)
         
         elif(model == "claude-3-haiku-20240307"):
             return _estimate_cost(text, model=model, price_case=11)
@@ -565,15 +629,29 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         ## break down the text into a string than into tokens
         text = ''.join(text)
 
-        _LLM_TYPE = "openai" if model in ALLOWED_OPENAI_MODELS else "gemini"
-
+        model_types = {
+            "openai": ALLOWED_OPENAI_MODELS,
+            "gemini": ALLOWED_GEMINI_MODELS,
+            "anthropic": ALLOWED_ANTHROPIC_MODELS
+        }
+        
+        _LLM_TYPE = next((model_type for model_type, allowed_models in model_types.items() if model in allowed_models))
 
         if(_LLM_TYPE == "openai"):
             _encoding = tiktoken.encoding_for_model(model)
             _num_tokens = len(_encoding.encode(text))
 
+        elif(_LLM_TYPE == "gemini"):
+            ## no local option, and it seems to rate limit too lol, so we'll do it openai style
+
+                _encoding = tiktoken.encoding_for_model("gpt-4-turbo-0125")
+                _num_tokens = len(_encoding.encode(text))
+
         else:
-            _num_tokens = _count_tokens(text)
+            ## literally no way exists to get the number of tokens for anthropic, so we'll just use the gpt-4-turbo-0125 model as a stand-in
+            _encoding = tiktoken.encoding_for_model("gpt-4-turbo-0125")
+            _num_tokens = len(_encoding.encode(text))
+            pass
 
         _input_cost = _cost_details["_input_cost"]
         _output_cost = _cost_details["_output_cost"]
@@ -584,11 +662,11 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
         return _num_tokens, _min_cost, model
     
-    ## _type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point, which it shouldn't
+    ## type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point, which it shouldn't
     raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-19
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -629,7 +707,6 @@ VALID_JSON_OPENAI_MODELS = [
     "gpt-4o"    
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-04-18
 ## https://ai.google.dev/models/gemini
 ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-001",
@@ -655,6 +732,7 @@ VALID_JSON_GEMINI_MODELS = [
     "gemini-1.5-flash",
 ]
 
+## https://docs.anthropic.com/en/docs/models-overview
 ALLOWED_ANTHROPIC_MODELS = [
     "claude-3-opus-20240229",
     "claude-3-sonnet-20240229",
@@ -667,7 +745,6 @@ VALID_JSON_ANTHROPIC_MODELS = [
     "claude-3-haiku-20240307"
 ]
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-13
 MODEL_COSTS = {
     # Grouping GPT-3.5 models together
     "gpt-3.5-turbo-0125": {"price_case": 7, "_input_cost": 0.0005, "_output_cost": 0.0015},
@@ -709,5 +786,33 @@ MODEL_COSTS = {
     "claude-3-haiku-20240307": {"price_case": 11, "_input_cost": 0.00025, "_output_cost": 0.00125},
     "claude-3-sonnet-20240229": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
     "claude-3-opus-20240229": {"price_case": 13, "_input_cost": 0.015, "_output_cost": 0.075}
+
+}
+
+MODEL_MAX_TOKENS = {
+
+    ## openai models
+    "gpt-4o-2024-05-13": {"max_input_tokens": 128000, "max_output_tokens": 4096},
+    "gpt-4-turbo-2024-04-09": {"max_input_tokens": 128000, "max_output_tokens": 4096},
+    "gpt-4-0125-preview": {"max_input_tokens": 128000, "max_output_tokens": 4096},
+    "gpt-4-1106-preview": {"max_input_tokens": 128000, "max_output_tokens": 4096},
+    "gpt-4-1106-vision-preview": {"max_input_tokens": 128000, "max_output_tokens": 4096},
+    "gpt-4-0613": {"max_input_tokens": 8192, "max_output_tokens": 4096},
+    "gpt-4-32k-0613": {"max_input_tokens": 32768, "max_output_tokens": 4096},
+    "gpt-3.5-turbo-0125": {"max_input_tokens": 16385, "max_output_tokens": 4096},
+    "gpt-3.5-turbo-1106": {"max_input_tokens": 16385, "max_output_tokens": 4096},
+    "gpt-3.5-turbo-0613": {"max_input_tokens": 4096, "max_output_tokens": 4096},
+    "gpt-3.5-turbo-16k-0613": {"max_input_tokens": 16385, "max_output_tokens": 4096},
+
+    ## gemini models
+    "gemini-1.5-pro": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
+    "gemini-1.5-flash": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
+    "gemini-1.0-pro-001": {"max_input_tokens": 12288, "max_output_tokens": 4096},
+    "gemini-1.0-pro-vision-001": {"max_input_tokens": 12288, "max_output_tokens": 4096},
+
+    ## anthropic models
+    "claude-3-opus-20240229": {"max_input_tokens": 200000, "max_output_tokens": 4096},
+    "claude-3-sonnet-20240229": {"max_input_tokens": 200000, "max_output_tokens": 4096},
+    "claude-3-haiku-20240307": {"max_input_tokens": 200000, "max_output_tokens": 4096}
 
 }

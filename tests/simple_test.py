@@ -98,6 +98,10 @@ async def main():
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
     # print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
+    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
+
+    print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
+    
     print(EasyTL.azure_translate(text=["Hello, world!", "sign up for a free trial"],
                                 target_lang="de",
                                 # Api_version is default 3.0

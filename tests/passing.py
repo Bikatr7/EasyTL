@@ -7,7 +7,7 @@ import logging
 
 import backoff
 
-from easytl.exceptions import DeepLException, GoogleAPIError, OpenAIError
+from easytl.exceptions import DeepLException, GoogleAPIError, OpenAIError, AnthropicAPIError
 
 ##-------------------start-of-read_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ def setup_preconditions():
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
+    anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
     json_value = os.environ.get('GOOGLE_TRANSLATE_SERVICE_KEY_VALUE')
 
     if(json_value is not None):
@@ -43,6 +44,8 @@ def setup_preconditions():
         gemini_api_key = read_api_key("tests/gemini.txt")
     if(openai_api_key is None):
         openai_api_key = read_api_key("tests/openai.txt")
+    if(anthropic_api_key is None):
+        anthropic_api_key = read_api_key("tests/anthropic.txt")
 
     if(json_value is None):
         google_tl_key_path = "tests/google_translate_key.json"
@@ -53,11 +56,13 @@ def setup_preconditions():
     assert deepl_api_key is not None, "DEEPL_API_KEY environment variable must be set"
     assert gemini_api_key is not None, "GEMINI_API_KEY environment variable must be set"
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
+    assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
     EasyTL.set_credentials("deepl", deepl_api_key)
     EasyTL.set_credentials("gemini", gemini_api_key)
     EasyTL.set_credentials("openai", openai_api_key)
+    EasyTL.set_credentials("anthropic", anthropic_api_key)
     EasyTL.set_credentials("google translate", google_tl_key_path)
 
     schema = {
@@ -83,7 +88,7 @@ async def main():
 
     gemini_time_delay, logging_directory, schema = setup_preconditions()
 
-    decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError), logger=logging.getLogger())
+    decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError, AnthropicAPIError), logger=logging.getLogger())
 
     print("------------------------------------------------Deepl------------------------------------------------")
 
@@ -210,6 +215,40 @@ async def main():
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
     tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="openai", model="gpt-3.5-turbo", translation_instructions="Translate this to German.")
+
+    print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
+
+    print("------------------------------------------------Anthropic------------------------------------------------")
+
+    print("-----------------------------------------------Text response-----------------------------------------------")
+
+    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
+    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
+
+    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator).content[0].text) # type: ignore
+    result = await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+
+    print(result.content[0].text) # type: ignore
+
+    print("-----------------------------------------------Raw response-----------------------------------------------")
+
+    results = EasyTL.anthropic_translate(text=["Hello, world!", "Goodbye, world!"], model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+    async_results = await EasyTL.anthropic_translate_async(text=["Hello, world!", "Goodbye, world!"], model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+
+    for result in results: # type: ignore
+        print(result.content[0].text) # type: ignore
+
+    for result in async_results: # type: ignore
+        print(result.content[0].text) # type: ignore
+
+    print("-----------------------------------------------JSON response-----------------------------------------------")
+
+    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+
+    print("------------------------------------------------Cost calculation------------------------------------------------")
+
+    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
 
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
 

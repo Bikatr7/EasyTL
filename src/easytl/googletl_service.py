@@ -255,7 +255,6 @@ class GoogleTLService:
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    @_redefine_client_decorator
     def _calculate_cost(text:str | typing.Iterable) -> typing.Tuple[int, float, str]:
 
         """
