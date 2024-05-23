@@ -42,37 +42,6 @@ class EasyTL:
 
     """
 
-##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def set_api_key(api_type:typing.Literal["deepl", "gemini", "openai"], api_key:str) -> None:
-        
-        """
-
-        Sets the API key for the specified API type.
-        For Google Translate, use set_credentials() instead.
-
-        Deprecated: This function is deprecated and will be removed in a future version.
-        Use set_credentials(auth_info) instead.
-
-        Parameters:
-        api_type (literal["deepl", "gemini", "openai"]) : The API type to set the key for.
-        api_key (string) : The API key to set.
-
-        """
-
-        warnings.warn("set_api_key is deprecated and will be removed in a future version. Use set_credentials instead.", DeprecationWarning, stacklevel=2)
-
-        service_map = {
-            "deepl": DeepLService,
-            "gemini": GeminiService,
-            "openai": OpenAIService,
-        }
-
-        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
-
-        service_map[api_type]._set_api_key(api_key)
-
 ##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -98,50 +67,10 @@ class EasyTL:
 
         }
 
-        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', and 'anthropic'.")
+        assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
 
         service_map[api_type](credentials)
 
-##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            
-    @staticmethod
-    def test_api_key_validity(api_type:typing.Literal["deepl", "gemini", "openai"]) -> typing.Tuple[bool, typing.Optional[Exception]]:
-        
-        """
-
-        Tests the validity of the API key for the specified API type.
-        
-        Deprecated: This function is deprecated and will be removed in a future version.
-        Use test_credentials() instead.
-
-        Parameters:
-        api_type (literal["deepl", "gemini", "openai"]) : The API type to test the key for.
-
-        Returns:
-        (bool) : Whether the API key is valid.
-        (Exception) : The exception that was raised, if any. None otherwise.
-
-        """
-
-        warnings.warn("test_api_key_validity is deprecated and will be removed in a future version. Use test_credentials instead.", DeprecationWarning, stacklevel=2)
-        
-        api_services = {
-            "deepl": {"service": DeepLService, "exception": DeepLException},
-            "gemini": {"service": GeminiService, "exception": GoogleAPIError},
-            "openai": {"service": OpenAIService, "exception": OpenAIError}
-        }
-
-        assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini' and 'openai'.")
-
-        _is_valid, _e = api_services[api_type]["service"]._test_api_key_validity()
-
-        if(not _is_valid):
-            ## Done to make sure the exception is due to the specified API type and not the fault of EasyTL
-            assert isinstance(_e, api_services[api_type]["exception"]), _e
-            return False, _e
-
-        return True, None
-    
 ##-------------------start-of-test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
