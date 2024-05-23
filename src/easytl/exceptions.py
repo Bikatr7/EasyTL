@@ -14,6 +14,9 @@ from openai import OpenAIError
 ## anthropic generic exception
 from anthropic import AnthropicError
 
+## azure generic exception
+from requests import RequestException
+
 ## service specific exceptions
 from openai import APIError as OpenAIAPIError, ConflictError as OpenAIConflictError, NotFoundError as OpenAINotFoundError, APIStatusError as OpenAIAPIStatusError, RateLimitError as OpenAIRateLimitError, APITimeoutError as OpenAIAPITimeoutError, BadRequestError as OpenAIBadRequestError, APIConnectionError as OpenAIAPIConnectionError, AuthenticationError as OpenAIAuthenticationError, InternalServerError as OpenAIInternalServerError, PermissionDeniedError as OpenAIPermissionDeniedError, UnprocessableEntityError as OpenAIUnprocessableEntityError, APIResponseValidationError as OpenAIAPIResponseValidationError
 from deepl.exceptions import AuthorizationException as DeepLAuthorizationException, QuotaExceededException as DeepLQuotaExceededException, ConnectionException as DeepLConnectionException, TooManyRequestsException as DeepLTooManyRequestsException, DocumentNotReadyException as DeepLDocumentNotReadyException, GlossaryNotFoundException as DeepLGlossaryNotFoundException, DocumentTranslationException as DeepLDocumentTranslationException
@@ -134,6 +137,8 @@ class InvalidTextInputException(EasyTLException):
         """
 
         self.message = message
+
+##-------------------start-of-TooManyInputTokensException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class TooManyInputTokensException(EasyTLException):
 

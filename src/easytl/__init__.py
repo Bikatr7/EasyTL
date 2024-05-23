@@ -29,6 +29,9 @@ from .exceptions import OpenAIError
 ## anthropic generic exception
 from .exceptions import AnthropicError
 
+## azure generic exception
+from .exceptions import RequestException
+
 ## service specific exceptions
 from .exceptions import OpenAIAPIError, OpenAIConflictError, OpenAINotFoundError, OpenAIAPIStatusError, OpenAIRateLimitError, OpenAIAPITimeoutError, OpenAIBadRequestError, OpenAIAPIConnectionError, OpenAIAuthenticationError, OpenAIInternalServerError, OpenAIPermissionDeniedError, OpenAIUnprocessableEntityError, OpenAIAPIResponseValidationError
 from .exceptions import DeepLAuthorizationException, DeepLQuotaExceededException, DeepLConnectionException, DeepLTooManyRequestsException, DeepLDocumentNotReadyException, DeepLGlossaryNotFoundException, DeepLDocumentTranslationException
@@ -48,6 +51,7 @@ __all__ = [
     "GoogleAPIError",
     "OpenAIError",
     "AnthropicError",
+    "RequestException",
     "OpenAIAPIError", "OpenAIConflictError", "OpenAINotFoundError", "OpenAIAPIStatusError", "OpenAIRateLimitError", "OpenAIAPITimeoutError", "OpenAIBadRequestError", "OpenAIAPIConnectionError", "OpenAIAuthenticationError", "OpenAIInternalServerError", "OpenAIPermissionDeniedError", "OpenAIUnprocessableEntityError", "OpenAIAPIResponseValidationError",
     "DeepLAuthorizationException", "DeepLQuotaExceededException", "DeepLConnectionException", "DeepLTooManyRequestsException", "DeepLDocumentNotReadyException", "DeepLGlossaryNotFoundException", "DeepLDocumentTranslationException",
     "GoogleAuthError", "GoogleDefaultCredentialsError",
