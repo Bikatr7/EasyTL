@@ -98,8 +98,9 @@ async def main():
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
     # print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
-    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
+    #tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
 
+    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="azure")
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
     
     print(EasyTL.azure_translate(text=["Hello, world!", "sign up for a free trial"],
@@ -108,7 +109,7 @@ async def main():
                                 # Azure endpoint is also default at 'https://api.cognitive.microsofttranslator.com'
                                 azure_region="westus2",
                                 source_lang="en",
-                                response_type="textgit "))
+                                response_type="text"))
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 

@@ -1483,7 +1483,7 @@ class EasyTL:
         
     @staticmethod
     def calculate_cost(text:str | typing.Iterable[str],
-                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic"]] = "deepl",
+                       service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic", "azure"]] = "deepl",
                        model:typing.Optional[str] = None,
                        translation_instructions:typing.Optional[str] = None
                        ) -> typing.Tuple[int, float, str]:
@@ -1514,7 +1514,7 @@ class EasyTL:
 
         """
 
-        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
+        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic", "azure"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
 
         if(service == "deepl"):
             return DeepLService._calculate_cost(text)
