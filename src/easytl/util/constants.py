@@ -1,3 +1,7 @@
+## Copyright (C) 2024 Kaden Bilyeu (Bikatr7) (https://github.com/Bikatr7), Alejandro Mata (https://github.com/alemalvarez)
+## Use of this source code is governed by an GNU Lesser General Public License v2.1
+## license that can be found in the LICENSE file.
+
 ## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-19
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
