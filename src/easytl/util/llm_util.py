@@ -179,7 +179,8 @@ def _validate_text_length(text:str | typing.Iterable[str] | ModelTranslationMess
                 raise TooManyInputTokensException(f"Input text exceeds the maximum token limit of {model}.")
             
         else:
-            _num_tokens = len(tiktoken.encoding_for_model("gpt-4o-2024-05-13").encode(text))
+            _encoding = tiktoken.encoding_for_model("gpt-4")
+            _num_tokens = len(_encoding.encode(text))
 
             _max_tokens_allowed = MODEL_MAX_TOKENS.get(model, {}).get("max_input_tokens")
 
