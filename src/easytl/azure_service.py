@@ -165,7 +165,7 @@ class AzureService:
                 body.append({
                     'text': t
                 })
-                
+
         try:
             url = AzureService._endpoint + AzureService._path
 
@@ -198,12 +198,8 @@ class AzureService:
             if (AzureService._rate_limit_delay is not None):
                 await asyncio.sleep(AzureService._rate_limit_delay)
 
-            try:
-                loop = asyncio.get_running_loop()
-                return await loop.run_in_executor(None, lambda: AzureService._translate_text(text))
-
-            except Exception as _e:
-                raise _e
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(None, lambda: AzureService._translate_text(text))
             
 ##-------------------start-of-_test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

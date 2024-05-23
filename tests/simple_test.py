@@ -111,7 +111,18 @@ async def main():
                                 source_lang="en",
                                 response_type="raw",
                                 logging_directory=logging_directory,
+                                decorator=decorator
                                 ))
+    
+    translation = await EasyTL.azure_translate_async(text="Hello planet!",
+                                       target_lang="de",
+                                       azure_region="westus2",
+                                       source_lang="en",
+                                       response_type="text",
+                                       logging_directory=logging_directory,
+                                       )
+    
+    print(translation)
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 

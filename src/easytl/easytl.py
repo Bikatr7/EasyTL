@@ -1299,7 +1299,7 @@ class EasyTL:
             azure_endpoint (str, optional): The Azure Translator API endpoint. Defaults to 'https://api.cognitive.microsofttranslator.com/'.
             source_lang (str | None, optional): The source language of the text. If None, the service will attempt to detect the language. Defaults to None.
             decorator (Callable | None, optional): A decorator function to apply to the translation result. Defaults to None.
-            log_directory (str | None, optional): The directory to store translation logs. Defaults to None.
+            logging_directory (str | None, optional): The directory to store translation logs. Defaults to None.
             semaphore (int | None, optional): The maximum number of concurrent translation requests. Defaults to None.
             response_type (Literal["text", "raw"] | None, optional): The type of response to return. Defaults to "text".
             rate_limit_delay (float | None, optional): The delay between translation requests to comply with rate limits. Defaults to None.
@@ -1324,13 +1324,7 @@ class EasyTL:
                                         semaphore=semaphore,
                                         rate_limit_delay=rate_limit_delay)
             
-        # def translate(text):
-        #     return AzureService._translate_text(text)
-        
-        # if(decorator is not None):
-        #     translate = AzureService._decorator_to_use(AzureService._translate_text)
 
-        # else:
         translate = AzureService._translate_text
 
         if(isinstance(text, str)):
@@ -1340,6 +1334,76 @@ class EasyTL:
             result = result if response_type == "raw" else result[0]['translations'][0]['text']
         else:
             _results = translate(text)
+
+            if response_type == "raw":
+                return _results
+            
+            else:
+                results = []
+                for _result in _results:
+                    results.append(_result['translations'][0]['text'])
+
+                return results
+            
+
+##-------------------start-of-azure_translate_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def azure_translate_async(text: typing.Union[str, typing.Iterable[str]],
+                                    target_lang: str = 'en',
+                                    api_version: str = '3.0',
+                                    azure_region: str = "westus",
+                                    azure_endpoint: str = "https://api.cognitive.microsofttranslator.com/",
+                                    source_lang: str | None = None,
+                                    override_previous_settings: bool = True,
+                                    decorator: typing.Callable | None = None,
+                                    logging_directory: str | None = None,
+                                    semaphore: int | None = None,
+                                    response_type: typing.Literal["text", "raw"] | None = "text",
+                                    rate_limit_delay: float | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
+        """
+        Asynchronous version of azure_translate().
+
+        Args:
+            text (Union[str, Iterable[str]]): The text or list of texts to be translated.
+            target_lang (str, optional): The target language for translation. Defaults to 'en'.
+            api_version (str, optional): The version of the Azure Translator API. Defaults to '3.0'.
+            azure_region (str, optional): The Azure region to use for translation. Defaults to 'westus'.
+            azure_endpoint (str, optional): The Azure Translator API endpoint. Defaults to 'https://api.cognitive.microsofttranslator.com/'.
+            source_lang (str | None, optional): The source language of the text. If None, the service will attempt to detect the language. Defaults to None.
+            decorator (Callable | None, optional): A decorator function to apply to the translation result. Defaults to None.
+            logging_directory (str | None, optional): The directory to store translation logs. Defaults to None.
+            semaphore (int | None, optional): The maximum number of concurrent translation requests. Defaults to None.
+            response_type (Literal["text", "raw"] | None, optional): The type of response to return. Defaults to "text".
+            rate_limit_delay (float | None, optional): The delay between translation requests to comply with rate limits. Defaults to None.
+        
+        Returns:
+            Union[List[str], str, List[TextResult], TextResult]: The translated text or list of translated texts.
+        """
+
+        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        EasyTL.test_credentials("azure")
+
+        if(override_previous_settings == True):
+            AzureService._set_attributes(target_language=target_lang,
+                                        api_version=api_version,
+                                        azure_region=azure_region,
+                                        azure_endpoint=azure_endpoint,
+                                        source_language=source_lang,
+                                        decorator=decorator,
+                                        log_directory=logging_directory,
+                                        semaphore=semaphore,
+                                        rate_limit_delay=rate_limit_delay)
+            
+        translate = AzureService._translate_text_async
+
+        if(isinstance(text, str)):
+            result = await translate(text)
+
+            result = result if response_type == "raw" else result[0]['translations'][0]['text']
+        else:
+            _results = await translate(text)
 
             if response_type == "raw":
                 return _results
@@ -1420,7 +1484,7 @@ class EasyTL:
     
     @staticmethod
     async def translate_async(text:str | typing.Iterable[str],
-                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic"]] = "deepl",
+                              service:typing.Optional[typing.Literal["deepl", "openai", "gemini", "google translate", "anthropic", "azure"]] = "deepl",
                               **kwargs) -> typing.Union[typing.List[str], str, 
                                                         typing.List[TextResult], TextResult,  
                                                         typing.List[ChatCompletion], ChatCompletion,
@@ -1462,7 +1526,7 @@ class EasyTL:
 
         """
 
-        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
+        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic", "azure"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
 
         if(service == "deepl"):
             return await EasyTL.deepl_translate_async(text, **kwargs)
@@ -1478,6 +1542,9 @@ class EasyTL:
         
         elif(service == "anthropic"):
             return await EasyTL.anthropic_translate_async(text, **kwargs)
+        
+        elif(service == "azure"):
+            return await EasyTL.azure_translate_async(text, **kwargs)
 
 ##-------------------start-of-calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
