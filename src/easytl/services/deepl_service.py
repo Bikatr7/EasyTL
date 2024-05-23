@@ -15,7 +15,7 @@ import deepl
 
 ## custom modules
 from ..version import VERSION
-from ..util import _convert_iterable_to_str
+from ..util.util import _convert_iterable_to_str
 from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 

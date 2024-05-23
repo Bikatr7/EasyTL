@@ -15,7 +15,7 @@ from .classes import GenerateContentResponse, AsyncGenerateContentResponse, Gene
 from .classes import AnthropicMessage, AnthropicTextBlock, AnthropicToolsBetaMessage, AnthropicToolUseBlock
 from .classes import NOT_GIVEN, NotGiven
 
-from .util import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS, ALLOWED_ANTHROPIC_MODELS, VALID_JSON_OPENAI_MODELS, VALID_JSON_GEMINI_MODELS, VALID_JSON_ANTHROPIC_MODELS, MODEL_MAX_TOKENS
+from .util.constants import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS, ALLOWED_ANTHROPIC_MODELS, VALID_JSON_OPENAI_MODELS, VALID_JSON_GEMINI_MODELS, VALID_JSON_ANTHROPIC_MODELS, MODEL_MAX_TOKENS
 
 ## deepL generic exception
 from .exceptions import DeepLException
