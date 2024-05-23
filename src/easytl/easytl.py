@@ -203,8 +203,6 @@ class EasyTL:
 
         It is unknown whether Google Translate has backoff retrying implemented. Assume it does not exist.
 
-        Due to how Google Translate's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
-
         Google Translate v2 API is poorly documented and type hints are near non-existent. typing.Any return types are used for the raw response type.
 
         Parameters:
@@ -280,7 +278,7 @@ class EasyTL:
                                        decorator:typing.Callable | None = None,
                                        logging_directory:str | None = None,
                                        response_type:typing.Literal["text", "raw"] | None = "text",
-                                       semaphore:int | None = None,
+                                       semaphore:int | None = 15,
                                        translation_delay:float | None = None,
                                        format:typing.Literal["text", "html"] = "text",
                                        source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
@@ -295,8 +293,6 @@ class EasyTL:
         This function assumes that the credentials have already been set.
 
         It is unknown whether Google Translate has backoff retrying implemented. Assume it does not exist.
-
-        Due to how Google Translate's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
 
         Google Translate v2 API is poorly documented and type hints are near non-existent. typing.Any return types are used for the raw response type.
 
@@ -392,8 +388,6 @@ class EasyTL:
 
         This function assumes that the API key has already been set.
 
-        Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
-
         Parameters:
         text (string or iterable) : The text to translate.
         target_lang (string or Language) : The target language to translate to.
@@ -481,7 +475,7 @@ class EasyTL:
                             decorator:typing.Callable | None = None,
                             logging_directory:str | None = None,
                             response_type:typing.Literal["text", "raw"] | None = "text",
-                            semaphore:int | None = None,
+                            semaphore:int | None = 15,
                             translation_delay:float | None = None,
                             source_lang:str | Language | None = None,
                             context:str | None = None,
@@ -500,11 +494,10 @@ class EasyTL:
         Asynchronous version of deepl_translate().
         
         Translates the given text to the target language using DeepL.
+
         Will generally be faster for iterables. Order is preserved.
 
         This function assumes that the API key has already been set.
-
-        Due to how DeepL's API works, the translation delay and semaphore are not as important as they are for other services. As they process iterables directly.
         
         Parameters:
         text (string or iterable) : The text to translate.
@@ -513,7 +506,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this parameter is None, DeepL will retry your request 5 times before failing. Otherwise, the given decorator will be used.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
-        semaphore (int) : The number of concurrent requests to make. Default is 30.
+        semaphore (int) : The number of concurrent requests to make. Default is 15.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         source_lang (string or Language or None) : The source language to translate from.
         context (string or None) : Additional information for the translator to be considered when translating. Not translated itself. This is a DeepL alpha feature and may be removed at any time.
@@ -702,7 +695,7 @@ class EasyTL:
                                     logging_directory:str | None = None,
                                     response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                                     response_schema:str | typing.Mapping[str, typing.Any] | None = None,
-                                    semaphore:int | None = None,
+                                    semaphore:int | None = 5,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | None = None,
                                     model:str="gemini-pro",
@@ -734,7 +727,7 @@ class EasyTL:
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AsyncGenerateContentResponse object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AsyncGenerateContentResponse object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
-        semaphore (int) : The number of concurrent requests to make. Default is 15 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
+        semaphore (int) : The number of concurrent requests to make. Default is 5 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         model (string) : The model to use. (E.g. 'gemini-pro' or 'gemini-pro-1.5-latest')
@@ -918,7 +911,7 @@ class EasyTL:
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
                                     response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
-                                    semaphore:int | None = None,
+                                    semaphore:int | None = 5,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
                                     model:str="gpt-4",
@@ -934,6 +927,8 @@ class EasyTL:
 
         Asynchronous version of openai_translate().
         Will generally be faster for iterables. Order is preserved.
+
+        Translates the given text using OpenAI.
 
         This function assumes that the API key has already been set.
 
@@ -1157,7 +1152,7 @@ class EasyTL:
                                         logging_directory:str | None = None,
                                         response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
                                         response_schema:str | typing.Mapping[str, typing.Any] | None = None,
-                                        semaphore:int | None = None,
+                                        semaphore:int | None = 5,
                                         translation_delay:float | None = None,
                                         translation_instructions:str | None = None,
                                         model:str="claude-3-haiku-20240307",
@@ -1172,8 +1167,9 @@ class EasyTL:
         """
 
         Asynchronous version of anthropic_translate().
-
         Will generally be faster for iterables. Order is preserved.
+
+        Translates the given text using Anthropic.
 
         This function assumes that the API key has already been set.
 
@@ -1373,7 +1369,7 @@ class EasyTL:
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
                                     response_type:typing.Literal["text", "json"] | None = "text",
-                                    semaphore:int | None = None,
+                                    semaphore:int | None = 15,
                                     translation_delay:float | None = None,
                                     api_version:str = '3.0',
                                     azure_region:str = "global",
@@ -1382,8 +1378,9 @@ class EasyTL:
         """
 
         Asynchronous version of azure_translate().
-
         Will generally be faster for iterables. Order is preserved.
+
+        Translates the given text to the target language using Azure.
 
         This function assumes that the API key has already been set.
 

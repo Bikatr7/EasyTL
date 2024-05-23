@@ -21,8 +21,6 @@ from .decorators import _sync_logging_decorator, _async_logging_decorator
 
 class GoogleTLService:
 
-    
-    
     _translator:Client
     _credentials:Credentials
 

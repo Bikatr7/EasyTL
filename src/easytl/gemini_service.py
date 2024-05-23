@@ -35,7 +35,7 @@ class GeminiService:
     _client:genai.GenerativeModel
     _generation_config:GenerationConfig
 
-    _semaphore_value:int = 15
+    _semaphore_value:int = 5
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _rate_limit_delay:float | None = None
@@ -141,7 +141,7 @@ class GeminiService:
                             "gemini-1.5-flash-latest": 2,
                             }
         
-        GeminiService._semaphore_value = semaphore or semaphore_values.get(GeminiService._model, 15)
+        GeminiService._semaphore_value = semaphore or semaphore_values.get(GeminiService._model, 5)
         GeminiService._semaphore = asyncio.Semaphore(GeminiService._semaphore_value)
 
         if(GeminiService._json_mode and GeminiService._model in VALID_JSON_GEMINI_MODELS and response_schema is not None):

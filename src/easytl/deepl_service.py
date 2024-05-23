@@ -38,7 +38,7 @@ class DeepLService:
     _splitting_tags:str | typing.List[str] | None = None
     _ignore_tags:str | typing.List[str] | None = None
 
-    _semaphore_value:int = 30
+    _semaphore_value:int = 15
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
     _rate_limit_delay:float | None = None 
