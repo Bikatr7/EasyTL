@@ -11,10 +11,12 @@ from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
 from ..classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
-from ..util.util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
-from ..util.constants import VALID_JSON_OPENAI_MODELS
 from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..exceptions import EasyTLException
+
+from ..util.util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
+from ..util.constants import VALID_JSON_OPENAI_MODELS
+
 
 class OpenAIService:
 

@@ -15,7 +15,6 @@ from ..util.constants import ALLOWED_OPENAI_MODELS, ALLOWED_GEMINI_MODELS, ALLOW
 from ..util.util import _convert_iterable_to_str, _convert_to_correct_type
 
 from ..exceptions import InvalidEasyTLSettingsException, TooManyInputTokensException
-
 from ..classes import ModelTranslationMessage, NotGiven, NOT_GIVEN
 
 ##-------------------start-of-_return_curated_anthropic_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
