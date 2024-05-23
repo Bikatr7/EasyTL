@@ -9,12 +9,12 @@ import asyncio
 import google.generativeai as genai
 
 ## custom modules
-from .util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings, VALID_JSON_GEMINI_MODELS
-from .util import VALID_JSON_GEMINI_MODELS as VALID_SYSTEM_MESSAGE_MODELS
-from .decorators import _async_logging_decorator, _sync_logging_decorator
+from ..util.util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings
+from ..util.constants import VALID_JSON_GEMINI_MODELS as VALID_SYSTEM_MESSAGE_MODELS, VALID_JSON_GEMINI_MODELS
 
-from .classes import GenerationConfig, GenerateContentResponse, AsyncGenerateContentResponse
-from .exceptions import EasyTLException, InvalidTextInputException
+from ..decorators import _async_logging_decorator, _sync_logging_decorator
+from ..classes import GenerationConfig, GenerateContentResponse, AsyncGenerateContentResponse
+from ..exceptions import EasyTLException, InvalidTextInputException
 
 class GeminiService:
 

@@ -15,9 +15,9 @@ from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
 
 ## custom modules
-from .version import VERSION
-from .util import _convert_iterable_to_str
-from .decorators import _sync_logging_decorator, _async_logging_decorator
+from ..version import VERSION
+from ..util.util import _convert_iterable_to_str
+from ..decorators import _sync_logging_decorator, _async_logging_decorator
 
 class GoogleTLService:
 

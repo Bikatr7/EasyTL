@@ -12,17 +12,18 @@ import warnings
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, NOT_GIVEN, NotGiven
 
 ## custom modules
-from .deepl_service import DeepLService
-from .gemini_service import GeminiService
-from .openai_service import OpenAIService
-from .googletl_service import GoogleTLService
-from .anthropic_service import AnthropicService
-from .azure_service import AzureService
+from .services.deepl_service import DeepLService
+from .services.gemini_service import GeminiService
+from .services.openai_service import OpenAIService
+from .services.googletl_service import GoogleTLService
+from .services.anthropic_service import AnthropicService
+from .services.azure_service import AzureService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError, RequestException
 
-from .util import _validate_easytl_translation_settings, _is_iterable_of_strings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings, _validate_text_length
+from .util.util import _is_iterable_of_strings
+from .util.llm_util import _validate_easytl_llm_translation_settings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings, _validate_text_length 
 
 class EasyTL:
 
@@ -560,7 +561,7 @@ class EasyTL:
 
         _settings = _return_curated_gemini_settings(locals())
 
-        _validate_easytl_translation_settings(_settings, "gemini")
+        _validate_easytl_llm_translation_settings(_settings, "gemini")
 
         _validate_stop_sequences(stop_sequences)
 
@@ -673,7 +674,7 @@ class EasyTL:
 
         _settings = _return_curated_gemini_settings(locals())
 
-        _validate_easytl_translation_settings(_settings, "gemini")
+        _validate_easytl_llm_translation_settings(_settings, "gemini")
 
         _validate_stop_sequences(stop_sequences)
 
@@ -776,7 +777,7 @@ class EasyTL:
 
         _settings = _return_curated_openai_settings(locals())
 
-        _validate_easytl_translation_settings(_settings, "openai")
+        _validate_easytl_llm_translation_settings(_settings, "openai")
 
         _validate_stop_sequences(stop)
 
@@ -889,7 +890,7 @@ class EasyTL:
 
         _settings = _return_curated_openai_settings(locals())
 
-        _validate_easytl_translation_settings(_settings, "openai")
+        _validate_easytl_llm_translation_settings(_settings, "openai")
 
         _validate_stop_sequences(stop)
 
@@ -1003,7 +1004,7 @@ class EasyTL:
 
         _settings = _return_curated_anthropic_settings(locals())
 
-        _validate_easytl_translation_settings(_settings, "anthropic")
+        _validate_easytl_llm_translation_settings(_settings, "anthropic")
 
         _validate_stop_sequences(stop_sequences)
 
@@ -1134,7 +1135,7 @@ class EasyTL:
 
         _settings = _return_curated_anthropic_settings(locals())
 
-        _validate_easytl_translation_settings(_settings, "anthropic")
+        _validate_easytl_llm_translation_settings(_settings, "anthropic")
 
         _validate_stop_sequences(stop_sequences)
 
