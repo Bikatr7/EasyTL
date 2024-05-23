@@ -1,12 +1,11 @@
-## Copyright Alejandro (https://github.com/alemalvarez)
-## Use of this source code is governed by a GNU Lesser General Public License v2.1
+## Copyright (C) 2024 Kaden Bilyeu (Bikatr7) (https://github.com/Bikatr7), Alejandro Mata (https://github.com/alemalvarez)
+## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
 ## built-in libraries
 import typing
 import asyncio
 import uuid
-import json
 import time
 
 # third-party libraries
@@ -15,7 +14,6 @@ import requests
 ## custom modules
 from .util import _convert_iterable_to_str
 from .decorators import _async_logging_decorator, _sync_logging_decorator
-from .exceptions import EasyTLException
 
 class AzureService:
 

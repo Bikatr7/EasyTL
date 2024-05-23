@@ -2,7 +2,6 @@ from easytl import EasyTL
 
 import asyncio
 import os
-import time
 import logging
 
 import backoff
