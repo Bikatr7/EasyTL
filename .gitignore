@@ -167,3 +167,7 @@ tests/deepl.txt
 tests/easytl-log.txt
 tests/google_translate_key.json
 tests/anthropic.txt
+tests/azure.txt
+
+# For MacOS
+.DS_Store

@@ -171,5 +171,8 @@ log_attributes = {
     'AnthropicService': [
         [('content', None), ('0', None), ('text', AnthropicTextBlock)],
         [('content', None), ('0', None), ('input', AnthropicToolUseBlock)]
+    ],
+    'AzureService': [
+        [('0', None), ('translations', None), ('0', None), ('text', None)]
     ]
 }

@@ -28,6 +28,7 @@ def setup_preconditions():
     openai_api_key = os.environ.get('OPENAI_API_KEY')
     anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
     json_value = os.environ.get('GOOGLE_TRANSLATE_SERVICE_KEY_VALUE')
+    azure_key = os.environ.get('AZURE_TRANSLATOR_KEY')
 
     if(json_value is not None):
 
@@ -46,6 +47,8 @@ def setup_preconditions():
         openai_api_key = read_api_key("tests/openai.txt")
     if(anthropic_api_key is None):
         anthropic_api_key = read_api_key("tests/anthropic.txt")
+    if(azure_key is None):
+        azure_key = read_api_key("tests/azure.txt")
 
     if(json_value is None):
         google_tl_key_path = "tests/google_translate_key.json"
@@ -58,12 +61,14 @@ def setup_preconditions():
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
+    assert azure_key is not None, "AZURE_TRANSLATOR_KEY environment variable must be set"
 
     EasyTL.set_credentials("deepl", deepl_api_key)
     EasyTL.set_credentials("gemini", gemini_api_key)
     EasyTL.set_credentials("openai", openai_api_key)
     EasyTL.set_credentials("google translate", google_tl_key_path)
     EasyTL.set_credentials("anthropic", anthropic_api_key)
+    EasyTL.set_credentials("azure", azure_key)
 
     return gemini_time_delay, logging_directory
 
@@ -90,13 +95,35 @@ async def main():
         "required": ["input", "output"]
     }
 
-    print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
-    print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    # print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
-    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
+    #tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
 
+    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="azure")
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
     
+    print(EasyTL.azure_translate(text=["Hello, world!", "sign up for a free trial"],
+                                target_lang="de",
+                                # Api_version is default 3.0
+                                # Azure endpoint is also default at 'https://api.cognitive.microsofttranslator.com'
+                                azure_region="westus2",
+                                source_lang="en",
+                                response_type="raw",
+                                logging_directory=logging_directory,
+                                decorator=decorator
+                                ))
+    
+    translation = await EasyTL.azure_translate_async(text="Hello planet!",
+                                       target_lang="de",
+                                       azure_region="westus2",
+                                       source_lang="en",
+                                       response_type="text",
+                                       logging_directory=logging_directory,
+                                       )
+    
+    print(translation)
+
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
 ##    print(EasyTL.deepl_translate("Hello, world!", target_lang="DE", response_type="text", logging_directory=logging_directory,decorator=decorator))
