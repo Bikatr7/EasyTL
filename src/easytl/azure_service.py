@@ -209,7 +209,7 @@ class AzureService:
 ##-------------------start-of-_calculate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def _calculate_cost(text:str) -> typing.Tuple[int, float, str]:
+    def _calculate_cost(text:str | typing.Iterable[str]) -> typing.Tuple[int, float, str]:
         
         """
 
