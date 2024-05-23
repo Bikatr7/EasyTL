@@ -103,24 +103,23 @@ async def main():
     tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="azure")
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
     
-    print(EasyTL.azure_translate(text=["Hello, world!", "sign up for a free trial"],
-                                target_lang="de",
-                                # Api_version is default 3.0
-                                # Azure endpoint is also default at 'https://api.cognitive.microsofttranslator.com'
-                                azure_region="westus2",
-                                source_lang="en",
-                                response_type="raw",
-                                logging_directory=logging_directory,
-                                decorator=decorator
-                                ))
-    
-    translation = await EasyTL.azure_translate_async(text="Hello planet!",
-                                       target_lang="de",
-                                       azure_region="westus2",
-                                       source_lang="en",
-                                       response_type="text",
-                                       logging_directory=logging_directory,
-                                       )
+    # print(EasyTL.azure_translate(text=["Hello, world!", "Hello, planet!"],
+    #                                target_lang="de",
+    #                                # Api_version is default 3.0
+    #                                # Azure endpoint is also default at 'https://api.cognitive.microsofttranslator.com'
+    #                                azure_region="northcentralus",
+    #                                source_lang="en",
+    #                                response_type="text",
+    #                                logging_directory=logging_directory,
+    #                                decorator=decorator
+    #                                ))
+        
+    translation = await EasyTL.azure_translate_async(text=["Hello, world!", "Hello, planet!"],
+                                      target_lang="de",
+                                      azure_region="northcentralus",
+                                      source_lang="en",
+                                      response_type="json",
+                                      logging_directory=logging_directory)                         
     
     print(translation)
 
