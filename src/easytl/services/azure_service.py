@@ -12,8 +12,8 @@ import time
 import requests
 
 ## custom modules
-from .util import _convert_iterable_to_str
-from .decorators import _async_logging_decorator, _sync_logging_decorator
+from ..util import _convert_iterable_to_str
+from ..decorators import _async_logging_decorator, _sync_logging_decorator
 
 class AzureService:
 

@@ -12,12 +12,12 @@ import warnings
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, NOT_GIVEN, NotGiven
 
 ## custom modules
-from .deepl_service import DeepLService
-from .gemini_service import GeminiService
-from .openai_service import OpenAIService
-from .googletl_service import GoogleTLService
-from .anthropic_service import AnthropicService
-from .azure_service import AzureService
+from .services.deepl_service import DeepLService
+from .services.gemini_service import GeminiService
+from .services.openai_service import OpenAIService
+from .services.googletl_service import GoogleTLService
+from .services.anthropic_service import AnthropicService
+from .services.azure_service import AzureService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError, RequestException

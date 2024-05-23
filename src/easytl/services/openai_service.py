@@ -10,10 +10,10 @@ import asyncio
 from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
-from .classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
-from .util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings, VALID_JSON_OPENAI_MODELS
-from .decorators import _async_logging_decorator, _sync_logging_decorator
-from .exceptions import EasyTLException
+from ..classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
+from ..util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings, VALID_JSON_OPENAI_MODELS
+from ..decorators import _async_logging_decorator, _sync_logging_decorator
+from ..exceptions import EasyTLException
 
 class OpenAIService:
 
