@@ -734,12 +734,12 @@ class EasyTL:
                         translation_delay:float | None = None,
                         translation_instructions:str | SystemTranslationMessage | None = None,
                         model:str="gpt-4",
-                        temperature:float=0.3,
-                        top_p:float=1.0,
-                        stop:typing.List[str] | None=None,
-                        max_tokens:int | None=None,
-                        presence_penalty:float=0.0,
-                        frequency_penalty:float=0.0
+                        temperature:float | None | NotGiven = NOT_GIVEN,
+                        top_p:float | None | NotGiven = NOT_GIVEN,
+                        stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
+                        max_tokens:int | None | NotGiven = NOT_GIVEN,
+                        presence_penalty:float | None | NotGiven = NOT_GIVEN,
+                        frequency_penalty:float | None | NotGiven = NOT_GIVEN
                         ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion]:
         
         """
@@ -750,6 +750,8 @@ class EasyTL:
 
         Translation instructions default to translating the text to English. To change this, specify the instructions.
 
+        Due to how OpenAI's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API. If it is set to None, it is passed to the API as None.
+        
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
         Parameters:
@@ -843,12 +845,12 @@ class EasyTL:
                                     translation_delay:float | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
                                     model:str="gpt-4",
-                                    temperature:float=0.3,
-                                    top_p:float=1.0,
-                                    stop:typing.List[str] | None=None,
-                                    max_tokens:int | None=None,
-                                    presence_penalty:float=0.0,
-                                    frequency_penalty:float=0.0
+                                    temperature:float | None | NotGiven = NOT_GIVEN,
+                                    top_p:float | None | NotGiven = NOT_GIVEN,
+                                    stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
+                                    max_tokens:int | None | NotGiven = NOT_GIVEN,
+                                    presence_penalty:float | None | NotGiven = NOT_GIVEN,
+                                    frequency_penalty:float | None | NotGiven = NOT_GIVEN
                                     ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion]:
         
         """
@@ -861,6 +863,8 @@ class EasyTL:
         This function assumes that the API key has already been set.
 
         Translation instructions default to translating the text to English. To change this, specify the instructions.
+
+        Due to how OpenAI's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API. If it is set to None, it is passed to the API as None.
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
