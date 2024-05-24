@@ -2,6 +2,8 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
+## One day this absolute disaster of a file will break and I will have to fix it. But today is not that day.
+
 ## built-in libraries
 from functools import wraps
 
