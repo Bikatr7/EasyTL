@@ -22,16 +22,18 @@ def read_api_key(filename):
 
 def setup_preconditions():
 
+    ## default values, assuming github actions environment
     gemini_time_delay = 30
 
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
-    anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
     json_value = os.environ.get('GOOGLE_TRANSLATE_SERVICE_KEY_VALUE')
+    anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
     azure_api_key = os.environ.get('AZURE_API_KEY')
     azure_region = os.environ.get('AZURE_REGION')
 
+    ## this dumps the json value to a file as that's what the google translate service expects
     if(json_value is not None):
 
         with open("json_value.txt", "w") as file:
@@ -39,6 +41,7 @@ def setup_preconditions():
 
         google_tl_key_path = "json_value.txt"
 
+    ## the following will replace the keys with local test keys if the environment variables are not set (not a github actions environment)
     logging_directory = os.getenv('LOGGING_DIRECTORY', '/tmp/')
 
     if(deepl_api_key is None):
@@ -54,12 +57,14 @@ def setup_preconditions():
     if(azure_region is None):
         azure_region = read_api_key("tests/azure_region.txt")
 
+    ## last json failure clarifies that this is not a github actions environment
     if(json_value is None):
         google_tl_key_path = "tests/google_translate_key.json"
         
         logging_directory = "tests/"
         gemini_time_delay = 5
 
+    ## if any of these trigger, something is wrong (not in local test environment or github actions environment)
     assert deepl_api_key is not None, "DEEPL_API_KEY environment variable must be set"
     assert gemini_api_key is not None, "GEMINI_API_KEY environment variable must be set"
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
@@ -68,6 +73,7 @@ def setup_preconditions():
     assert azure_region is not None, "AZURE_REGION environment variable must be set"
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
+    ## set the credentials for the services
     EasyTL.set_credentials("deepl", deepl_api_key)
     EasyTL.set_credentials("gemini", gemini_api_key)
     EasyTL.set_credentials("openai", openai_api_key)
@@ -75,6 +81,7 @@ def setup_preconditions():
     EasyTL.set_credentials("google translate", google_tl_key_path)
     EasyTL.set_credentials("azure", azure_api_key)
 
+    ## schema for gemini & anthropic
     schema = {
         "type": "object",
         "properties": {
@@ -116,21 +123,8 @@ async def main():
     }
 
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
-    # print(await EasyTL.anthropic_translate_async("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
-    #tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
-
-    print("------------------------------------------------Azure------------------------------------------------")
-    
-    print("-----------------------------------------------Text response-----------------------------------------------")
-
-    print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
-    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
-
-    print("-----------------------------------------------JSON response-----------------------------------------------")
-
-    print(EasyTL.azure_translate("Hello, world!", target_lang="de", response_type="json", logging_directory=logging_directory,decorator=decorator, azure_region=azure_region))
-    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", response_type="json", logging_directory=logging_directory,decorator=decorator, azure_region=azure_region))
+    ## print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
 
  ##   print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
