@@ -74,7 +74,11 @@ def setup_preconditions():
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
     assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
-    assert azure_region is not None, "AZURE_REGION environment variable must be set"
+    #assert azure_region is not None, "AZURE_REGION environment variable must be set" 
+    # we can set a default for the region
+    if azure_region is None:
+        azure_region = "westus"
+        print(f"Using default Azure region: {azure_region}")
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
     ## set the credentials for the services
