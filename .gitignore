@@ -170,5 +170,5 @@ tests/anthropic.txt
 tests/azure.txt
 tests/azure_region.txt
 
-# For MacOS
+## For MacOS
 .DS_Store

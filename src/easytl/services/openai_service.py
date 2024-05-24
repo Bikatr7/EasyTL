@@ -303,7 +303,7 @@ class OpenAIService:
                 **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
             }
 
-            response = OpenAIService._async_client.chat.completions.create(**message_args)
+            response = await OpenAIService._async_client.chat.completions.create(**message_args)
             
             return response
 
