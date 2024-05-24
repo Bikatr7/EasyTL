@@ -10,7 +10,7 @@ import asyncio
 from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
-from ..classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion
+from ..classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion, NOT_GIVEN, NotGiven
 from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..exceptions import EasyTLException
 
@@ -26,15 +26,15 @@ class OpenAIService:
     _system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = _default_translation_instructions
 
     _model:str = _default_model
-    _temperature:float = 0.3
-    _logit_bias:typing.Dict[str, int] | None
-    _top_p:float = 1.0
-    _n:int = 1
+    _temperature:float | None | NotGiven = NOT_GIVEN
+    _logit_bias:typing.Dict[str, int] | None | NotGiven = NOT_GIVEN
+    _top_p:float | None | NotGiven = NOT_GIVEN
+    _n:int | None | NotGiven = 1
     _stream:bool = False
-    _stop:typing.List[str] | None = None
-    _max_tokens:int | None = None
-    _presence_penalty:float = 0.0
-    _frequency_penalty:float = 0.0
+    _stop:typing.List[str] | None | NotGiven = NOT_GIVEN
+    _max_tokens:int | None | NotGiven = NOT_GIVEN
+    _presence_penalty:float | None | NotGiven = NOT_GIVEN
+    _frequency_penalty:float | None | NotGiven = NOT_GIVEN
 
     _semaphore_value:int = 5
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
@@ -71,15 +71,15 @@ class OpenAIService:
         
     @staticmethod
     def _set_attributes(model:str = _default_model,
-                        temperature:float = 0.3,
-                        logit_bias:typing.Dict[str, int] | None = None,
-                        top_p:float = 1.0,
-                        n:int = 1,
+                        temperature:float | None | NotGiven = NOT_GIVEN,
+                        logit_bias:typing.Dict[str, int] | None | NotGiven = NOT_GIVEN,
+                        top_p:float | None | NotGiven = NOT_GIVEN,
+                        n:int | None | NotGiven = 1,
                         stream:bool = False,
-                        stop:typing.List[str] | None = None,
-                        max_tokens:int | None = None,
-                        presence_penalty:float = 0.0,
-                        frequency_penalty:float = 0.0,
+                        stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
+                        max_tokens:int | None | NotGiven = NOT_GIVEN,
+                        presence_penalty:float | None | NotGiven = NOT_GIVEN,
+                        frequency_penalty:float | None | NotGiven = NOT_GIVEN,
                         decorator:typing.Union[typing.Callable, None]=None,
                         logging_directory:str | None=None,
                         semaphore:int | None=None,
@@ -256,32 +256,26 @@ class OpenAIService:
 
         response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
 
-        response = OpenAIService._sync_client.chat.completions.create(
-            response_format={ "type": response_format },
-            messages=[ 
-                instructions.to_dict(),
-                prompt.to_dict()
-            ], # type: ignore
+        attributes = ["temperature", "logit_bias", "top_p", "n", "stream", "stop", "presence_penalty", "frequency_penalty", "max_tokens"]
+        message_args = {
+            "response_format": { "type": response_format },
+            "model": OpenAIService._model,
+            "messages": [instructions.to_dict(), prompt.to_dict()],
+        }
 
-            model=OpenAIService._model,
-            temperature=OpenAIService._temperature,
-            logit_bias=OpenAIService._logit_bias,
-            top_p=OpenAIService._top_p,
-            n=OpenAIService._n,
-            stream=OpenAIService._stream,
-            stop=OpenAIService._stop,
-            presence_penalty=OpenAIService._presence_penalty,
-            frequency_penalty=OpenAIService._frequency_penalty,
-            max_tokens=OpenAIService._max_tokens
-            
-        ) 
+        for attr in attributes:
+            value = getattr(OpenAIService, f"_{attr}")
+            if(value != NOT_GIVEN):
+                message_args[attr] = value
+
+        response = OpenAIService._sync_client.chat.completions.create(**message_args)
         
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instruction:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
+    async def __translate_text_async(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
 
         """
 
@@ -296,33 +290,27 @@ class OpenAIService:
 
         """
 
-        response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
-
         async with OpenAIService._semaphore:
+
+            response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
 
             if(OpenAIService._rate_limit_delay is not None):
                 await asyncio.sleep(OpenAIService._rate_limit_delay)
 
-            response = await OpenAIService._async_client.chat.completions.create(
-                response_format={ "type": response_format },
-                messages=[
-                    instruction.to_dict(),
-                    prompt.to_dict()
-                ],  # type: ignore
+            attributes = ["temperature", "logit_bias", "top_p", "n", "stream", "stop", "presence_penalty", "frequency_penalty", "max_tokens"]
+            message_args = {
+                "response_format": { "type": response_format },
+                "model": OpenAIService._model,
+                "messages": [instructions.to_dict(), prompt.to_dict()],
+            }
 
-                model=OpenAIService._model,
-                temperature=OpenAIService._temperature,
-                logit_bias=OpenAIService._logit_bias,
-                top_p=OpenAIService._top_p,
-                n=OpenAIService._n,
-                stream=OpenAIService._stream,
-                stop=OpenAIService._stop,
-                presence_penalty=OpenAIService._presence_penalty,
-                frequency_penalty=OpenAIService._frequency_penalty,
-                max_tokens=OpenAIService._max_tokens
-                
-            ) 
+            for attr in attributes:
+                value = getattr(OpenAIService, f"_{attr}")
+                if(value != NOT_GIVEN):
+                    message_args[attr] = value
 
+            response = OpenAIService._sync_client.chat.completions.create(**message_args)
+            
             return response
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
