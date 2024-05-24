@@ -33,6 +33,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_TRANSLATE_SERVICE_KEY_VALUE: ${{ secrets.GOOGLE_TRANSLATE_SERVICE_KEY_VALUE }}
+          AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+          AZURE_REGION: ${{ secrets.AZURE_REGION }}
           LOGGING_DIRECTORY: /tmp/
         run: |
           python tests/passing.py
@@ -70,6 +72,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_TRANSLATE_SERVICE_KEY_VALUE: ${{ secrets.GOOGLE_TRANSLATE_SERVICE_KEY_VALUE }}
+          AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+          AZURE_REGION: ${{ secrets.AZURE_REGION }}
           LOGGING_DIRECTORY: /tmp/
         run: |
           python tests/passing.py
@@ -107,6 +111,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_TRANSLATE_SERVICE_KEY_VALUE: ${{ secrets.GOOGLE_TRANSLATE_SERVICE_KEY_VALUE }}
+          AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+          AZURE_REGION: ${{ secrets.AZURE_REGION }}
           LOGGING_DIRECTORY: /tmp/
         run: |
           python tests/passing.py
