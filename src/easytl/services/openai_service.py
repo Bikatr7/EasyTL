@@ -261,12 +261,9 @@ class OpenAIService:
             "response_format": { "type": response_format },
             "model": OpenAIService._model,
             "messages": [instructions.to_dict(), prompt.to_dict()],
+            ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
+            **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
         }
-
-        for attr in attributes:
-            value = getattr(OpenAIService, f"_{attr}")
-            if(value != NOT_GIVEN):
-                message_args[attr] = value
 
         response = OpenAIService._sync_client.chat.completions.create(**message_args)
         
@@ -302,14 +299,11 @@ class OpenAIService:
                 "response_format": { "type": response_format },
                 "model": OpenAIService._model,
                 "messages": [instructions.to_dict(), prompt.to_dict()],
+                ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
+                **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
             }
 
-            for attr in attributes:
-                value = getattr(OpenAIService, f"_{attr}")
-                if(value != NOT_GIVEN):
-                    message_args[attr] = value
-
-            response = OpenAIService._sync_client.chat.completions.create(**message_args)
+            response = OpenAIService._async_client.chat.completions.create(**message_args)
             
             return response
 

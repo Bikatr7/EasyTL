@@ -268,24 +268,22 @@ class AnthropicService:
         message_args = {
             "model": AnthropicService._model,
             "system": instructions,
-            "messages": [prompt.to_dict()],  # type: ignore
+            "messages": [prompt.to_dict()],
+            ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
+            **{attr: getattr(AnthropicService, f"_{attr}") for attr in attributes if getattr(AnthropicService, f"_{attr}") != NOT_GIVEN}
         }
         
-        for attr in attributes:
-            value = getattr(AnthropicService, f"_{attr}")
-            if(value != NOT_GIVEN):
-                message_args[attr] = value
-        
-        # Special case for max_tokens
-        if("max_tokens" not in message_args):
-            message_args["max_tokens"] = 4096
+        ## Special case for max_tokens
+        message_args["max_tokens"] = message_args.get("max_tokens", 4096)
         
         if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-            message_args["tools"] = [AnthropicService._json_tool]
-            message_args["tool_choice"] = {"type": "tool", "name": "format_to_json"}
+            message_args.update({
+                "tools": [AnthropicService._json_tool],
+                "tool_choice": {"type": "tool", "name": "format_to_json"}
+            })
         
         response = AnthropicService._sync_client.beta.tools.messages.create(**message_args)
-
+        
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -315,21 +313,19 @@ class AnthropicService:
             message_args = {
                 "model": AnthropicService._model,
                 "system": instructions,
-                "messages": [prompt.to_dict()],  # type: ignore
+                "messages": [prompt.to_dict()],
+                ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
+                **{attr: getattr(AnthropicService, f"_{attr}") for attr in attributes if getattr(AnthropicService, f"_{attr}") != NOT_GIVEN}
             }
             
-            for attr in attributes:
-                value = getattr(AnthropicService, f"_{attr}")
-                if(value != NOT_GIVEN):
-                    message_args[attr] = value
-            
-            # Special case for max_tokens
-            if("max_tokens" not in message_args):
-                message_args["max_tokens"] = 4096
+            ## Special case for max_tokens
+            message_args["max_tokens"] = message_args.get("max_tokens", 4096)
             
             if(AnthropicService._json_mode and AnthropicService._model in VALID_JSON_ANTHROPIC_MODELS):
-                message_args["tools"] = [AnthropicService._json_tool]
-                message_args["tool_choice"] = {"type": "tool", "name": "format_to_json"}
+                message_args.update({
+                    "tools": [AnthropicService._json_tool],
+                    "tool_choice": {"type": "tool", "name": "format_to_json"}
+                })
 
             response = await AnthropicService._async_client.beta.tools.messages.create(**message_args)
 
