@@ -19,6 +19,8 @@ def read_api_key(filename):
     except:
         pass
 
+##-------------------start-of-setup_preconditions()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 def setup_preconditions():
 
     gemini_time_delay = 30
@@ -28,6 +30,8 @@ def setup_preconditions():
     openai_api_key = os.environ.get('OPENAI_API_KEY')
     anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
     json_value = os.environ.get('GOOGLE_TRANSLATE_SERVICE_KEY_VALUE')
+    azure_api_key = os.environ.get('AZURE_API_KEY')
+    azure_region = os.environ.get('AZURE_REGION')
 
     if(json_value is not None):
 
@@ -46,6 +50,10 @@ def setup_preconditions():
         openai_api_key = read_api_key("tests/openai.txt")
     if(anthropic_api_key is None):
         anthropic_api_key = read_api_key("tests/anthropic.txt")
+    if(azure_api_key is None):
+        azure_api_key = read_api_key("tests/azure.txt")
+    if(azure_region is None):
+        azure_region = read_api_key("tests/azure_region.txt")
 
     if(json_value is None):
         google_tl_key_path = "tests/google_translate_key.json"
@@ -57,6 +65,8 @@ def setup_preconditions():
     assert gemini_api_key is not None, "GEMINI_API_KEY environment variable must be set"
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
+    assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
+    assert azure_region is not None, "AZURE_REGION environment variable must be set"
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
     EasyTL.set_credentials("deepl", deepl_api_key)
@@ -64,6 +74,7 @@ def setup_preconditions():
     EasyTL.set_credentials("openai", openai_api_key)
     EasyTL.set_credentials("anthropic", anthropic_api_key)
     EasyTL.set_credentials("google translate", google_tl_key_path)
+    EasyTL.set_credentials("azure", azure_api_key)
 
     schema = {
         "type": "object",
@@ -80,13 +91,13 @@ def setup_preconditions():
         "required": ["input", "output"]
     }
 
-    return gemini_time_delay, logging_directory, schema
+    return gemini_time_delay, logging_directory, schema, azure_region
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async def main():
 
-    gemini_time_delay, logging_directory, schema = setup_preconditions()
+    gemini_time_delay, logging_directory, schema, azure_region = setup_preconditions()
 
     decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError, AnthropicAPIError), logger=logging.getLogger())
 
@@ -251,6 +262,24 @@ async def main():
     tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="anthropic", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.")
 
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
+
+    print("------------------------------------------------Azure------------------------------------------------")
+    
+    print("-----------------------------------------------Text response-----------------------------------------------")
+
+    print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
+    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
+
+    print("-----------------------------------------------JSON response-----------------------------------------------")
+
+    print(EasyTL.azure_translate("Hello, world!", target_lang="de", response_type="json", logging_directory=logging_directory,decorator=decorator, azure_region=azure_region))
+    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", response_type="json", logging_directory=logging_directory,decorator=decorator, azure_region=azure_region))
+
+    print("------------------------------------------------Cost calculation------------------------------------------------")
+
+    characters, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="azure", model=None, translation_instructions=None)
+
+    print(f"Characters: {characters}, Cost: {cost}, Model: {model}")   
 
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
