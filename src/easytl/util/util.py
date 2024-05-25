@@ -135,7 +135,6 @@ def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
 
 ##-------------------start-of-_estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-@staticmethod
 def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None = None) -> typing.Tuple[int, float, str]:
 
     """
@@ -343,3 +342,38 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
     
     ## type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point, which it shouldn't
     raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
+
+##-------------------start-of-_update_model_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def _update_model_name(model: str) -> str:
+
+    """
+    
+    Updates the model name to the most recent version.
+
+    Parameters:
+    model (string) : the model to update.
+
+    Returns:
+    model (string) : the updated model name.
+
+    """
+
+    model_updates = {
+        "gpt-3.5-turbo": "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-16k": "gpt-3.5-turbo-16k-0613",
+        "gpt-4": "gpt-4-0613",
+        "gpt-4-32k": "gpt-4-32k-0613",
+        "gpt-4-turbo": "gpt-4-turbo-2024-04-09",
+        "gpt-4-turbo-preview": "gpt-4-0125-preview",
+        "gpt-4-vision-preview": "gpt-4-1106-vision-preview",
+        "gpt-4o": "gpt-4o-2024-05-13"
+    }
+
+    if(model in model_updates):
+        return model_updates[model]
+
+    else:
+        raise ValueError(f"Model {model} is not supported by EasyTL.")
+
+    return model
