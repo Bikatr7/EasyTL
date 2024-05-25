@@ -67,7 +67,7 @@ async def main():
     ## Get's the raw response from the API, allowing you to access the full response object
     raw_response = await EasyTL.openai_translate_async("I can speak Japanese", model="gpt-4o", translation_instructions="Translate this text to Japanese.", response_type="raw") 
 
-    print(raw_response.choices[0].message.content)
+    print(raw_response.choices[0].message.content) ## Output: "私は日本語が話せます" or something similar
 
 if(__name__ == "__main__"):
     asyncio.run(main())
@@ -121,11 +121,23 @@ EasyTL offers seamless integration with several translation APIs, allowing users
 
 ### Translating Text
 
-Use `deepl_translate`, `googletl_translate`, `openai_translate`, or `gemini_translate` to translate text using the respective services. Each method accepts various parameters to customize the translation process, such as language, text format, and API-specific features like formality level or temperature for creative outputs.
+Translate functions can be broken down into two categories: LLM and non-LLM. LLM ones can take instructions, while non-LLM ones require a target language. 
+
+`deepl_translate`, `googletl_translate`, and `azure_translate` are non-LLM functions, while `openai_translate`, `gemini_translate`, and `anthropic_translate` are LLM functions.
+
+Each method accepts various parameters to customize the translation process, such as language, text format, and API-specific features like formality level or temperature. However these vary wildly between services, so it is recommended to check the documentation for each service for more information.
 
 All services offer asynchronous translation methods that return a future object for concurrent processing. These methods are suffixed with `_async` and can be awaited to retrieve the translated text.
 
-Instead of receiving the translated text directly, you can also use the `response` parameter to get the full response object from the API.
+Instead of receiving the translated text directly, you can also use the `response_type` parameter to get the raw response object, specify a json response where available, or both.
+  
+  `text` - Default. Returns the translated text.
+
+  `json` - Returns the response as a JSON object. Not all services support this.
+
+  `raw` - Returns the raw response object from the API. This can be useful for accessing additional information or debugging.
+  
+  `raw_json` - Returns the raw response object with the text but with the response also a json object. Again, not all services support this.
 
 ### Generic Translation Methods
 
@@ -135,7 +147,7 @@ EasyTL has generic translation methods `translate` and `translate_async` that ca
 
 The `calculate_cost` method provides an estimate of the cost associated with translating a given text with specified settings for each supported service.
 
-characters or tokens depending on the service.
+These are characters or tokens depending on the type of translate function used.
 
 ```python
 num_characters, cost, model = EasyTL.calculate_cost("This has a lot of characters", "deepl")
@@ -149,7 +161,7 @@ num_tokens, cost, model = EasyTL.calculate_cost("This has a lot of tokens.", "op
 
 ### Credentials Management
 
-Credentials can be set and validated using `set_credentials` and `validate_credentials` methods to ensure they are active and correct before submitting translation requests.
+Credentials can be set and validated using `set_credentials` and `test_credentials` methods to ensure they are active and correct before submitting translation requests.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
