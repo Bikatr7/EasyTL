@@ -12,7 +12,7 @@ import tiktoken
 
 ## custom modules
 from ..util.constants import ALLOWED_OPENAI_MODELS, ALLOWED_GEMINI_MODELS, ALLOWED_ANTHROPIC_MODELS, MODEL_MAX_TOKENS
-from ..util.util import _convert_iterable_to_str, _convert_to_correct_type
+from ..util.util import _convert_iterable_to_str, _convert_to_correct_type, _update_model_name
 
 from ..exceptions import InvalidEasyTLSettingsException, TooManyInputTokensException
 from ..classes import ModelTranslationMessage, NotGiven, NOT_GIVEN
@@ -165,6 +165,10 @@ def _validate_text_length(text:str | typing.Iterable[str] | ModelTranslationMess
         text = _convert_iterable_to_str(text) 
 
         if(service == "openai"):
+
+            ## this just gets the latest model if they passed in a generic model name
+            model = _update_model_name(model)
+            
             _encoding = tiktoken.encoding_for_model(model)
             _num_tokens = len(_encoding.encode(text))
 
@@ -179,7 +183,7 @@ def _validate_text_length(text:str | typing.Iterable[str] | ModelTranslationMess
                 raise TooManyInputTokensException(f"Input text exceeds the maximum token limit of {model}.")
             
         else:
-            _encoding = tiktoken.encoding_for_model("gpt-4")
+            _encoding = tiktoken.encoding_for_model("gpt-4-turbo-2024-04-09")
             _num_tokens = len(_encoding.encode(text))
 
             _max_tokens_allowed = MODEL_MAX_TOKENS.get(model, {}).get("max_input_tokens")
