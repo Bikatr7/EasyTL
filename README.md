@@ -21,8 +21,9 @@
 
 Seamless Multi-API Translation: Simplifying Language Barriers with DeepL, OpenAI, Gemini, Google Translate and More! 
 
-EasyTL has a Trello board for tracking planned features and issues:
-https://trello.com/b/Td555CoW/easytl
+EasyTL has a [Trello board](https://trello.com/b/Td555CoW/easytl) for tracking planned features and issues:
+
+We've compiled a repository of examples and use cases for EasyTL at this [GitHub repository](https://github.com/Bikatr7/easytl-demo)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 ## **Quick Start**<a name="quick-start"></a>
@@ -41,12 +42,36 @@ For example, with DeepL:
 from easytl import EasyTL
 
 ## Set your API key
-EasyTL.credentials("deepl", "your_api_key_here")
+EasyTL.set_credentials("deepl", "YOUR_API_KEY")
 
 ## You can also validate your API keys; translation functions will do this automatically
-is_valid, e = EasyTL.validate_credentials("deepl")
+is_valid, e = EasyTL.test_credentials("deepl")
 
 translated_text = EasyTL.deepl_translate("私は日本語が話せます", "EN-US") ## Text to translate, language to translate to, only two "required" arguments but there are more optional arguments for additional functionality and other services.
+
+print(translated_text) ## Output: "I can speak Japanese"
+```
+
+or with OpenAI:
+
+```python
+from easytl import EasyTL
+
+import asyncio
+
+async def main():
+
+    ## Set your API key
+    EasyTL.set_credentials("openai", "YOUR_API_KEY")
+
+    ## Get's the raw response from the API, allowing you to access the full response object
+    raw_response = await EasyTL.openai_translate_async("I can speak Japanese", model="gpt-4o", translation_instructions="Translate this text to Japanese.", response_type="raw") 
+
+    print(raw_response.choices[0].message.content)
+
+if(__name__ == "__main__"):
+    asyncio.run(main())
+
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -84,9 +109,8 @@ anthropic==0.26.1
 
 EasyTL offers seamless integration with several translation APIs, allowing users to easily switch between services based on their needs. Key features include:
 
-- Support for multiple translation APIs including OpenAI, DeepL, Gemini, and Google Translate.
-- Simple API key and credential management.
-- Methods to validate credentials before usage.
+- Support for multiple translation APIs including OpenAI, DeepL, Gemini, Google Translate, Microsoft Azure Translate, and Anthropic.
+- Simple API key and credential management and validation.
 - Cost estimation tools to help manage usage based on text length, translation instructions for LLMs, and translation services.
 - Highly customizable translation options, with each API's original features and more. 
 - Lots of optional arguments for additional functionality. Such as decorators, semaphores, and rate-limit delays.
