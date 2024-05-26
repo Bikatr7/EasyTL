@@ -53,8 +53,8 @@ class EasyTL:
         Sets the credentials for the specified API type.
 
         Parameters:
-        api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic"]) : The API type to set the credentials for.
-        credentials (string) : The credentials to set. This is an api key for deepl, gemini, anthropic, and openai. For google translate, this is a path to your json that has your service account key.
+        api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"]) : The API type to set the credentials for.
+        credentials (string) : The credentials to set. This is an api key for deepl, gemini, anthropic, azure and openai. For google translate, this is a path to your json that has your service account key.
 
         """
 
@@ -82,7 +82,7 @@ class EasyTL:
         Tests the validity of the credentials for the specified API type.
 
         Parameters:
-        api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic"]) : The API type to test the credentials for.
+        api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"]) : The API type to test the credentials for.
 
         Returns:
         (bool) : Whether the credentials are valid.
@@ -1534,10 +1534,10 @@ class EasyTL:
 
         For LLMs, the cost is based on the default model unless specified.
 
-        Model and Translation Instructions are ignored for DeepL and Google Translate.
+        Model and Translation Instructions are ignored for DeepL, Google Translate and Azure.
 
-        For deepl, number of tokens is the number of characters, the returned model is always "deepl".
-        The same applies for google translate, but the model is "google translate".
+        For DeepL, Azure and Google Translate, the number of tokens is the number of characters in the text. The returned model is the name of the service.
+
 
         Note that Anthropic's cost estimate is pretty sketchy and can be inaccurate. Refer to the actual response object for the cost or the API panel. This is because their tokenizer is not public and we're forced to estimate.
 
@@ -1554,7 +1554,7 @@ class EasyTL:
 
         """
 
-        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic", "azure"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate' or 'anthropic'.")
+        assert service in ["deepl", "openai", "gemini", "google translate", "anthropic", "azure"], InvalidAPITypeException("Invalid service specified. Must be 'deepl', 'openai', 'gemini', 'google translate', 'anthropic' or 'azure'.")
 
         if(service == "deepl"):
             return DeepLService._calculate_cost(text)
