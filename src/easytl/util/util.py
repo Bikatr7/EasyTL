@@ -373,7 +373,4 @@ def _update_model_name(model: str) -> str:
     if(model in model_updates):
         return model_updates[model]
 
-    else:
-        raise ValueError(f"Model {model} is not supported by EasyTL.")
-
     return model
