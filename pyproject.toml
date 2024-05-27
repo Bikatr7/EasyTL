@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 name = "easytl"
-version = "v0.4.0-beta"
+version = "v0.4.0"
 authors = [
   { name="Kaden Bilyeu (Bikatr7)", email="Bikatr7@proton.me"},
   { name="Alejandro Mata", email="alemalvarez@icloud.com"},
@@ -40,3 +40,4 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/Bikatr7/EasyTL"
 Issues = "https://github.com/Bikatr7/EasyTL/issues"
+Documentation = "https://easytl.readthedocs.io/en/latest/index.html"
