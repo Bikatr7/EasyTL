@@ -4,6 +4,8 @@
 
 I take the security of the EasyTL library very seriously. I appreciate your efforts to responsibly disclose your findings and will make every effort to acknowledge your contributions.
 
+Please note: Public disclosure of the vulnerability without prior agreement is not recommended, as it could put the wider user community at risk.
+
 ## Reporting a Vulnerability
 
 Please report (suspected) security vulnerabilities to **[Bikatr7@proton.me](mailto:Bikatr7@proton.me)**. You should receive a response within 48 hours. If the issue is confirmed, I will release a patch as soon as possible depending on the complexity but typically within a few days.
@@ -44,5 +46,3 @@ I will keep you informed of the progress towards fixing the vulnerability and an
 ## Acknowledgements
 
 Individuals who report security vulnerabilities responsibly will be acknowledged in the project documentation. If you would like to be acknowledged, please include a name or alias in your report.
-
-Please note: Public disclosure of the vulnerability without prior agreement is not recommended, as it could put the wider user community at risk.
