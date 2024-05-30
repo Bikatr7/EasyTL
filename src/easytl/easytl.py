@@ -5,6 +5,7 @@
 ## built-in libraries
 import typing
 import asyncio
+import os
 
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, NOT_GIVEN, NotGiven
@@ -44,7 +45,7 @@ class EasyTL:
 ##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], credentials:str) -> None:
+    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], credentials:typing.Union[str, None]) -> None:
 
         """
 
@@ -66,7 +67,18 @@ class EasyTL:
 
         }
 
+        environment_map = {
+            "deepl": "DEEPL_API_KEY",
+            "gemini": "GEMINI_API_KEY",
+            "openai": "OPENAI_API_KEY",
+            "google translate": "PATH_TO_GOOGLE_CREDENTIALS_JSON",
+            "anthropic": "ANTHROPIC_API_KEY",
+        }
+
         assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
+
+        if(credentials is None and os.environ.get(environment_map[api_type]) is not None):
+            credentials = os.environ.get(environment_map[api_type])
 
         service_map[api_type](credentials)
 
