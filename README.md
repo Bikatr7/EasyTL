@@ -25,7 +25,8 @@ EasyTL has a [Trello board](https://trello.com/b/Td555CoW/easytl) for tracking p
 
 We've compiled a repository of examples and use cases for EasyTL at this [GitHub repository](https://github.com/Bikatr7/easytl-demo)
 
-Full documentation [here](https://easytl.readthedocs.io/en/latest/index.html) (work in progress)
+> [!TIP]
+> You can find the full documentation [here](https://easytl.readthedocs.io/en/latest/index.html)! (work in progress)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 ## **Quick Start**<a name="quick-start"></a>
