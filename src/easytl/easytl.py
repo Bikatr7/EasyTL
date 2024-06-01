@@ -83,40 +83,33 @@ class EasyTL:
 
         Parameters:
         api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"]) : The API type to test the credentials for.
-        azure_region (string) : The Azure region to test the credentials for. Default is 'westus'.
+        azure_region (string) : The Azure region to test the credentials for. Default is 'westus'. Can be omitted for other services.
 
         Returns:
         (bool) : Whether the credentials are valid.
         (Exception) : The exception that was raised, if any. None otherwise.
 
         """
-
+        
         api_services = {
-            "deepl": {"service": DeepLService, "exception": DeepLException, "test_func": DeepLService._test_api_key_validity},
-            "gemini": {"service": GeminiService, "exception": GoogleAPIError, "test_func": GeminiService._test_api_key_validity},
-            "openai": {"service": OpenAIService, "exception": OpenAIError, "test_func": OpenAIService._test_api_key_validity},
-            "google translate": {"service": GoogleTLService, "exception": GoogleAPIError, "test_func": GoogleTLService._test_credentials},
-            "anthropic": {"service": AnthropicService, "exception": AnthropicError, "test_func": AnthropicService._test_api_key_validity},
-            "azure":{"test_func":None} # We kind of not need it, it's just for the assertion.
+            "deepl": {"service": DeepLService, "test_func": DeepLService._test_api_key_validity},
+            "gemini": {"service": GeminiService, "test_func": GeminiService._test_api_key_validity},
+            "openai": {"service": OpenAIService, "test_func": OpenAIService._test_api_key_validity},
+            "google translate": {"service": GoogleTLService, "test_func": GoogleTLService._test_credentials},
+            "anthropic": {"service": AnthropicService, "test_func": AnthropicService._test_api_key_validity},
+            "azure": {"service": AzureService, "test_func": AzureService._test_credentials}
         }
 
         assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
 
         if(api_type == "azure"):
-            _is_valid, _e = AzureService._test_credentials(azure_region)
+            _, _e = api_services[api_type]["test_func"](azure_region)
         else:
-            _is_valid, _e = api_services[api_type]["test_func"]()
+            _, _e = api_services[api_type]["test_func"]()
 
-        if _e is not None:
+        if(_e is not None):
             raise _e
 
-        # Temporally commented. We think that an exception should be raised if the credentials are invalid, instead of soft-handling it.
-        # if(not _is_valid):
-        #     ## Done to make sure the exception is due to the specified API type and not the fault of EasyTL
-        #     assert isinstance(_e, api_services[api_type]["exception"]), _e
-        #     return False, _e
-
-        # If the exception gets raised it would not make sense to return it, it already 'goes back' through exception handling.
         return True, None
     
 ##-------------------start-of-googletl_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
