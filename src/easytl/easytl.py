@@ -19,7 +19,7 @@ from .services.anthropic_service import AnthropicService
 from .services.azure_service import AzureService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
-from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError, RequestException, InvalidAPIKeyException
+from .exceptions import InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, InvalidAPIKeyException
 
 from .util.util import _is_iterable_of_strings
 from .util.llm_util import _validate_easytl_llm_translation_settings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings, _validate_text_length 
@@ -118,10 +118,13 @@ class EasyTL:
 
         if(api_type == "azure"):
             _region = azure_region
-            if _region is None and os.environ.get("AZURE_REGION") is not None:
+
+            if(_region is None and os.environ.get("AZURE_REGION") is not None):
                 _region = os.environ.get("AZURE_REGION")
                 print(f"Using Azure region from environment variable: {_region}")
+                
             _, _e = api_services[api_type]["test_func"](_region)
+        
         else:
             _, _e = api_services[api_type]["test_func"]()
 
