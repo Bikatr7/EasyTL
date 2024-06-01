@@ -5,6 +5,7 @@
 ## built-in libraries
 import typing
 import asyncio
+import os
 
 ## third-party libraries
 from .classes import Language, SplitSentences, Formality, GlossaryInfo, NOT_GIVEN, NotGiven
@@ -18,7 +19,7 @@ from .services.anthropic_service import AnthropicService
 from .services.azure_service import AzureService
 
 from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
-from .exceptions import InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException
+from .exceptions import DeepLException, GoogleAPIError, OpenAIError, InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, AnthropicError, RequestException, InvalidAPIKeyException
 
 from .util.util import _is_iterable_of_strings
 from .util.llm_util import _validate_easytl_llm_translation_settings, _return_curated_gemini_settings, _return_curated_openai_settings, _validate_stop_sequences, _validate_response_schema,  _return_curated_anthropic_settings, _validate_text_length 
@@ -44,7 +45,7 @@ class EasyTL:
 ##-------------------start-of-set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], credentials:str) -> None:
+    def set_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], credentials:typing.Union[str, None] = None) -> None:
 
         """
 
@@ -66,7 +67,22 @@ class EasyTL:
 
         }
 
+        environment_map = {
+            "deepl": "DEEPL_API_KEY",
+            "gemini": "GEMINI_API_KEY",
+            "openai": "OPENAI_API_KEY",
+            "google translate": "PATH_TO_GOOGLE_CREDENTIALS_JSON",
+            "anthropic": "ANTHROPIC_API_KEY",
+        }
+
         assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
+
+        # If credentials are not passed, check the environment variables
+        if(credentials is None and os.environ.get(environment_map[api_type]) is not None):
+            credentials = os.environ.get(environment_map[api_type])
+
+        # If credentials are still None, raise an exception
+        assert credentials is not None, InvalidAPIKeyException(f"No credentials provided for {api_type}. Please provide the credentials or set the environment variable {environment_map[api_type]} with the credentials.")
 
         service_map[api_type](credentials)
 
@@ -101,7 +117,11 @@ class EasyTL:
         assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
 
         if(api_type == "azure"):
-            _, _e = api_services[api_type]["test_func"](azure_region)
+            _region = azure_region
+            if _region is None and os.environ.get("AZURE_REGION") is not None:
+                _region = os.environ.get("AZURE_REGION")
+                print(f"Using Azure region from environment variable: {_region}")
+            _, _e = api_services[api_type]["test_func"](_region)
         else:
             _, _e = api_services[api_type]["test_func"]()
 
