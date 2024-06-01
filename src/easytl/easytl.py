@@ -1255,10 +1255,8 @@ class EasyTL:
 
         assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
 
-        try:
-            EasyTL.test_credentials("azure", azure_region=azure_region)
-        except Exception as _e:
-            raise _e
+
+        EasyTL.test_credentials("azure", azure_region=azure_region)
 
         if(override_previous_settings == True):
             AzureService._set_attributes(target_language=target_lang,
