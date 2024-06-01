@@ -23,6 +23,8 @@ from deepl.exceptions import AuthorizationException as DeepLAuthorizationExcepti
 from google.auth.exceptions import GoogleAuthError, DefaultCredentialsError as GoogleDefaultCredentialsError
 from anthropic import APIError as AnthropicAPIError, ConflictError as AnthropicConflictError, NotFoundError as AnthropicNotFoundError, APIStatusError as AnthropicAPIStatusError, RateLimitError as AnthropicRateLimitError, APITimeoutError as AnthropicAPITimeoutError, BadRequestError as AnthropicBadRequestError, APIConnectionError as AnthropicAPIConnectionError, AuthenticationError as AnthropicAuthenticationError, InternalServerError as AnthropicInternalServerError, PermissionDeniedError as AnthropicPermissionDeniedError, UnprocessableEntityError as AnthropicUnprocessableEntityError, APIResponseValidationError as AnthropicAPIResponseValidationError
 
+##-------------------start-of-EasyTLException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 class EasyTLException(Exception):
 
     """
@@ -145,6 +147,27 @@ class TooManyInputTokensException(EasyTLException):
     """
 
     TooManyInputTokensException is an exception that is raised when the input text contains too many tokens to be accepted by the API
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display when the exception is raised.
+
+        """
+
+        self.message = message
+
+##-------------------start-of-BadAzureRegionException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class BadAzureRegionException(EasyTLException):
+
+    """
+
+    BadAzureRegionException is an exception that is raised when the Azure region is invalid.
 
     """
 

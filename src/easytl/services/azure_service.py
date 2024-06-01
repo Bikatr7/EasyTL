@@ -14,6 +14,7 @@ import requests
 ## custom modules
 from ..util.util import _convert_iterable_to_str
 from ..decorators import _async_logging_decorator, _sync_logging_decorator
+from ..exceptions import BadAzureRegionException
 
 class AzureService:
 
@@ -151,8 +152,8 @@ class AzureService:
             request = requests.post(url, params=params, headers=headers, json=body)
             response = request.json()
 
-            if 'error' in response:
-                raise Exception(f"{response['error']['message']}\n\nTip: Double check API key, region and endpoint :)") # Should we use a custom exception?
+            if('error' in response):
+                raise BadAzureRegionException(f"{response['error']['message']}\n\nTip: Double check API key, region and endpoint :)")
 
             return response
 
