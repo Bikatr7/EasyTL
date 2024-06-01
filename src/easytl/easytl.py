@@ -117,7 +117,11 @@ class EasyTL:
         assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
 
         if(api_type == "azure"):
-            _, _e = api_services[api_type]["test_func"](azure_region)
+            _region = azure_region
+            if _region is None and os.environ.get("AZURE_REGION") is not None:
+                _region = os.environ.get("AZURE_REGION")
+                print(f"Using Azure region from environment variable: {_region}")
+            _, _e = api_services[api_type]["test_func"](_region)
         else:
             _, _e = api_services[api_type]["test_func"]()
 
