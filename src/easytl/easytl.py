@@ -90,7 +90,7 @@ class EasyTL:
         (Exception) : The exception that was raised, if any. None otherwise.
 
         """
-        
+
         api_services = {
             "deepl": {"service": DeepLService, "test_func": DeepLService._test_api_key_validity},
             "gemini": {"service": GeminiService, "test_func": GeminiService._test_api_key_validity},
@@ -1344,7 +1344,7 @@ class EasyTL:
 
         assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
 
-        EasyTL.test_credentials("azure")
+        EasyTL.test_credentials("azure", azure_region=azure_region)
 
         if(override_previous_settings == True):
             AzureService._set_attributes(target_language=target_lang,
