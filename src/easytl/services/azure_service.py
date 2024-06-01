@@ -151,6 +151,9 @@ class AzureService:
             request = requests.post(url, params=params, headers=headers, json=body)
             response = request.json()
 
+            if 'error' in response:
+                raise Exception(f"{response['error']['message']}\n\nTip: Double check API key, region and endpoint :)") # Should we use a custom exception?
+
             return response
 
         except Exception as _e:
@@ -185,7 +188,7 @@ class AzureService:
 ##-------------------start-of-_test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def _test_credentials() -> typing.Tuple[bool, typing.Union[Exception, None]]:
+    def _test_credentials(azure_region: str) -> typing.Tuple[bool, typing.Union[Exception, None]]:
 
         """
 
@@ -196,6 +199,8 @@ class AzureService:
         error (Exception): The error that occurred during the test.
 
         """
+
+        AzureService._set_attributes(azure_region=azure_region)
 
         try:
             AzureService._translate_text('Hola')
