@@ -98,7 +98,7 @@ wheel
 setuptools_scm>=6.0
 tomli
 requests>=2.31.0
-google-generativeai==0.5.4
+google-generativeai==0.6.0
 deepl==1.16.1
 openai==1.29.0
 backoff==2.2.1
@@ -165,6 +165,31 @@ num_tokens, cost, model = EasyTL.calculate_cost("This has a lot of tokens.", "op
 ### Credentials Management
 
 Credentials can be set and validated using `set_credentials` and `test_credentials` methods to ensure they are active and correct before submitting translation requests.
+
+If you don't provide an api key, the package will attempt to read it from the environment variables. The format for this is as follows:
+
+```python
+
+# This is a dictionary mapping the service names to their respective environment variables.
+environment_map = 
+{
+  # DeepL translation service
+  "deepl": "DEEPL_API_KEY",
+  
+  # Gemini translation service
+  "gemini": "GEMINI_API_KEY",
+  
+  # OpenAI translation service
+  "openai": "OPENAI_API_KEY",
+  
+  # Google Translate service
+  "google translate": "PATH_TO_GOOGLE_CREDENTIALS_JSON",
+  
+  # Anthropic translation service
+  "anthropic": "ANTHROPIC_API_KEY",
+}
+
+```
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

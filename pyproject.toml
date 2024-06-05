@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 dependencies = [
-    "google-generativeai==0.5.4",
+    "google-generativeai==0.6.0",
     "deepl==1.16.1",
     "openai==1.29.0",
     "backoff==2.2.1",
@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 name = "easytl"
-version = "v0.4.1"
+version = "v0.4.2"
 authors = [
   { name="Kaden Bilyeu (Bikatr7)", email="Bikatr7@proton.me"},
   { name="Alejandro Mata", email="alemalvarez@icloud.com"},

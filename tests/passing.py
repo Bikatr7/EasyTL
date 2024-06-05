@@ -26,8 +26,8 @@ def read_api_key(filename):
 
 def setup_preconditions():
 
-    ## default values, assuming github actions environment
-    gemini_time_delay = 30
+    ## default values, assuming github actions environment, because i ain't paying shit
+    gemini_time_delay = 65 
 
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
@@ -76,9 +76,10 @@ def setup_preconditions():
     assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
     #assert azure_region is not None, "AZURE_REGION environment variable must be set" 
     # we can set a default for the region
-    if azure_region is None:
+    if(azure_region is None):
         azure_region = "westus"
         print(f"Using default Azure region: {azure_region}")
+        
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
     ## set the credentials for the services
