@@ -240,53 +240,53 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gemini-pro"):
             print(f"Warning: gemini-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=8)
+            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=9)
         
         elif(model == "gemini-pro-vision"):
             print("Warning: gemini-pro-vision may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
-            return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
+            return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=9)
         
        ## elif(model == "gemini-ultra"):
     ##        return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gemini-1.0-pro"):
             print(f"Warning: gemini-1.0-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-            return _estimate_cost(text, model=model, price_case=8)
+            return _estimate_cost(text, model=model, price_case=9)
         
         elif(model == "gemini-1.0-pro-vision"):
             print("Warning: gemini-1.0-pro-vision may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
-            return _estimate_cost(text, model=model, price_case=8)
+            return _estimate_cost(text, model=model, price_case=9)
         
         elif(model == "gemini-1.0-pro-latest"):
             print(f"Warning: gemini-1.0-pro-latest may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=8)
+            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=9)
         
         elif(model == "gemini-1.0-pro-vision-latest"):
             print("Warning: gemini-1.0-pro-vision-latest may change over time. Estimating cost assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
-            return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=8)
+            return _estimate_cost(text, model="gemini-1.0-pro-vision-001", price_case=9)
         
         elif(model == "gemini-1.5-pro"):
-            return _estimate_cost(text, model=model, price_case=9)
+            return _estimate_cost(text, model=model, price_case=14)
         
         elif(model == "gemini-1.5-flash"):
-            return _estimate_cost(text, model=model, price_case=9)
+            return _estimate_cost(text, model=model, price_case=15)
 
         elif(model == "gemini-1.5-pro-latest"):
             print("Warning: gemini-1.5-pro-latest may change over time. Estimating cost assuming gemini-1.5-pro as it is the most recent version of gemini-1.5-pro.")
-            return _estimate_cost(text, model="gemini-1.5-pro", price_case=9)
+            return _estimate_cost(text, model="gemini-1.5-pro", price_case=14)
         
         elif(model == "gemini-1.5-flash-latest"):
             print("Warning: gemini-1.5-flash-latest may change over time. Estimating cost assuming gemini-1.5-flash as it is the most recent version of gemini-1.5-flash.")
-            return _estimate_cost(text, model="gemini-1.5-flash", price_case=9)
+            return _estimate_cost(text, model="gemini-1.5-flash", price_case=15)
         
   ##      elif(model == "gemini-1.0-ultra-latest"):
       ##      return _estimate_cost(text, model=model, price_case=8)
         
         elif(model == "gemini-1.0-pro-001"):
-            return _estimate_cost(text, model=model, price_case=8)
+            return _estimate_cost(text, model=model, price_case=9)
         
         elif(model == "gemini-1.0-pro-vision-001"):
-            return _estimate_cost(text, model=model, price_case=8)
+            return _estimate_cost(text, model=model, price_case=9)
         
         elif(model == "claude-3-opus-20240229"):
             return _estimate_cost(text, model=model, price_case=13)

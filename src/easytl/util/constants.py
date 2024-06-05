@@ -2,7 +2,7 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-05-19
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-06-04
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -103,20 +103,25 @@ MODEL_COSTS = {
     "gpt-4o-2024-05-13": {"price_case": 10, "_input_cost": 0.005, "_output_cost": 0.015},
     
     ## Grouping Gemini models together
-    "gemini-1.0-pro-001": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-vision-001": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-vision": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.0-pro-vision-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.5-pro-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+    "gemini-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gemini-pro-vision": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+
+    "gemini-1.0-pro-001": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gemini-1.0-pro-vision-001": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gemini-1.0-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gemini-1.0-pro-vision": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gemini-1.0-pro-latest": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+    "gemini-1.0-pro-vision-latest": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
+
+    "gemini-1.5-pro-latest": {"price_case": 14, "_input_cost": 0.0035, "_output_cost": 0.0105},
+
  ##   "gemini-1.0-ultra-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-pro-vision": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
  ##   "gemini-ultra": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0}
-    "gemini-1.5-pro": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.5-flash-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
-    "gemini-1.5-flash": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
+
+    "gemini-1.5-pro": {"price_case": 14, "_input_cost": 0.0035, "_output_cost": 0.0105},
+
+    "gemini-1.5-flash-latest": {"price_case": 15, "_input_cost": 0.00035, "_output_cost": 0.00105},
+    "gemini-1.5-flash": {"price_case": 15, "_input_cost": 0.00035, "_output_cost": 0.00105},
 
     ## grouping anthropic models together
     "claude-3-haiku-20240307": {"price_case": 11, "_input_cost": 0.00025, "_output_cost": 0.00125},
