@@ -56,6 +56,13 @@ class Message:
     
     def __repr__(self):
         return f"<Message role={self.role} content='{self.content}'>"
+    
+    def __add__(self, other:str):
+        if(isinstance(other, str)):
+            new_content = self._content + other
+            return self.__class__(new_content)
+        
+        return NotImplemented
 
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
