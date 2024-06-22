@@ -73,12 +73,14 @@ VALID_JSON_GEMINI_MODELS = [
 ALLOWED_ANTHROPIC_MODELS = [
     "claude-3-opus-20240229",
     "claude-3-sonnet-20240229",
+    "claude-3-5-sonnet-20240620",
     "claude-3-haiku-20240307"
 ]
 
 VALID_JSON_ANTHROPIC_MODELS = [
     "claude-3-opus-20240229",
     "claude-3-sonnet-20240229",
+    "claude-3-5-sonnet-20240620",
     "claude-3-haiku-20240307"
 ]
 
@@ -127,6 +129,7 @@ MODEL_COSTS = {
     ## grouping anthropic models together
     "claude-3-haiku-20240307": {"price_case": 11, "_input_cost": 0.00025, "_output_cost": 0.00125},
     "claude-3-sonnet-20240229": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
+    "claude-3-5-sonnet-20240620": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
     "claude-3-opus-20240229": {"price_case": 13, "_input_cost": 0.015, "_output_cost": 0.075}
 
 }

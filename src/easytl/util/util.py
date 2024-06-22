@@ -295,6 +295,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "claude-3-sonnet-20240229"):
             return _estimate_cost(text, model=model, price_case=12)
         
+        elif(model == "claude-3-5-sonnet-20240620"):
+            return _estimate_cost(text, model=model, price_case=12)
+        
         elif(model == "claude-3-haiku-20240307"):
             return _estimate_cost(text, model=model, price_case=11)
         
