@@ -10,6 +10,7 @@ from functools import wraps
 
 import datetime
 import os
+import logging
 
 ## custom modules
 from .classes import AnthropicTextBlock, AnthropicToolUseBlock
@@ -49,7 +50,7 @@ def _async_logging_decorator(func):
         cls = getattr(module, cls_name)
 
         if(not hasattr(cls, '_log_directory')):
-            raise ValueError(f"No log directory defined for class {cls_name}")
+            logging.warning(f"Class {cls_name} does not have a log directory set. Logging Directory will not function.")
 
         directory = getattr(cls, '_log_directory', None)
         if(directory is None):
@@ -112,8 +113,8 @@ def _sync_logging_decorator(func):
         cls = getattr(module, cls_name)
 
         if(not hasattr(cls, '_log_directory')):
-            raise ValueError(f"No log directory defined for class {cls_name}")
-
+            logging.warning(f"Class {cls_name} does not have a log directory set. Logging Directory will not function.")
+            
         directory = getattr(cls, '_log_directory', None)
         if(directory is None):
             return func(*args, **kwargs)
