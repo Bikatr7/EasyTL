@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 name = "easytl"
-version = "v0.4.5"
+version = "v0.4.6"
 authors = [
   { name="Kaden Bilyeu (Bikatr7)", email="Bikatr7@proton.me"},
   { name="Alejandro Mata", email="alemalvarez@icloud.com"},
