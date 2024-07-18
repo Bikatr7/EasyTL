@@ -3,7 +3,7 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-06-04
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-07-17
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -49,9 +49,6 @@ ALLOWED_GEMINI_MODELS = [
     "gemini-1.0-pro-001",
     "gemini-1.0-pro",
     "gemini-1.0-pro-latest",
-    "gemini-1.0-pro-vision-001",
-    "gemini-1.0-pro-vision",
-    "gemini-1.0-pro-vision-latest",
     "gemini-1.5-pro-latest",
     "gemini-1.5-pro",
     "gemini-1.5-flash-latest",
@@ -112,9 +109,6 @@ MODEL_COSTS = {
     "gemini-1.0-pro-001": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
     "gemini-1.0-pro-vision-001": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
     "gemini-1.0-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
-    "gemini-1.0-pro-vision": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
-    "gemini-1.0-pro-latest": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
-    "gemini-1.0-pro-vision-latest": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
 
     "gemini-1.5-pro-latest": {"price_case": 14, "_input_cost": 0.0035, "_output_cost": 0.0105},
 
@@ -153,7 +147,6 @@ MODEL_MAX_TOKENS = {
     "gemini-1.5-pro": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
     "gemini-1.5-flash": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
     "gemini-1.0-pro-001": {"max_input_tokens": 12288, "max_output_tokens": 4096},
-    "gemini-1.0-pro-vision-001": {"max_input_tokens": 12288, "max_output_tokens": 4096},
 
     ## anthropic models
     "claude-3-opus-20240229": {"max_input_tokens": 200000, "max_output_tokens": 4096},

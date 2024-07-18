@@ -166,8 +166,7 @@ Timestamp: {timestamp}
 ## Since we're dealing with objects here...
 log_attributes = {
     'GeminiService': [('text', None)],
-    'DeepLService': [
-('text', None)],
+    'DeepLService': [('text', None)],
     'OpenAIService': [[('choices', None), ('0', None), ('message', None), ('content', None)],
                       [('choices', None), ('0', None), ('message', None), ('content', None)],
                       ],

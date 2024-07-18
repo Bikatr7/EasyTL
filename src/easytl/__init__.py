@@ -13,7 +13,7 @@ from .classes import Language, SplitSentences, Formality, GlossaryInfo, TextResu
 from .classes import Message, SystemTranslationMessage, ModelTranslationMessage
 from .classes import ChatCompletion
 from .classes import GenerateContentResponse, AsyncGenerateContentResponse, GenerationConfig
-from .classes import AnthropicMessage, AnthropicTextBlock, AnthropicToolsBetaMessage, AnthropicToolUseBlock
+from .classes import AnthropicMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .classes import NOT_GIVEN, NotGiven
 
 from .util.constants import MODEL_COSTS, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS, ALLOWED_ANTHROPIC_MODELS, VALID_JSON_OPENAI_MODELS, VALID_JSON_GEMINI_MODELS, VALID_JSON_ANTHROPIC_MODELS, MODEL_MAX_TOKENS
@@ -46,7 +46,7 @@ __all__ = [
     "Message", "SystemTranslationMessage", "ModelTranslationMessage",
     "ChatCompletion",
     "GenerateContentResponse", "AsyncGenerateContentResponse", "GenerationConfig",
-    "AnthropicMessage","AnthropicTextBlock", "AnthropicToolsBetaMessage", "AnthropicToolUseBlock",
+    "AnthropicMessage","AnthropicTextBlock", "AnthropicToolUseBlock",
     "NOT_GIVEN","NotGiven",
     "MODEL_COSTS", "ALLOWED_GEMINI_MODELS", "ALLOWED_OPENAI_MODELS", "ALLOWED_ANTHROPIC_MODELS", "VALID_JSON_OPENAI_MODELS", "VALID_JSON_GEMINI_MODELS", "VALID_JSON_ANTHROPIC_MODELS", "MODEL_MAX_TOKENS",
     "DeepLException",

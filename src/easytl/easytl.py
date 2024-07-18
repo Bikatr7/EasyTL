@@ -19,7 +19,7 @@ from .services.googletl_service import GoogleTLService
 from .services.anthropic_service import AnthropicService
 from .services.azure_service import AzureService
 
-from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicToolsBetaMessage, AnthropicTextBlock, AnthropicToolUseBlock
+from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, InvalidAPIKeyException
 
 from .util.util import _is_iterable_of_strings
@@ -990,8 +990,7 @@ class EasyTL:
                             top_k:int | NotGiven = NOT_GIVEN,
                             stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
                             max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, 
-                                                                                          AnthropicMessage, typing.List[AnthropicMessage],
-                                                                                          AnthropicToolsBetaMessage, typing.List[AnthropicToolsBetaMessage]]:
+                                                                                          AnthropicMessage, typing.List[AnthropicMessage]]:
         
         """
 
@@ -1005,7 +1004,7 @@ class EasyTL:
 
         Due to how Anthropic's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API. 
 
-        Anthropic's JSON response is quite unsophisticated and also in Beta, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
+        Anthropic's JSON response is quite unsophisticated, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
 
         Parameters:
         text (string or iterable) : The text to translate.
@@ -1079,8 +1078,8 @@ class EasyTL:
             if(response_type in ["raw", "raw_json"]):
                 translation = _result
 
-            ## response structure is different for beta
-            elif(isinstance(_result, AnthropicToolsBetaMessage)):
+            ## response structure is inconsistent, so we have to check for both types of responses
+            else:
                 content = _result.content
 
                 if(isinstance(content[0], AnthropicTextBlock)):
@@ -1088,9 +1087,6 @@ class EasyTL:
 
                 elif(isinstance(content[0], AnthropicToolUseBlock)):
                     translation = content[0].input
-
-            elif(isinstance(_result, AnthropicMessage)):
-                translation = _result.content[0].text
                             
             _translations.append(translation)
 
@@ -1117,9 +1113,7 @@ class EasyTL:
                                         top_k:int | NotGiven = NOT_GIVEN,
                                         stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
                                         max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, 
-                                                                                                    AnthropicMessage, typing.List[AnthropicMessage],
-                                                                                                    AnthropicToolsBetaMessage, typing.List[AnthropicToolsBetaMessage]]:
-        
+                                                                                                    AnthropicMessage, typing.List[AnthropicMessage]]:
         """
 
         Asynchronous version of anthropic_translate().
@@ -1135,7 +1129,7 @@ class EasyTL:
 
         Due to how Anthropic's API works, NOT_GIVEN is treated differently than None. If a parameter is set to NOT_GIVEN, it is not passed to the API.
 
-        Anthropic's JSON response is quite unsophisticated and also in Beta, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
+        Anthropic's JSON response is quite unsophisticated, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
 
         Parameters:
         text (string | ModelTranslationMessage or iterable) : The text to translate.
@@ -1207,7 +1201,7 @@ class EasyTL:
 
         _results = await asyncio.gather(*_translations_tasks)
 
-        _results:typing.List[AnthropicMessage | AnthropicToolsBetaMessage] = _results
+        _results:typing.List[AnthropicMessage] = _results
 
         assert all([hasattr(_r, "content") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
@@ -1215,12 +1209,9 @@ class EasyTL:
             translations = _results
 
         ## response structure is different for beta
-        elif(isinstance(_results[0], AnthropicToolsBetaMessage)):
+        else:
             translations = [result.content[0].input if isinstance(result.content[0], AnthropicToolUseBlock) else result.content[0].text for result in _results]
         
-        elif(isinstance(_results[0], AnthropicMessage)):
-            translations = [result.content[0].text for result in _results if isinstance(result.content[0], AnthropicTextBlock)]
-                
         result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
 
         return result # type: ignore
