@@ -28,6 +28,10 @@ We've compiled a repository of examples and use cases for EasyTL at this [GitHub
 > [!TIP]
 > You can find the full documentation [here](https://easytl.readthedocs.io/en/latest/index.html)! (work in progress)
 
+EasyTL tends to update it's LLM internal dependencies at least once a month, this will result in at least one minor version update per month. This is to ensure that the package is up to date with the latest features and bug fixes from the LLM services.
+
+Sometimes this will occur faster, if a critical bug is found or a new feature is added that is important to the package.
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 ## **Quick Start**<a name="quick-start"></a>
 
