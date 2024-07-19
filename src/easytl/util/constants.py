@@ -3,7 +3,7 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-07-17
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-07-19
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -27,7 +27,9 @@ ALLOWED_OPENAI_MODELS  = [
     "gpt-4-vision-preview",
     "gpt-4-1106-vision-preview",
     "gpt-4o",
-    "gpt-4o-2024-05-13"
+    "gpt-4o-2024-05-13",
+    "gpt-4o-mini",
+    "gpt-4o-mini-2024-07-18"
 ]
 
 VALID_JSON_OPENAI_MODELS = [
@@ -41,7 +43,9 @@ VALID_JSON_OPENAI_MODELS = [
     "gpt-4-vision-preview",
     "gpt-4-1106-vision-preview",
     "gpt-4o-2024-05-13",
-    "gpt-4o"    
+    "gpt-4o",
+    "gpt-4o-mini",
+    "gpt-4o-mini-2024-07-18"
 ]
 
 ## https://ai.google.dev/models/gemini
@@ -101,6 +105,7 @@ MODEL_COSTS = {
 
     ## Grouping GPT-4o models together
     "gpt-4o-2024-05-13": {"price_case": 10, "_input_cost": 0.005, "_output_cost": 0.015},
+    "gpt-4o-mini-2024-07-18": {"price_case": 16, "_input_cost": 0.000150, "_output_cost": 0.000600},
     
     ## Grouping Gemini models together
     "gemini-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
@@ -131,6 +136,7 @@ MODEL_COSTS = {
 MODEL_MAX_TOKENS = {
 
     ## openai models
+    "gpt-4o-mini-2024-07-18": {"max_input_tokens": 128000, "max_output_tokens": 16000},
     "gpt-4o-2024-05-13": {"max_input_tokens": 128000, "max_output_tokens": 4096},
     "gpt-4-turbo-2024-04-09": {"max_input_tokens": 128000, "max_output_tokens": 4096},
     "gpt-4-0125-preview": {"max_input_tokens": 128000, "max_output_tokens": 4096},

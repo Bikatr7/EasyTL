@@ -190,6 +190,10 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             print("Warning: gpt-4o may change over time. Estimating cost assuming gpt-4o-2024-05-13 as it is the most recent version of gpt-4o.")
             return _estimate_cost(text, model="gpt-4o-2024-05-13")
         
+        elif(model == "gpt-4o-mini"):
+            print("Warning: gpt-4o-mini may change over time. Estimating cost assuming gpt-4o-mini-2024-07-18 as it is the most recent version of gpt-4o-mini.")
+            return _estimate_cost(text, model="gpt-4o-mini-2024-07-18")
+        
         elif(model == "gpt-3.5-turbo-0613"):
             print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-0125.")
             return _estimate_cost(text, model=model, price_case=1)
@@ -220,6 +224,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gpt-4-turbo-2024-04-09"):
             return _estimate_cost(text, model=model, price_case=8)
+        
+        elif(model == "gpt-4o-mini-2024-07-18"):
+            return _estimate_cost(text, model=model, price_case=16)
         
         elif(model == "gpt-4-0314"):
             print("Warning: gpt-4-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
@@ -355,7 +362,8 @@ def _update_model_name(model: str) -> str:
         "gpt-4-turbo": "gpt-4-turbo-2024-04-09",
         "gpt-4-turbo-preview": "gpt-4-0125-preview",
         "gpt-4-vision-preview": "gpt-4-1106-vision-preview",
-        "gpt-4o": "gpt-4o-2024-05-13"
+        "gpt-4o": "gpt-4o-2024-05-13",
+        "gpt-4o-mini":"gpt-4o-mini-2024-07-18"
     }
 
     if(model in model_updates):
