@@ -11,6 +11,7 @@ import asyncio
 from anthropic import Anthropic, AsyncAnthropic
 
 ## custom modules
+from ..ld_helper import LDHelper
 from ..exceptions import EasyTLException
 from ..classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage
 from ..decorators import _sync_logging_decorator, _async_logging_decorator
@@ -122,6 +123,9 @@ class AnthropicService:
             AnthropicService._decorator_to_use = decorator
 
             AnthropicService._log_directory = logging_directory
+            
+            ## For elucidate
+            LDHelper.set_logging_directory_attributes(logging_directory, "AnthropicService")
 
             AnthropicService._rate_limit_delay = rate_limit_delay
 

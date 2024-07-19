@@ -11,6 +11,7 @@ import asyncio
 from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
+from ..ld_helper import LDHelper
 from ..classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion, NOT_GIVEN, NotGiven
 from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..exceptions import EasyTLException
@@ -108,6 +109,9 @@ class OpenAIService:
             OpenAIService._decorator_to_use = decorator
 
             OpenAIService._log_directory = logging_directory
+
+            ## For Elucidate
+            LDHelper.set_logging_directory_attributes(logging_directory, "OpenAIService")
 
             OpenAIService._rate_limit_delay = rate_limit_delay
 

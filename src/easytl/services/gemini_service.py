@@ -13,6 +13,7 @@ import google.generativeai as genai
 from ..util.util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings
 from ..util.constants import VALID_JSON_GEMINI_MODELS as VALID_SYSTEM_MESSAGE_MODELS, VALID_JSON_GEMINI_MODELS
 
+from ..ld_helper import LDHelper
 from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..classes import GenerationConfig, GenerateContentResponse, AsyncGenerateContentResponse
 from ..exceptions import EasyTLException, InvalidTextInputException
@@ -127,6 +128,9 @@ class GeminiService:
         GeminiService._decorator_to_use = decorator
 
         GeminiService._log_directory = logging_directory
+
+        ## For Elucidate
+        LDHelper.set_logging_directory_attributes(logging_directory, "GeminiService")
 
         GeminiService._rate_limit_delay = rate_limit_delay
 
