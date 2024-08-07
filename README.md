@@ -103,7 +103,7 @@ setuptools_scm>=6.0
 tomli
 google-generativeai==0.7.2
 deepl==1.16.1
-openai==1.36.0
+openai==1.40.0
 backoff==2.2.1
 tiktoken==0.7.0
 google-cloud-translate==3.15.3

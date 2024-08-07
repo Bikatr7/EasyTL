@@ -103,7 +103,7 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
         }
 
         _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "response_schema", "semaphore", "translation_delay"]
-        _custom_validation_params = ["openai_stop"]
+        _custom_validation_params = ["openai_stop", "openai_response_schema"]
 
         for _key in _settings.keys():
             param_name = _key.replace("openai_", "")

@@ -187,8 +187,8 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             return _estimate_cost(text, model="gpt-4-1106-vision-preview")
         
         elif(model == "gpt-4o"):
-            print("Warning: gpt-4o may change over time. Estimating cost assuming gpt-4o-2024-05-13 as it is the most recent version of gpt-4o.")
-            return _estimate_cost(text, model="gpt-4o-2024-05-13")
+            print("Warning: gpt-4o may change over time. Estimating cost assuming gpt-4o-2024-08-06 as it is the most recent version of gpt-4o.")
+            return _estimate_cost(text, model="gpt-4o-2024-08-06")
         
         elif(model == "gpt-4o-mini"):
             print("Warning: gpt-4o-mini may change over time. Estimating cost assuming gpt-4o-mini-2024-07-18 as it is the most recent version of gpt-4o-mini.")
@@ -244,6 +244,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gpt-4o-2024-05-13"):
             return _estimate_cost(text, model=model, price_case=10)
+        
+        elif(model == "gpt-4o-2024-08-06"):
+            return _estimate_cost(text, model=model, price_case=17)
         
         elif(model == "gemini-pro"):
             print(f"Warning: gemini-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
@@ -362,7 +365,7 @@ def _update_model_name(model: str) -> str:
         "gpt-4-turbo": "gpt-4-turbo-2024-04-09",
         "gpt-4-turbo-preview": "gpt-4-0125-preview",
         "gpt-4-vision-preview": "gpt-4-1106-vision-preview",
-        "gpt-4o": "gpt-4o-2024-05-13",
+        "gpt-4o":"gpt-4o-2024-08-06",
         "gpt-4o-mini":"gpt-4o-mini-2024-07-18"
     }
 

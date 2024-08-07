@@ -17,7 +17,7 @@ from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..exceptions import EasyTLException
 
 from ..util.util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
-from ..util.constants import VALID_JSON_OPENAI_MODELS
+from ..util.constants import VALID_JSON_OPENAI_MODELS, VALID_STRUCTURED_OUTPUT_OPENAI_MODELS
 
 
 class OpenAIService:
@@ -51,6 +51,7 @@ class OpenAIService:
     _log_directory:str | None = None
 
     _json_mode:bool = False
+    _response_schema:typing.Mapping[str, typing.Any] | None = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,7 +87,8 @@ class OpenAIService:
                         logging_directory:str | None=None,
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
-                        json_mode:bool=False
+                        json_mode:bool=False,
+                        response_schema:typing.Mapping[str, typing.Any] | None = None
                         ) -> None:
     
             """
@@ -116,6 +118,7 @@ class OpenAIService:
             OpenAIService._rate_limit_delay = rate_limit_delay
 
             OpenAIService._json_mode = json_mode
+            OpenAIService._response_schema = response_schema
 
             ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 2
             if(OpenAIService._decorator_to_use is not None):
@@ -131,6 +134,13 @@ class OpenAIService:
 
             if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
                 OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English. Make sure to return the translated text in JSON format.")
+
+                if(OpenAIService._response_schema and OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS):
+                    OpenAIService._default_translation_instructions = SystemTranslationMessage("Please translate the following text into English. Make sure to return the translated text in JSON format according to the schema provided.")
+
+                elif(OpenAIService._response_schema):
+                    model_string = ", ".join(VALID_STRUCTURED_OUTPUT_OPENAI_MODELS)
+                    raise EasyTLException("Structured output mode for OpenAI is only available for the following models: " + model_string)
 
             elif(OpenAIService._json_mode):
                 model_string = ", ".join(VALID_JSON_OPENAI_MODELS)
@@ -259,11 +269,16 @@ class OpenAIService:
 
         """
 
-        response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
+        if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
+            response_format = { "type": "json_object" }
+        elif(OpenAIService._json_mode and OpenAIService._response_schema and OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS):
+            response_format = { "type": "json_schema", "json_schema": OpenAIService._response_schema }
+        else:
+            response_format = { "type": "text" }
 
         attributes = ["temperature", "logit_bias", "top_p", "n", "stream", "stop", "presence_penalty", "frequency_penalty", "max_tokens"]
         message_args = {
-            "response_format": { "type": response_format },
+            "response_format": response_format,
             "model": OpenAIService._model,
             "messages": [instructions.to_dict(), prompt.to_dict()],
             ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
@@ -294,14 +309,19 @@ class OpenAIService:
 
         async with OpenAIService._semaphore:
 
-            response_format = "json_object" if OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS else "text"
+            if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
+                response_format = { "type": "json_object" }
+            elif(OpenAIService._json_mode and OpenAIService._response_schema and OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS):
+                response_format = { "type": "json_schema", "json_schema": OpenAIService._response_schema }
+            else:
+                response_format = { "type": "text" }
 
             if(OpenAIService._rate_limit_delay is not None):
                 await asyncio.sleep(OpenAIService._rate_limit_delay)
 
             attributes = ["temperature", "logit_bias", "top_p", "n", "stream", "stop", "presence_penalty", "frequency_penalty", "max_tokens"]
             message_args = {
-                "response_format": { "type": response_format },
+                "response_format": response_format,
                 "model": OpenAIService._model,
                 "messages": [instructions.to_dict(), prompt.to_dict()],
                 ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN

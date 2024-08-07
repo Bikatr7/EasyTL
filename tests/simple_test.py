@@ -3,23 +3,26 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-from easytl import EasyTL
-
+## built-in libraries
 import asyncio
 import os
 import logging
 
+## third-party libraries
 import backoff
+
+## custom modules
+from easytl import EasyTL
 
 from easytl.exceptions import DeepLException, GoogleAPIError, OpenAIError, AnthropicAPIError
 
 ##-------------------start-of-read_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def read_api_key(filename):
+
     try:
         with open(filename, 'r') as file:
             return file.read().strip()
-        
     except:
         pass
 
@@ -27,8 +30,8 @@ def read_api_key(filename):
 
 def setup_preconditions():
 
-    ## default values, assuming github actions environment
-    gemini_time_delay = 30
+    ## default values, assuming github actions environment, because i ain't paying shit
+    gemini_time_delay = 65 
 
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
@@ -75,7 +78,12 @@ def setup_preconditions():
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
     assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
-    assert azure_region is not None, "AZURE_REGION environment variable must be set"
+    #assert azure_region is not None, "AZURE_REGION environment variable must be set" 
+    # we can set a default for the region
+    if(azure_region is None):
+        azure_region = "westus"
+        print(f"Using default Azure region: {azure_region}")
+        
     assert google_tl_key_path is not None, "GOOGLE_TRANSLATE_SERVICE_KEY_VALUE environment variable must be set"
 
     ## set the credentials for the services
@@ -86,8 +94,8 @@ def setup_preconditions():
     EasyTL.set_credentials("google translate", google_tl_key_path)
     EasyTL.set_credentials("azure", azure_api_key)
 
-    ## schema for gemini & anthropic
-    schema = {
+    ## non_openai_schema for gemini & anthropic
+    non_openai_schema = {
         "type": "object",
         "properties": {
             "input": {
@@ -102,13 +110,32 @@ def setup_preconditions():
         "required": ["input", "output"]
     }
 
-    return gemini_time_delay, logging_directory, schema, azure_region
+    openai_schema = {
+        "name": "convert_to_json",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "description": "The text you were given to translate"
+                },
+                "output": {
+                    "type": "string",
+                    "description": "The translated text"
+                }
+            },
+            "required": ["input", "output"]
+        }
+    }
+
+    return gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async def main():
 
-    gemini_time_delay, logging_directory, schema, azure_region = setup_preconditions()
+    gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region = setup_preconditions()
+
 
     decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError, AnthropicAPIError), logger=logging.getLogger())
 
@@ -131,7 +158,8 @@ async def main():
 
     ## print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-mini", translation_instructions="Translate this to German in json format.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Make sure to return your response in JSON format following the given schema.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema, response_type="json"))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Make sure to return your response in JSON format following the given schema.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema, response_type="json"))
 
   ##  print(EasyTL.deepl_translate("Hello, world!", target_lang="DE", response_type="text", logging_directory=logging_directory,decorator=decorator))
 
@@ -140,8 +168,6 @@ async def main():
   ##  print(EasyTL.gemini_translate("Hello, world!", model="gemini-pro", response_type="text", logging_directory=logging_directory,decorator=decorator))
 
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 if(__name__ == "__main__"):
     ## setup logging

@@ -95,8 +95,8 @@ def setup_preconditions():
     EasyTL.set_credentials("google translate", google_tl_key_path)
     EasyTL.set_credentials("azure", azure_api_key)
 
-    ## schema for gemini & anthropic
-    schema = {
+    ## non_openai_schema for gemini & anthropic
+    non_openai_schema = {
         "type": "object",
         "properties": {
             "input": {
@@ -111,13 +111,31 @@ def setup_preconditions():
         "required": ["input", "output"]
     }
 
-    return gemini_time_delay, logging_directory, schema, azure_region
+    openai_schema = {
+        "name": "convert_to_json",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "description": "The text you were given to translate"
+                },
+                "output": {
+                    "type": "string",
+                    "description": "The translated text"
+                }
+            },
+            "required": ["input", "output"]
+        }
+    }
+
+    return gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async def main():
 
-    gemini_time_delay, logging_directory, schema, azure_region = setup_preconditions()
+    gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region = setup_preconditions()
 
     ## probably self explanatory from this point on
 
@@ -191,7 +209,7 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON parseable string must have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON parseable string must have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=non_openai_schema))
     
     time.sleep(gemini_time_delay)
     
@@ -207,13 +225,13 @@ async def main():
 
     print("-----------------------------------------------Text response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-3.5-turbo", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema))
 
     print("-----------------------------------------------Raw response-----------------------------------------------")
 
-    results = EasyTL.openai_translate(text=["Hello, world!", "Goodbye, world!"], model="gpt-3.5-turbo", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
-    async_results = await EasyTL.openai_translate_async(text=["Hello, world!", "Goodbye, world!"], model="gpt-3.5-turbo", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+    results = EasyTL.openai_translate(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+    async_results = await EasyTL.openai_translate_async(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
 
     for result in results: # type: ignore
         print(result.choices[0].message.content) # type: ignore
@@ -223,12 +241,12 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-3.5-turbo-0125", translation_instructions="Translate this to German. Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
-    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="openai", model="gpt-3.5-turbo", translation_instructions="Translate this to German.")
+    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="openai", model="gpt-4o", translation_instructions="Translate this to German.")
 
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
 
@@ -252,8 +270,8 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
-    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
+    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=non_openai_schema))
+    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=non_openai_schema))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
