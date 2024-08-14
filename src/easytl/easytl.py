@@ -9,7 +9,7 @@ import asyncio
 import os
 
 ## third-party libraries
-from .classes import Language, SplitSentences, Formality, GlossaryInfo, NOT_GIVEN, NotGiven
+from pydantic import BaseModel
 
 ## custom modules
 from .services.deepl_service import DeepLService
@@ -19,7 +19,8 @@ from .services.googletl_service import GoogleTLService
 from .services.anthropic_service import AnthropicService
 from .services.azure_service import AzureService
 
-from. classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicTextBlock, AnthropicToolUseBlock
+from .classes import Language, SplitSentences, Formality, GlossaryInfo, NOT_GIVEN, NotGiven
+from .classes import ModelTranslationMessage, SystemTranslationMessage, TextResult, GenerateContentResponse, AsyncGenerateContentResponse, ChatCompletion, AnthropicMessage, AnthropicTextBlock, AnthropicToolUseBlock
 from .exceptions import InvalidAPITypeException, InvalidResponseFormatException, InvalidTextInputException, EasyTLException, InvalidAPIKeyException
 
 from .util.util import _is_iterable_of_strings
@@ -755,7 +756,7 @@ class EasyTL:
                         decorator:typing.Callable | None = None,
                         logging_directory:str | None = None,
                         response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
-                        response_schema:str | typing.Mapping[str, typing.Any] | None = None,
+                        response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None,
                         translation_delay:float | None = None,
                         translation_instructions:str | SystemTranslationMessage | None = None,
                         model:str="gpt-4",
@@ -779,7 +780,9 @@ class EasyTL:
         
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        EasyTL follows the traditional schema approach for OpenAI json responses. You'll need to give that, see:
+        For Structured Responses, you can pass in a pydantic base model for the API to follow when returning the response. 
+        
+        EasyTL follows the traditional schema approach as well for OpenAI Structured Responses.
         https://platform.openai.com/docs/guides/structured-outputs/how-to-use?context=without_parse&lang=python
 
         It'll look more or less like:
@@ -808,7 +811,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
-        response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
+        response_schema (mapping or BaseModel or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
         model (string) : The model to use. (E.g. 'gpt-4', 'gpt-3.5-turbo-0125', 'gpt-4o', etc.)
@@ -834,7 +837,8 @@ class EasyTL:
 
         _validate_text_length(text, model, service="openai")
 
-        response_schema = _validate_response_schema(response_schema)
+        if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
+            response_schema = _validate_response_schema(response_schema)
 
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")
@@ -893,7 +897,7 @@ class EasyTL:
                                     decorator:typing.Callable | None = None,
                                     logging_directory:str | None = None,
                                     response_type:typing.Literal["text", "raw", "json", "raw_json"] | None = "text",
-                                    response_schema:str | typing.Mapping[str, typing.Any] | None = None,
+                                    response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None,
                                     semaphore:int | None = 5,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
@@ -921,7 +925,9 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        EasyTL follows the traditional schema approach for OpenAI json responses. You'll need to give that, see:
+        For Structured Responses, you can pass in a pydantic base model for the API to follow when returning the response. 
+        
+        EasyTL follows the traditional schema approach as well for OpenAI Structured Responses.
         https://platform.openai.com/docs/guides/structured-outputs/how-to-use?context=without_parse&lang=python
 
         It'll look more or less like:
@@ -950,7 +956,7 @@ class EasyTL:
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
         logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
-        response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
+        response_schema (mapping or BaseModel or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         translation_instructions (string or SystemTranslationMessage or None) : The translation instructions to use. If None, the default system message is used. If you plan on using the json response type, you must specify that you want a json output and it's format in the instructions. The default system message will ask for a generic json if the response type is json.
@@ -977,7 +983,8 @@ class EasyTL:
 
         _validate_text_length(text, model, service="openai")
 
-        response_schema = _validate_response_schema(response_schema)
+        if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
+            response_schema = _validate_response_schema(response_schema)
 
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")

@@ -8,6 +8,7 @@ import typing
 import asyncio
 
 ## third-party libraries
+from pydantic import BaseModel
 from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
@@ -51,7 +52,7 @@ class OpenAIService:
     _log_directory:str | None = None
 
     _json_mode:bool = False
-    _response_schema:typing.Mapping[str, typing.Any] | None = None
+    _response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +89,7 @@ class OpenAIService:
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
                         json_mode:bool=False,
-                        response_schema:typing.Mapping[str, typing.Any] | None = None
+                        response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None
                         ) -> None:
     
             """
@@ -269,10 +270,33 @@ class OpenAIService:
 
         """
 
-        if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
+        calling_function = OpenAIService._sync_client.chat.completions.create
+
+        ## json mode; no schema
+        if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS and not OpenAIService._response_schema):
             response_format = { "type": "json_object" }
-        elif(OpenAIService._json_mode and OpenAIService._response_schema and OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS):
+
+        ## Json mode; manual schema
+        elif (OpenAIService._json_mode and 
+              OpenAIService._response_schema and 
+              OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS and 
+              isinstance(OpenAIService._response_schema, type) and 
+              not issubclass(OpenAIService._response_schema, BaseModel)):
+                        
             response_format = { "type": "json_schema", "json_schema": OpenAIService._response_schema }
+        
+        ## Json mode; schema from BaseModel
+        elif (OpenAIService._json_mode and 
+              OpenAIService._response_schema and 
+              OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS and 
+              isinstance(OpenAIService._response_schema, type) and 
+              issubclass(OpenAIService._response_schema, BaseModel)):
+            
+            response_format = OpenAIService._response_schema
+
+            calling_function = OpenAIService._sync_client.beta.chat.completions.parse
+
+        ## Non-Json mode
         else:
             response_format = { "type": "text" }
 
@@ -285,7 +309,11 @@ class OpenAIService:
             **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
         }
 
-        response = OpenAIService._sync_client.chat.completions.create(**message_args)
+        ## remove stream from the message args since it's not needed for the parse function (or at all really)
+        if(calling_function == OpenAIService._sync_client.beta.chat.completions.parse):
+            message_args.pop("stream", None)
+
+        response = calling_function(**message_args)
         
         return response
     
@@ -307,30 +335,55 @@ class OpenAIService:
 
         """
 
-        async with OpenAIService._semaphore:
+        calling_function = OpenAIService._async_client.chat.completions.create
 
-            if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS):
-                response_format = { "type": "json_object" }
-            elif(OpenAIService._json_mode and OpenAIService._response_schema and OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS):
-                response_format = { "type": "json_schema", "json_schema": OpenAIService._response_schema }
-            else:
-                response_format = { "type": "text" }
+        ## json mode; no schema
+        if(OpenAIService._json_mode and OpenAIService._model in VALID_JSON_OPENAI_MODELS and not OpenAIService._response_schema):
+            response_format = { "type": "json_object" }
+        
+        ## Json mode; manual schema
+        elif(OpenAIService._json_mode and 
+              OpenAIService._response_schema and 
+              OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS and 
+              not isinstance(OpenAIService._response_schema, type)):
 
-            if(OpenAIService._rate_limit_delay is not None):
-                await asyncio.sleep(OpenAIService._rate_limit_delay)
+            response_format = { "type": "json_schema", "json_schema": OpenAIService._response_schema }
+        
+        ## Json mode; schema from BaseModel
+        elif(OpenAIService._json_mode and 
+              OpenAIService._response_schema and 
+              OpenAIService._model in VALID_STRUCTURED_OUTPUT_OPENAI_MODELS and 
+              isinstance(OpenAIService._response_schema, type) and 
+              issubclass(OpenAIService._response_schema, BaseModel)):
 
-            attributes = ["temperature", "logit_bias", "top_p", "n", "stream", "stop", "presence_penalty", "frequency_penalty", "max_tokens"]
-            message_args = {
-                "response_format": response_format,
-                "model": OpenAIService._model,
-                "messages": [instructions.to_dict(), prompt.to_dict()],
-                ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
-                **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
-            }
+            response_format = OpenAIService._response_schema
 
-            response = await OpenAIService._async_client.chat.completions.create(**message_args)
-            
-            return response
+            calling_function = OpenAIService._async_client.beta.chat.completions.parse
+
+        ## Non-Json mode
+        else:
+            response_format = { "type": "text" }
+
+
+        if(OpenAIService._rate_limit_delay is not None):
+            await asyncio.sleep(OpenAIService._rate_limit_delay)
+
+        attributes = ["temperature", "logit_bias", "top_p", "n", "stream", "stop", "presence_penalty", "frequency_penalty", "max_tokens"]
+        message_args = {
+            "response_format": response_format,
+            "model": OpenAIService._model,
+            "messages": [instructions.to_dict(), prompt.to_dict()],
+            ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
+            **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
+        }
+
+        ## remove stream from the message args since it's not needed for the parse function (or at all really)
+        if(calling_function == OpenAIService._async_client.beta.chat.completions.parse):
+            message_args.pop("stream")
+
+        response = await calling_function(**message_args)
+        
+        return response
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

@@ -52,7 +52,6 @@ VALID_JSON_OPENAI_MODELS = [
 
 VALID_STRUCTURED_OUTPUT_OPENAI_MODELS = [
     "gpt-4o-2024-08-06",
-    "gpt-4o",
     "gpt-4o-mini",
     "gpt-4o-mini-2024-07-18"
 

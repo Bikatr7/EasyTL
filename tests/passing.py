@@ -10,6 +10,8 @@ import time
 import logging
 
 ## third-party libraries
+from pydantic import BaseModel
+
 import backoff
 
 ## custom modules
@@ -132,6 +134,9 @@ def setup_preconditions():
     return gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+class ConvertToJson(BaseModel):
+    input:str
+    output:str
 
 async def main():
 
@@ -241,8 +246,8 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=ConvertToJson))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=openai_schema))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 

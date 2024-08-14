@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 dependencies = [
     "google-generativeai==0.7.2",
     "deepl==1.16.1",
-    "openai==1.40.0",
+    "openai==1.40.6",
     "backoff==2.2.1",
     "tiktoken==0.7.0",
     "google-cloud-translate==3.15.3",
@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 name = "easytl"
-version = "v0.4.8"
+version = "v0.4.9"
 authors = [
   { name="Kaden Bilyeu (Bikatr7)", email="Bikatr7@proton.me"},
   { name="Alejandro Mata", email="alemalvarez@icloud.com"},

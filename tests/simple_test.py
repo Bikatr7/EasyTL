@@ -9,6 +9,8 @@ import os
 import logging
 
 ## third-party libraries
+from pydantic import BaseModel
+
 import backoff
 
 ## custom modules
@@ -132,6 +134,10 @@ def setup_preconditions():
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+class ConvertToJson(BaseModel):
+    input:str
+    output:str
+
 async def main():
 
     gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region = setup_preconditions()
@@ -158,9 +164,8 @@ async def main():
 
     ## print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Make sure to return your response in JSON format following the given schema.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema, response_type="json"))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German. Make sure to return your response in JSON format following the given schema.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema, response_type="json"))
-
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=ConvertToJson))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=openai_schema))
   ##  print(EasyTL.deepl_translate("Hello, world!", target_lang="DE", response_type="text", logging_directory=logging_directory,decorator=decorator))
 
  ##   print(EasyTL.googletl_translate("Hello, world!", target_lang="de", response_type="text", logging_directory=logging_directory,decorator=decorator))
