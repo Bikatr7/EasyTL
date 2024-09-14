@@ -101,13 +101,13 @@ setuptools>=61.0
 wheel
 setuptools_scm>=6.0
 tomli
-google-generativeai==0.7.2
-deepl==1.16.1
-openai==1.40.0
+google-generativeai==0.8.1
+deepl>=1.16.1
+openai==1.45.0
 backoff==2.2.1
 tiktoken==0.7.0
 google-cloud-translate==3.15.3
-anthropic==0.31.2
+anthropic==0.34.2
 requests>=2.31.0
 ```
 ---------------------------------------------------------------------------------------------------------------------------------------------------

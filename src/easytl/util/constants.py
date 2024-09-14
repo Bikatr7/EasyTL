@@ -30,7 +30,11 @@ ALLOWED_OPENAI_MODELS  = [
     "gpt-4o-2024-05-13",
     "gpt-4o-2024-08-06",
     "gpt-4o-mini",
-    "gpt-4o-mini-2024-07-18"
+    "gpt-4o-mini-2024-07-18",
+    "o1-preview",
+    "o1-preview-2024-09-12",
+    "o1-mini",
+    "o1-mini-2024-09-12"
 ]
 
 VALID_JSON_OPENAI_MODELS = [
@@ -116,6 +120,10 @@ MODEL_COSTS = {
     "gpt-4o-2024-05-13": {"price_case": 10, "_input_cost": 0.005, "_output_cost": 0.015},
     "gpt-4o-2024-08-06": {"price_case": 17, "_input_cost": 0.0025, "_output_cost": 0.010},
     "gpt-4o-mini-2024-07-18": {"price_case": 16, "_input_cost": 0.000150, "_output_cost": 0.000600},
+
+    ## Grouping o1 models together
+    "o1-preview-2024-09-12": {"price_case": 18, "_input_cost": 0.015, "_output_cost": 0.060},
+    "o1-mini-2024-09-12": {"price_case": 19, "_input_cost": 0.003, "_output_cost": 0.012},
     
     ## Grouping Gemini models together
     "gemini-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
@@ -146,6 +154,8 @@ MODEL_COSTS = {
 MODEL_MAX_TOKENS = {
 
     ## openai models
+    "o1-preview-2024-09-12": {"max_input_tokens": 128000, "max_output_tokens": 32768},
+    "o1-mini-2024-09-12": {"max_input_tokens": 128000, "max_output_tokens": 65536},
     "gpt-4o-mini-2024-07-18": {"max_input_tokens": 128000, "max_output_tokens": 16384},
     "gpt-4o-2024-05-13": {"max_input_tokens": 128000, "max_output_tokens": 4096},
     "gpt-4o-2024-08-06": {"max_input_tokens": 128000, "max_output_tokens": 16384},

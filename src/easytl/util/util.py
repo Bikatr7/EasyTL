@@ -194,6 +194,14 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
             print("Warning: gpt-4o-mini may change over time. Estimating cost assuming gpt-4o-mini-2024-07-18 as it is the most recent version of gpt-4o-mini.")
             return _estimate_cost(text, model="gpt-4o-mini-2024-07-18")
         
+        elif(model == "o1-preview"):
+            print("Warning: o1-preview may change over time. Estimating cost assuming o1-preview-2024-09-12 as it is the most recent version of o1-preview.")
+            return _estimate_cost(text, model="o1-preview-2024-09-12")
+        
+        elif(model == "o1-mini"):
+            print("Warning: o1-mini may change over time. Estimating cost assuming o1-mini-2024-09-12 as it is the most recent version of o1-mini.")
+            return _estimate_cost(text, model="o1-mini-2024-09-12")
+        
         elif(model == "gpt-3.5-turbo-0613"):
             print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-0125.")
             return _estimate_cost(text, model=model, price_case=1)
@@ -247,6 +255,12 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "gpt-4o-2024-08-06"):
             return _estimate_cost(text, model=model, price_case=17)
+        
+        elif(model == "o1-preview-2024-09-12"):
+            return _estimate_cost(text, model=model, price_case=18)
+        
+        elif(model == "o1-mini-2024-09-12"):
+            return _estimate_cost(text, model=model, price_case=19)
         
         elif(model == "gemini-pro"):
             print(f"Warning: gemini-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
@@ -366,7 +380,9 @@ def _update_model_name(model: str) -> str:
         "gpt-4-turbo-preview": "gpt-4-0125-preview",
         "gpt-4-vision-preview": "gpt-4-1106-vision-preview",
         "gpt-4o":"gpt-4o-2024-08-06",
-        "gpt-4o-mini":"gpt-4o-mini-2024-07-18"
+        "gpt-4o-mini":"gpt-4o-mini-2024-07-18",
+        "o1-preview":"o1-preview-2024-09-12",
+        "o1-mini":"o1-mini-2024-09-12"
     }
 
     if(model in model_updates):
