@@ -6,15 +6,14 @@
 ## built-in libraries
 import typing
 import asyncio
+from typing import AsyncIterator, Iterator
 
 ## third-party libraries
 from pydantic import BaseModel
 from openai import AsyncOpenAI, OpenAI
 
 ## custom modules
-from ..ld_helper import LDHelper
 from ..classes import SystemTranslationMessage, ModelTranslationMessage, ChatCompletion, NOT_GIVEN, NotGiven
-from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..exceptions import EasyTLException
 
 from ..util.util import _convert_iterable_to_str, _estimate_cost, _is_iterable_of_strings
@@ -48,8 +47,6 @@ class OpenAIService:
     _rate_limit_delay:float | None = None
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
-
-    _log_directory:str | None = None
 
     _json_mode:bool = False
     _response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None
@@ -85,7 +82,6 @@ class OpenAIService:
                         presence_penalty:float | None | NotGiven = NOT_GIVEN,
                         frequency_penalty:float | None | NotGiven = NOT_GIVEN,
                         decorator:typing.Union[typing.Callable, None]=None,
-                        logging_directory:str | None=None,
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
                         json_mode:bool=False,
@@ -110,11 +106,6 @@ class OpenAIService:
             OpenAIService._frequency_penalty = frequency_penalty
 
             OpenAIService._decorator_to_use = decorator
-
-            OpenAIService._log_directory = logging_directory
-
-            ## For Elucidate
-            LDHelper.set_logging_directory_attributes(logging_directory, "OpenAIService")
 
             OpenAIService._rate_limit_delay = rate_limit_delay
 
@@ -195,10 +186,9 @@ class OpenAIService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_sync_logging_decorator
     def _translate_text(translation_instructions: typing.Optional[SystemTranslationMessage],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> ChatCompletion:
+                                ) -> ChatCompletion | Iterator[ChatCompletion]:
         
         """
         
@@ -209,7 +199,7 @@ class OpenAIService:
         translation_prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (ChatCompletion) : The response from the API.
+        response (ChatCompletion | Iterator[ChatCompletion]) : The response from the API. Returns an iterator if streaming is enabled.
 
         """
         
@@ -225,10 +215,9 @@ class OpenAIService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_async_logging_decorator
     async def _translate_text_async(translation_instructions: typing.Optional[SystemTranslationMessage],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> ChatCompletion:
+                                ) -> ChatCompletion | AsyncIterator[ChatCompletion]:
         
         """
 
@@ -239,7 +228,7 @@ class OpenAIService:
         translation_prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (ChatCompletion) : The response from the API.
+        response (ChatCompletion | AsyncIterator[ChatCompletion]) : The response from the API. Returns an async iterator if streaming is enabled.
 
         """
         
@@ -255,7 +244,7 @@ class OpenAIService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def __translate_text(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
+    def __translate_text(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion | Iterator[ChatCompletion]:
 
         """
 
@@ -266,7 +255,7 @@ class OpenAIService:
         prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (ChatCompletion) : The response from the API.
+        response (ChatCompletion | Iterator[ChatCompletion]) : The response from the API. Returns an iterator if streaming is enabled.
 
         """
 
@@ -305,8 +294,8 @@ class OpenAIService:
             "response_format": response_format,
             "model": OpenAIService._model,
             "messages": [instructions.to_dict(), prompt.to_dict()],
-            ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
-            **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
+            "stream": OpenAIService._stream,
+            **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN and attr != "stream"}
         }
 
         ## remove stream from the message args since it's not needed for the parse function (or at all really)
@@ -314,13 +303,12 @@ class OpenAIService:
             message_args.pop("stream", None)
 
         response = calling_function(**message_args)
-        
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion:
+    async def __translate_text_async(instructions:SystemTranslationMessage, prompt:ModelTranslationMessage) -> ChatCompletion | AsyncIterator[ChatCompletion]:
 
         """
 
@@ -331,7 +319,7 @@ class OpenAIService:
         prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (ChatCompletion) : The response from the API.
+        response (ChatCompletion | AsyncIterator[ChatCompletion]) : The response from the API. Returns an async iterator if streaming is enabled.
 
         """
 
@@ -373,8 +361,8 @@ class OpenAIService:
             "response_format": response_format,
             "model": OpenAIService._model,
             "messages": [instructions.to_dict(), prompt.to_dict()],
-            ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
-            **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN}
+            "stream": OpenAIService._stream,
+            **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN and attr != "stream"}
         }
 
         ## remove stream from the message args since it's not needed for the parse function (or at all really)
@@ -382,7 +370,6 @@ class OpenAIService:
             message_args.pop("stream")
 
         response = await calling_function(**message_args)
-        
         return response
 
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

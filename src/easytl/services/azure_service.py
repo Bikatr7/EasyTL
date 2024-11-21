@@ -14,7 +14,6 @@ import requests
 
 ## custom modules
 from ..util.util import _convert_iterable_to_str
-from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..exceptions import BadAzureRegionException
 
 class AzureService:
@@ -38,8 +37,6 @@ class AzureService:
     _rate_limit_delay:float | None = None
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
-
-    _log_directory:str | None = None
 
 ##-------------------start-of-_set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +62,6 @@ class AzureService:
                         azure_endpoint:str = 'https://api.cognitive.microsofttranslator.com/',
                         source_language:str | None = None,
                         decorator:typing.Callable | None = None,
-                        log_directory:str | None = None,
                         semaphore:int | None = None,
                         rate_limit_delay:float | None = None
                         ) -> None:
@@ -85,7 +81,6 @@ class AzureService:
 
         ## Service Attributes
         AzureService._decorator_to_use = decorator
-        AzureService._log_directory = log_directory
 
         if(semaphore is not None):
             AzureService._semaphore_value = semaphore
@@ -122,7 +117,6 @@ class AzureService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_sync_logging_decorator
     def _translate_text(text:str) -> typing.Union[typing.List[typing.Any], typing.Any]:
 
         """
@@ -164,7 +158,6 @@ class AzureService:
 ##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_async_logging_decorator
     async def _translate_text_async(text:str) -> typing.Union[typing.List[typing.Any], typing.Any]:
 
         """

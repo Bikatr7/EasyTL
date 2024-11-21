@@ -17,7 +17,6 @@ from google.oauth2.service_account import Credentials
 
 ## custom modules
 from ..util.util import _convert_iterable_to_str
-from ..decorators import _sync_logging_decorator, _async_logging_decorator
 
 class GoogleTLService:
 
@@ -36,9 +35,6 @@ class GoogleTLService:
     _rate_limit_delay:float | None = None
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
-
-    _log_directory:str | None = None
-
 
 ##-------------------start-of-_set_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,7 +59,6 @@ class GoogleTLService:
                         format:str = 'text',
                         source_language:str | None = None,
                         decorator:typing.Callable | None = None,
-                        logging_directory:str | None = None,
                         semaphore:int | None = None,
                         rate_limit_delay:float | None = None
                         ) -> None:
@@ -83,8 +78,6 @@ class GoogleTLService:
         ## Service Attributes
 
         GoogleTLService._decorator_to_use = decorator
-
-        GoogleTLService._log_directory = logging_directory
 
         if(semaphore is not None):
             GoogleTLService._semaphore_value = semaphore
@@ -154,7 +147,6 @@ class GoogleTLService:
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    @_sync_logging_decorator
     def _translate_text(text:str) -> typing.Union[typing.List[typing.Any], typing.Any]:
 
         """
@@ -186,7 +178,6 @@ class GoogleTLService:
 ##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
-    @_async_logging_decorator
     async def _translate_text_async(text:str) -> typing.Union[typing.List[typing.Any], typing.Any]:
 
         """

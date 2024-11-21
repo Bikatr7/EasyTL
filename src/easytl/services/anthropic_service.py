@@ -11,10 +11,8 @@ import asyncio
 from anthropic import Anthropic, AsyncAnthropic
 
 ## custom modules
-from ..ld_helper import LDHelper
 from ..exceptions import EasyTLException
 from ..classes import ModelTranslationMessage, NotGiven, NOT_GIVEN, AnthropicMessage
-from ..decorators import _sync_logging_decorator, _async_logging_decorator
 
 from ..util.util import _is_iterable_of_strings, _convert_iterable_to_str, _estimate_cost
 from ..util.constants import VALID_JSON_ANTHROPIC_MODELS
@@ -44,8 +42,6 @@ class AnthropicService:
     _rate_limit_delay:float | None = None
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
-
-    _log_directory:str | None = None
 
     _json_mode:bool = False
     _response_schema:typing.Mapping[str, typing.Any] | None = None
@@ -98,7 +94,6 @@ class AnthropicService:
                         stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
                         max_tokens:int | NotGiven = NOT_GIVEN,
                         decorator:typing.Union[typing.Callable, None]=None,
-                        logging_directory:str | None=None,
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
                         json_mode:bool=False,
@@ -121,11 +116,6 @@ class AnthropicService:
             AnthropicService._max_tokens = max_tokens
 
             AnthropicService._decorator_to_use = decorator
-
-            AnthropicService._log_directory = logging_directory
-            
-            ## For elucidate
-            LDHelper.set_logging_directory_attributes(logging_directory, "AnthropicService")
 
             AnthropicService._rate_limit_delay = rate_limit_delay
 
@@ -194,7 +184,6 @@ class AnthropicService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_sync_logging_decorator
     def _translate_text(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
                                 ) -> AnthropicMessage:
@@ -224,7 +213,6 @@ class AnthropicService:
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    @_async_logging_decorator
     async def _translate_text_async(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
                                 ) -> AnthropicMessage:

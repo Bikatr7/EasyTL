@@ -17,7 +17,6 @@ import deepl
 ## custom modules
 from ..version import VERSION
 from ..util.util import _convert_iterable_to_str
-from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..classes import Language, SplitSentences, Formality, GlossaryInfo, TextResult
 
 class DeepLService:
@@ -46,8 +45,6 @@ class DeepLService:
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
 
-    _log_directory:str | None = None
-
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -64,7 +61,6 @@ class DeepLService:
                         splitting_tags:str | typing.List[str] | None = None,
                         ignore_tags:str | typing.List[str] | None = None,
                         decorator:typing.Callable | None = None,
-                        logging_directory:str | None = None,
                         semaphore:int | None = None,
                         rate_limit_delay:float | None = None
                         ) -> None:
@@ -93,8 +89,6 @@ class DeepLService:
         ## Service Attributes
 
         DeepLService._decorator_to_use = decorator
-
-        DeepLService._log_directory = logging_directory
 
         ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 5
         if(DeepLService._decorator_to_use is not None):
@@ -147,7 +141,6 @@ class DeepLService:
 ##-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    @_sync_logging_decorator
     def _translate_text(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
         """
@@ -180,7 +173,6 @@ class DeepLService:
 ##-------------------start-of-_translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     @staticmethod
-    @_async_logging_decorator
     async def _translate_text_async(text:str) -> typing.Union[typing.List[TextResult], TextResult]:
 
         """

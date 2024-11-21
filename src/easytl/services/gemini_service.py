@@ -13,8 +13,6 @@ import google.generativeai as genai
 from ..util.util import _estimate_cost, _convert_iterable_to_str, _is_iterable_of_strings
 from ..util.constants import VALID_JSON_GEMINI_MODELS as VALID_SYSTEM_MESSAGE_MODELS, VALID_JSON_GEMINI_MODELS
 
-from ..ld_helper import LDHelper
-from ..decorators import _async_logging_decorator, _sync_logging_decorator
 from ..classes import GenerationConfig, GenerateContentResponse, AsyncGenerateContentResponse
 from ..exceptions import EasyTLException, InvalidTextInputException
 
@@ -43,8 +41,6 @@ class GeminiService:
     _rate_limit_delay:float | None = None
 
     _decorator_to_use:typing.Union[typing.Callable, None] = None
-
-    _log_directory:str | None = None
 
     ## Set to prevent any blockage of content
     _safety_settings = [
@@ -102,7 +98,6 @@ class GeminiService:
                         stop_sequences:typing.List[str] | None=None,
                         max_output_tokens:int | None=None,
                         decorator:typing.Union[typing.Callable, None]=None,
-                        logging_directory:str | None=None,
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
                         json_mode:bool=False,
@@ -126,11 +121,6 @@ class GeminiService:
         GeminiService._max_output_tokens = max_output_tokens
 
         GeminiService._decorator_to_use = decorator
-
-        GeminiService._log_directory = logging_directory
-
-        ## For Elucidate
-        LDHelper.set_logging_directory_attributes(logging_directory, "GeminiService")
 
         GeminiService._rate_limit_delay = rate_limit_delay
 
@@ -225,7 +215,6 @@ class GeminiService:
 
     @staticmethod
     @_redefine_client_decorator
-    @_async_logging_decorator
     async def _translate_text_async(text_to_translate:str) -> AsyncGenerateContentResponse:
 
         """
@@ -251,7 +240,6 @@ class GeminiService:
     
     @staticmethod
     @_redefine_client_decorator
-    @_sync_logging_decorator
     def _translate_text(text_to_translate:str) -> GenerateContentResponse:
 
         """

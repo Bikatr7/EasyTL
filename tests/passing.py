@@ -52,9 +52,6 @@ def setup_preconditions():
 
         google_tl_key_path = "json_value.txt"
 
-    ## the following will replace the keys with local test keys if the environment variables are not set (not a github actions environment)
-    logging_directory = os.getenv('LOGGING_DIRECTORY', '/tmp/')
-
     if(deepl_api_key is None):
         deepl_api_key = read_api_key("tests/deepl.txt")
     if(gemini_api_key is None):
@@ -131,7 +128,7 @@ def setup_preconditions():
         }
     }
 
-    return gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region
+    return gemini_time_delay, non_openai_schema, openai_schema, azure_region
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class ConvertToJson(BaseModel):
@@ -140,7 +137,7 @@ class ConvertToJson(BaseModel):
 
 async def main():
 
-    gemini_time_delay, logging_directory, non_openai_schema, openai_schema, azure_region = setup_preconditions()
+    gemini_time_delay, non_openai_schema, openai_schema, azure_region = setup_preconditions()
 
     ## probably self explanatory from this point on
 
@@ -150,13 +147,13 @@ async def main():
 
     print("------------------------------------------------Text response------------------------------------------------")
 
-    print(EasyTL.deepl_translate(text="Hello, world!", target_lang="DE", logging_directory=logging_directory, decorator=decorator))
-    print(await EasyTL.deepl_translate_async(text="Hello, world!", target_lang="DE", logging_directory=logging_directory,decorator=decorator))
+    print(EasyTL.deepl_translate(text="Hello, world!", target_lang="DE", decorator=decorator))
+    print(await EasyTL.deepl_translate_async(text="Hello, world!", target_lang="DE", decorator=decorator))
 
     print("------------------------------------------------Raw response------------------------------------------------")
 
-    results = EasyTL.deepl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", logging_directory=logging_directory, decorator=decorator)
-    async_results = await EasyTL.deepl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", logging_directory=logging_directory, decorator=decorator)
+    results = EasyTL.deepl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", decorator=decorator)
+    async_results = await EasyTL.deepl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="DE", response_type="raw", decorator=decorator)
 
     for result in results: # type: ignore
         print(result.text) # type: ignore
@@ -174,13 +171,13 @@ async def main():
 
     print("------------------------------------------------Text response------------------------------------------------")
 
-    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator))
-    print(await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator))
+    print(EasyTL.googletl_translate("Hello, world!", target_lang="de", decorator=decorator))
+    print(await EasyTL.googletl_translate_async("Hello, world!", target_lang="de", decorator=decorator))
 
     print("------------------------------------------------Raw response------------------------------------------------")
 
-    results = EasyTL.googletl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory, decorator=decorator)
-    async_results = await EasyTL.googletl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", logging_directory=logging_directory, decorator=decorator)
+    results = EasyTL.googletl_translate(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", decorator=decorator)
+    async_results = await EasyTL.googletl_translate_async(text=["Hello, world!", "Goodbye, world!"], target_lang="de", response_type="raw", decorator=decorator)
 
     for result in results: # type: ignore
         print(result["translatedText"]) # type: ignore
@@ -198,13 +195,13 @@ async def main():
 
     print("-----------------------------------------------Text response-----------------------------------------------")
 
-    print(EasyTL.gemini_translate("Hello, world!", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
-    print(await EasyTL.gemini_translate_async("Hello, world!", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
+    print(EasyTL.gemini_translate("Hello, world!", translation_instructions="Translate this to German.", decorator=decorator))
+    print(await EasyTL.gemini_translate_async("Hello, world!", translation_instructions="Translate this to German.", decorator=decorator))
 
     print("-----------------------------------------------Raw response-----------------------------------------------")
 
-    results = EasyTL.gemini_translate(text=["Hello, world!", "Goodbye, world!"], translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
-    async_results = await EasyTL.gemini_translate_async(text=["Hello, world!", "Goodbye, world!"], translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory, translation_delay=5,decorator=decorator)
+    results = EasyTL.gemini_translate(text=["Hello, world!", "Goodbye, world!"], translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
+    async_results = await EasyTL.gemini_translate_async(text=["Hello, world!", "Goodbye, world!"], translation_instructions="Translate this to German.", response_type="raw", translation_delay=5,decorator=decorator)
 
     for result in results: # type: ignore
         print(result.text) # type: ignore
@@ -214,11 +211,11 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON parseable string must have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=non_openai_schema))
+    print(EasyTL.gemini_translate("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Translate this to German. Format the response as JSON parseable string must have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", decorator=decorator, response_schema=non_openai_schema))
     
     time.sleep(gemini_time_delay)
     
-    print(await EasyTL.gemini_translate_async("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", logging_directory=logging_directory,decorator=decorator))
+    print(await EasyTL.gemini_translate_async("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", decorator=decorator))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
@@ -230,13 +227,13 @@ async def main():
 
     print("-----------------------------------------------Text response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator, response_schema=openai_schema))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", decorator=decorator, response_schema=openai_schema))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", decorator=decorator, response_schema=openai_schema))
 
     print("-----------------------------------------------Raw response-----------------------------------------------")
 
-    results = EasyTL.openai_translate(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
-    async_results = await EasyTL.openai_translate_async(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+    results = EasyTL.openai_translate(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
+    async_results = await EasyTL.openai_translate_async(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
 
     for result in results: # type: ignore
         print(result.choices[0].message.content) # type: ignore
@@ -246,8 +243,8 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=ConvertToJson))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=openai_schema))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=ConvertToJson))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=openai_schema))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
@@ -255,17 +252,45 @@ async def main():
 
     print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
 
+    print("-----------------------------------------------Streaming response-----------------------------------------------")
+
+    print("Sync streaming:")
+    stream_response = EasyTL.openai_translate("Hello, world!", 
+                                            model="gpt-4", 
+                                            translation_instructions="Translate this to German.", 
+                                            stream=True,
+                                            decorator=decorator)
+    
+    for chunk in stream_response: # type: ignore
+        if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+            print(chunk.choices[0].delta.content, end="")
+    print()
+
+    print("\nAsync streaming:")
+    async_stream_response = await EasyTL.openai_translate_async("Hello, world!", 
+                                                              model="gpt-4", 
+                                                              translation_instructions="Translate this to German.",
+                                                              stream=True,
+                                                              decorator=decorator)
+    
+    async for chunk in async_stream_response: # type: ignore
+        if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+            print(chunk.choices[0].delta.content, end="")
+    print()
+
+    print("------------------------------------------------Cost calculation------------------------------------------------")
+
     print("------------------------------------------------Anthropic------------------------------------------------")
 
     print("-----------------------------------------------Text response-----------------------------------------------")
 
-    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
-    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", logging_directory=logging_directory, decorator=decorator))
+    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", decorator=decorator))
+    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", decorator=decorator))
 
     print("-----------------------------------------------Raw response-----------------------------------------------")
 
-    results = EasyTL.anthropic_translate(text=["Hello, world!", "Goodbye, world!"], model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
-    async_results = await EasyTL.anthropic_translate_async(text=["Hello, world!", "Goodbye, world!"], model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", logging_directory=logging_directory,decorator=decorator)
+    results = EasyTL.anthropic_translate(text=["Hello, world!", "Goodbye, world!"], model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
+    async_results = await EasyTL.anthropic_translate_async(text=["Hello, world!", "Goodbye, world!"], model="claude-3-haiku-20240307", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
 
     for result in results: # type: ignore
         print(result.content[0].text) # type: ignore
@@ -275,8 +300,8 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=non_openai_schema))
-    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=non_openai_schema))
+    print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=non_openai_schema))
+    print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=non_openai_schema))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
@@ -288,13 +313,13 @@ async def main():
     
     print("-----------------------------------------------Text response-----------------------------------------------")
 
-    print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
-    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
+    print(EasyTL.azure_translate("Hello, world!", target_lang="de", decorator=decorator, azure_region=azure_region))
+    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", decorator=decorator, azure_region=azure_region))
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.azure_translate("Hello, world!", target_lang="de", response_type="json", logging_directory=logging_directory,decorator=decorator, azure_region=azure_region))
-    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", response_type="json", logging_directory=logging_directory,decorator=decorator, azure_region=azure_region))
+    print(EasyTL.azure_translate("Hello, world!", target_lang="de", response_type="json", decorator=decorator, azure_region=azure_region))
+    print(await EasyTL.azure_translate_async("Hello, world!", target_lang="de", response_type="json", decorator=decorator, azure_region=azure_region))
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 

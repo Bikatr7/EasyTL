@@ -172,3 +172,7 @@ tests/azure_region.txt
 
 ## For MacOS
 .DS_Store
+
+## Cursor
+.cursorrules
+

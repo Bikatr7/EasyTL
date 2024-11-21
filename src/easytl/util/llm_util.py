@@ -39,7 +39,7 @@ def _return_curated_anthropic_settings(local_settings:dict[str, typing.Any]) -> 
     "anthropic_max_output_tokens": "",
     }
 
-    _non_anthropic_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
+    _non_anthropic_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "response_type", "semaphore", "translation_delay"]
     _custom_validation_params = ["anthropic_stop_sequences", "anthropic_response_schema"]
 
     for _key in _settings.keys():
@@ -70,7 +70,7 @@ def _return_curated_gemini_settings(local_settings:dict[str, typing.Any]) -> dic
     "gemini_max_output_tokens": ""
     }
 
-    _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "semaphore", "translation_delay"]
+    _non_gemini_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "response_type", "semaphore", "translation_delay"]
     _custom_validation_params = ["gemini_stop_sequences", "gemini_response_schema"]
 
     for _key in _settings.keys():
@@ -102,7 +102,7 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
         "openai_frequency_penalty": ""
         }
 
-        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "logging_directory", "response_type", "response_schema", "semaphore", "translation_delay"]
+        _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "response_type", "response_schema", "semaphore", "translation_delay"]
         _custom_validation_params = ["openai_stop", "openai_response_schema"]
 
         for _key in _settings.keys():

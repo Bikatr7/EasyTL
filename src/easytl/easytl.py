@@ -148,6 +148,10 @@ class EasyTL:
                            format:typing.Literal["text", "html"] = "text",
                            source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         """
 
         Translates the given text to the target language using Google Translate.
@@ -163,7 +167,6 @@ class EasyTL:
         target_lang (string) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Google Translate function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
@@ -186,7 +189,6 @@ class EasyTL:
                                             format=format, 
                                             source_language=source_lang, 
                                             decorator=decorator, 
-                                            logging_directory=logging_directory, 
                                             semaphore=None, 
                                             rate_limit_delay=translation_delay)
             
@@ -236,6 +238,10 @@ class EasyTL:
                                        format:typing.Literal["text", "html"] = "text",
                                        source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         """
 
         Asynchronous version of googletl_translate().
@@ -254,7 +260,6 @@ class EasyTL:
         target_lang (string) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Google Translate function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response.
         semaphore (int) : The number of concurrent requests to make. Default is 15.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -278,7 +283,6 @@ class EasyTL:
                                             format=format, 
                                             source_language=source_lang, 
                                             decorator=decorator, 
-                                            logging_directory=logging_directory, 
                                             semaphore=semaphore, 
                                             rate_limit_delay=translation_delay)
             
@@ -335,6 +339,10 @@ class EasyTL:
                         splitting_tags:str | typing.List[str] | None = None,
                         ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         """
 
         Translates the given text to the target language using DeepL.
@@ -346,7 +354,6 @@ class EasyTL:
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this parameter is None, DeepL will retry your request 5 times before failing. Otherwise, the given decorator will be used.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         source_lang (string or Language or None) : The source language to translate from.
@@ -384,7 +391,6 @@ class EasyTL:
                                         splitting_tags = splitting_tags, 
                                         ignore_tags = ignore_tags,
                                         decorator=decorator,
-                                        logging_directory=logging_directory,
                                         semaphore=None,
                                         rate_limit_delay=translation_delay)
             
@@ -442,6 +448,10 @@ class EasyTL:
                             splitting_tags:str | typing.List[str] | None = None,
                             ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         """
 
         Asynchronous version of deepl_translate().
@@ -457,7 +467,6 @@ class EasyTL:
         target_lang (string or Language) : The target language to translate to.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a DeepL translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this parameter is None, DeepL will retry your request 5 times before failing. Otherwise, the given decorator will be used.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a TextResult object.
         semaphore (int) : The number of concurrent requests to make. Default is 15.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -496,7 +505,6 @@ class EasyTL:
                                         splitting_tags=splitting_tags, 
                                         ignore_tags=ignore_tags,
                                         decorator=decorator,
-                                        logging_directory=logging_directory,
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay)
             
@@ -565,7 +573,6 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a GenerateContentResponse object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a GenerateContentResponse object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -581,6 +588,10 @@ class EasyTL:
         result (string or list - string or GenerateContentResponse or list - GenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise.
 
         """
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for gemini_translate() and will be ignored")
+            logging_directory = None
 
         assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
@@ -610,7 +621,6 @@ class EasyTL:
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
                                           decorator=decorator,
-                                          logging_directory=logging_directory,
                                           semaphore=None,
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode,
@@ -677,7 +687,6 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AsyncGenerateContentResponse object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AsyncGenerateContentResponse object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         semaphore (int) : The number of concurrent requests to make. Default is 5 for 1.0 and 2 for 1.5 gemini models. For Gemini, it is recommend to use translation_delay along with the semaphore to prevent rate limiting.
@@ -694,6 +703,10 @@ class EasyTL:
         result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AsyncGenerateContentResponse objects if the response type is 'raw' and input was an iterable, a AsyncGenerateContentResponse object otherwise.
 
         """
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for gemini_translate_async() and will be ignored")
+            logging_directory = None
 
         assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
@@ -723,7 +736,6 @@ class EasyTL:
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
                                           decorator=decorator,
-                                          logging_directory=logging_directory,
                                           semaphore=semaphore,
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode,
@@ -765,8 +777,10 @@ class EasyTL:
                         stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
                         max_tokens:int | None | NotGiven = NOT_GIVEN,
                         presence_penalty:float | None | NotGiven = NOT_GIVEN,
-                        frequency_penalty:float | None | NotGiven = NOT_GIVEN
-                        ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion]:
+                        frequency_penalty:float | None | NotGiven = NOT_GIVEN,
+                        stream:bool = False
+                        ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
+                                        typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
         """
 
@@ -805,11 +819,30 @@ class EasyTL:
         }
         ```
 
+        Streaming Support:
+        - Streaming is only supported for single text inputs (not iterables)
+        - When streaming is enabled (stream=True):
+          - The response will be an iterator of ChatCompletion chunks
+          - Each chunk contains a delta of the generated text
+          - JSON mode and other response types are not supported with streaming
+          - Typical usage is to iterate over chunks and print content as it arrives
+        
+        Example streaming usage ():
+        stream_response = EasyTL.openai_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                model="gpt-4", 
+                                                translation_instructions="Translate this to German. Take your time and translate word by word.", 
+                                                stream=True,
+                                                decorator=decorator)
+        
+        for chunk in stream_response: # type: ignore
+            if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+                print(chunk.choices[0].delta.content, end="", flush=True)
+                time.sleep(0.1)
+
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
         response_schema (mapping or BaseModel or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -821,11 +854,18 @@ class EasyTL:
         max_tokens (int or None) : The maximum number of tokens to output.
         presence_penalty (float) : The presence penalty to use. This penalizes the model from repeating the same content in the output. Shouldn't be messed with for translation.
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
+        stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
 
         Returns:
-        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
-
+        result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
+            The translation result. A list of strings if the input was an iterable, a string otherwise. 
+            A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
+            An iterator of ChatCompletion chunks if streaming is enabled.
         """
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for openai_translate() and will be ignored")
+            logging_directory = None
 
         assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
@@ -851,12 +891,12 @@ class EasyTL:
                                         logit_bias=None,
                                         top_p=top_p,
                                         n=1,
+                                        stream=stream,
                                         stop=stop,
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty,
                                         decorator=decorator,
-                                        logging_directory=logging_directory,
                                         semaphore=None,
                                         rate_limit_delay=translation_delay,
                                         json_mode=json_mode,
@@ -872,19 +912,29 @@ class EasyTL:
 
         translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
         
+        if(stream):
+            if(len(translation_batches) > 1):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            return OpenAIService._translate_text(translation_batches[0][1], translation_batches[0][0])
+        
         translations = []
         
         for _text, _translation_instructions in translation_batches:
-
             _result = OpenAIService._translate_text(_translation_instructions, _text)
 
-            assert not isinstance(_result, list) and hasattr(_result, "choices"), EasyTLException("Malformed response received. Please try again.")
+            ## Skip validation for streaming responses
+            if(stream):
+                translations.append(_result)
+                continue
 
-            translation = _result if response_type in ["raw", "raw_json"] else _result.choices[0].message.content
+            ## Validate normal responses
+            if(not hasattr(_result, "choices")):
+                raise EasyTLException("Malformed response received. Please try again.")
+
+            translation = _result if response_type in ["raw", "raw_json"] else _result.choices[0].message.content # type: ignore
             
             translations.append(translation)
         
-        ## If originally a single text was provided, return a single translation instead of a list
         result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
         
         return result
@@ -907,8 +957,10 @@ class EasyTL:
                                     stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
                                     max_tokens:int | None | NotGiven = NOT_GIVEN,
                                     presence_penalty:float | None | NotGiven = NOT_GIVEN,
-                                    frequency_penalty:float | None | NotGiven = NOT_GIVEN
-                                    ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion]:
+                                    frequency_penalty:float | None | NotGiven = NOT_GIVEN,
+                                    stream:bool = False
+                                    ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
+                                                    typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
         """
 
@@ -950,11 +1002,32 @@ class EasyTL:
         }
         ```
 
+        Streaming Support:
+        - Streaming is only supported for single text inputs (not iterables)
+        - When streaming is enabled (stream=True):
+          - The response will be an iterator of ChatCompletion chunks
+          - Each chunk contains a delta of the generated text
+          - JSON mode and other response types are not supported with streaming
+          - Typical usage is to iterate over chunks and print content as it arrives
+        
+        Example streaming usage:
+        async_stream_response = await EasyTL.openai_translate_async(
+            "Hello, world! This is a longer message that we'll see stream in real time. Each word should appear one by one.", 
+            model="gpt-4", 
+            translation_instructions="Translate this to German. Take your time and translate word by word.",
+            stream=True,
+            decorator=decorator
+        )
+        
+        async for chunk in async_stream_response: # type: ignore
+            if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+                print(chunk.choices[0].delta.content, end="", flush=True)
+                await asyncio.sleep(0.1)
+
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an OpenAI translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, OpenAI will retry the request twice if it fails.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, a ChatCompletion object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, a ChatCompletion object, but with the content as a json-parseable string.
         response_schema (mapping or BaseModel or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
@@ -967,11 +1040,18 @@ class EasyTL:
         max_tokens (int or None) : The maximum number of tokens to output.
         presence_penalty (float) : The presence penalty to use. This penalizes the model from repeating the same content in the output. Shouldn't be messed with for translation.
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
+        stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
 
         Returns:
-        result (string or list - string or ChatCompletion or list - ChatCompletion) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
-        
+        result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
+            The translation result. A list of strings if the input was an iterable, a string otherwise. 
+            A list of ChatCompletion objects if the response type is 'raw' and input was an iterable, a ChatCompletion object otherwise.
+            An iterator of ChatCompletion chunks if streaming is enabled.
         """
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for openai_translate_async() and will be ignored")
+            logging_directory = None
 
         assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
@@ -997,12 +1077,12 @@ class EasyTL:
                                         logit_bias=None,
                                         top_p=top_p,
                                         n=1,
+                                        stream=stream,
                                         stop=stop,
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty,
                                         frequency_penalty=frequency_penalty,
                                         decorator=decorator,
-                                        logging_directory=logging_directory,
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay,
                                         json_mode=json_mode,
@@ -1017,6 +1097,12 @@ class EasyTL:
         assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
 
         _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
+
+
+        if(stream):
+            if(len(_translation_batches) > 1):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            return await OpenAIService._translate_text_async(_translation_batches[0][1], _translation_batches[0][0])
 
         _translation_tasks = []
 
@@ -1073,7 +1159,6 @@ class EasyTL:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, Anthropic will retry the request twice if it fails.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AnthropicMessage object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json. 
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -1089,6 +1174,10 @@ class EasyTL:
         result (string or list - string or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
 
         """
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for anthropic_translate() and will be ignored")
+            logging_directory = None
 
         assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
@@ -1117,7 +1206,6 @@ class EasyTL:
                                             stream=False,
                                             max_tokens=max_output_tokens,
                                             decorator=decorator,
-                                            logging_directory=logging_directory,
                                             semaphore=None,
                                             rate_limit_delay=translation_delay,
                                             json_mode=json_mode,
@@ -1198,7 +1286,6 @@ class EasyTL:
         text (string | ModelTranslationMessage or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. If this is None, Anthropic will retry the request twice if it fails.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "raw", "json", "raw_json"]) : The type of response to return. 'text' returns the translated text, 'raw' returns the raw response, an AnthropicMessage object, 'json' returns a json-parseable string. 'raw_json' returns the raw response, an AnthropicMessage object, but with the content as a json-parseable string.
         response_schema (string or mapping or None) : The schema to use for the response. If None, no schema is used. This is only used if the response type is 'json' or 'json_raw'. EasyTL only validates the schema to the extend that it is None or a valid json. It does not validate the contents of the json.
         semaphore (int) : The number of concurrent requests to make. Default is 5.
@@ -1215,6 +1302,10 @@ class EasyTL:
         result (string or list - string or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
 
         """
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for anthropic_translate_async() and will be ignored")
+            logging_directory = None
 
         assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
@@ -1243,7 +1334,6 @@ class EasyTL:
                                             stream=False,
                                             max_tokens=max_output_tokens,
                                             decorator=decorator,
-                                            logging_directory=logging_directory,
                                             semaphore=semaphore,
                                             rate_limit_delay=translation_delay,
                                             json_mode=json_mode,
@@ -1294,6 +1384,10 @@ class EasyTL:
                         azure_endpoint:str = "https://api.cognitive.microsofttranslator.com/",
                         source_lang:str | None = None) -> typing.Union[typing.List[str], str]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         """
 
         Translates the given text to the target language using Azure.
@@ -1309,7 +1403,6 @@ class EasyTL:
         target_lang (string) : The target language for translation. Default is 'en'. These are ISO 639-1 language codes
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Azure translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying. 
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "json"]) : The type of response to return. 'text' returns the translated text, 'json' returns the original response in json format.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         api_version (string) : The version of the Azure Translator API. Default is '3.0'.
@@ -1334,7 +1427,6 @@ class EasyTL:
                                         azure_endpoint=azure_endpoint,
                                         source_language=source_lang,
                                         decorator=decorator,
-                                        log_directory=logging_directory,
                                         semaphore=None,
                                         rate_limit_delay=translation_delay)
             
@@ -1404,7 +1496,6 @@ class EasyTL:
         target_lang (string) : The target language for translation. Default is 'en'. These are ISO 639-1 language codes
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Azure translation function.
         decorator (callable or None) : The decorator to use when translating. Typically for exponential backoff retrying.
-        logging_directory (string or None) : The directory to log to. If None, no logging is done. This'll append the text result and some function information to a file in the specified directory. File is created if it doesn't exist.
         response_type (literal["text", "json"]) : The type of response to return. 'text' returns the translated text, 'json' returns the original response in json format.
         semaphore (int) : The number of concurrent requests to make. Default is 15.
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
@@ -1418,6 +1509,10 @@ class EasyTL:
         
         """
 
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
 
         EasyTL.test_credentials("azure", azure_region=azure_region)
@@ -1429,7 +1524,6 @@ class EasyTL:
                                         azure_endpoint=azure_endpoint,
                                         source_language=source_lang,
                                         decorator=decorator,
-                                        log_directory=logging_directory,
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay)
             
