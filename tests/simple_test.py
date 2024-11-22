@@ -161,48 +161,62 @@ async def main():
         "required": ["input", "output"]
     }
 
+    print("Testing Gemini Streaming...")
+
+    stream_response = EasyTL.gemini_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                              model="gemini-1.5-flash", 
+                                              translation_instructions="Translate this to German. Take your time and translate word by word.", 
+                                              stream=True,
+                                              decorator=decorator)
+    
+    for chunk in stream_response: # type: ignore
+        if hasattr(chunk, 'text') and chunk.text is not None:
+            print(chunk.text, end="", flush=True)
+            time.sleep(0.1)
+    print()
+
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
     ## print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))
 
 
-    print("Testing OpenAI Streaming...")
+    ## print("Testing OpenAI Streaming...")
 
-    print("\nSync Streaming:")
-    stream_response = EasyTL.openai_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
-                                            model="gpt-4", 
-                                            translation_instructions="Translate this to German. Take your time and translate word by word.", 
-                                            stream=True,
-                                            decorator=decorator)
+    ## print("\nSync Streaming:")
+    ## stream_response = EasyTL.openai_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+    ##                                         model="gpt-4", 
+    ##                                         translation_instructions="Translate this to German. Take your time and translate word by word.", 
+    ##                                         stream=True,
+    ##                                         decorator=decorator)
     
-    for chunk in stream_response: # type: ignore
-        if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
-            print(chunk.choices[0].delta.content, end="", flush=True)
-            time.sleep(0.1)
-    print()
+    ## for chunk in stream_response: # type: ignore
+    ##     if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+    ##         print(chunk.choices[0].delta.content, end="", flush=True)
+    ##         time.sleep(0.1)
+    ## print()
 
-    print("\nAsync Streaming:")
-    async_stream_response = await EasyTL.openai_translate_async(
-        "Hello, world! This is a longer message that we'll see stream in real time. Each word should appear one by one.", 
-        model="gpt-4", 
-        translation_instructions="Translate this to German. Take your time and translate word by word.",
-        stream=True,
-        decorator=decorator
-    )
+    ## print("\nAsync Streaming:")
+    ## async_stream_response = await EasyTL.openai_translate_async(
+    ##     "Hello, world! This is a longer message that we'll see stream in real time. Each word should appear one by one.", 
+    ##     model="gpt-4", 
+    ##     translation_instructions="Translate this to German. Take your time and translate word by word.",
+    ##     stream=True,
+    ##     decorator=decorator
+    ## )
     
-    async for chunk in async_stream_response: # type: ignore
-        if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
-            print(chunk.choices[0].delta.content, end="", flush=True)
-            await asyncio.sleep(0.1)
-    print()
+    ## async for chunk in async_stream_response: # type: ignore
+    ##     if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+    ##         print(chunk.choices[0].delta.content, end="", flush=True)
+    ##         await asyncio.sleep(0.1)
+    ## print()
 
-    print("Testing Non-Streaming...")
+    ## print("Testing Non-Streaming...")
 
-    print(EasyTL.openai_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
-                                  model="gpt-4", 
-                                  translation_instructions="Translate this to German. Take your time and translate word by word.", 
-                                  stream=False,
-                                  decorator=decorator))
+    ## print(EasyTL.openai_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+    ##                               model="gpt-4", 
+    ##                               translation_instructions="Translate this to German. Take your time and translate word by word.", 
+    ##                               stream=False,
+    ##                               decorator=decorator))
 
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -339,10 +339,6 @@ class EasyTL:
                         splitting_tags:str | typing.List[str] | None = None,
                         ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
         
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
-            logging_directory = None
-
         """
 
         Translates the given text to the target language using DeepL.
@@ -374,6 +370,10 @@ class EasyTL:
         """
 
         assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
 
         EasyTL.test_credentials("deepl")
 
@@ -447,10 +447,6 @@ class EasyTL:
                             non_splitting_tags:str | typing.List[str] | None = None,
                             splitting_tags:str | typing.List[str] | None = None,
                             ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
-        
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
-            logging_directory = None
 
         """
 
@@ -488,6 +484,11 @@ class EasyTL:
         """
 
         assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+
+        
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
 
         EasyTL.test_credentials("deepl")
 
@@ -555,8 +556,10 @@ class EasyTL:
                         top_p:float=0.9,
                         top_k:int=40,
                         stop_sequences:typing.List[str] | None=None,
-                        max_output_tokens:int | None=None) -> typing.Union[typing.List[str], str, GenerateContentResponse, typing.List[GenerateContentResponse]]:
-        
+                        max_output_tokens:int | None=None,
+                        stream:bool = False) -> typing.Union[typing.List[str], str, GenerateContentResponse, typing.List[GenerateContentResponse], 
+                                                           typing.Iterator[GenerateContentResponse]]:
+    
         """
 
         Translates the given text using Gemini.
@@ -567,8 +570,28 @@ class EasyTL:
 
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
-        It is not known whether Gemini has backoff retrying implemented. Assume it does not exist. 
+        It is not known whether Gemini has backoff retrying implemented. Assume it does not exist.
+
+        Streaming Support:
+        - Streaming is only supported for single text inputs (not iterables)
+        - When streaming is enabled (stream=True):
+          - The response will be an iterator of GenerateContentResponse chunks
+          - Each chunk contains a delta of the generated text
+          - JSON mode and other response types are not supported with streaming
+          - Typical usage is to iterate over chunks and print content as it arrives
         
+        Example streaming usage:
+        stream_response = EasyTL.gemini_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                model="gemini-pro", 
+                                                translation_instructions="Translate this to German. Take your time and translate word by word.", 
+                                                stream=True,
+                                                decorator=decorator)
+        
+        for chunk in stream_response: # type: ignore
+            if hasattr(chunk, 'text') and chunk.text is not None:
+                print(chunk.text, end="", flush=True)
+                time.sleep(0.1)
+
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to a Gemini translation function.
@@ -583,9 +606,13 @@ class EasyTL:
         top_k (int) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
         stop_sequences (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or None) : The maximum number of tokens to output.
+        stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
 
         Returns:
-        result (string or list - string or GenerateContentResponse or list - GenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise.
+        result (string or list - string or GenerateContentResponse or list - GenerateContentResponse or Iterator[GenerateContentResponse]) : 
+            The translation result. A list of strings if the input was an iterable, a string otherwise. 
+            A list of GenerateContentResponse objects if the response type is 'raw' and input was an iterable, a GenerateContentResponse object otherwise.
+            An iterator of GenerateContentResponse chunks if streaming is enabled.
 
         """
 
@@ -610,6 +637,12 @@ class EasyTL:
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
+        if(stream):
+            if(isinstance(text, typing.Iterable) and not isinstance(text, str)):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            if(json_mode):
+                raise ValueError("JSON mode is not supported with streaming")
+
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
                                           system_message=translation_instructions,
@@ -617,7 +650,7 @@ class EasyTL:
                                           top_p=top_p,
                                           top_k=top_k,
                                           candidate_count=1,
-                                          stream=False,
+                                          stream=stream,
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
                                           decorator=decorator,
@@ -628,13 +661,16 @@ class EasyTL:
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()       
             GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
-        
+
+        if(stream):
+            return GeminiService._translate_text(text) ## type: ignore
+
         if(isinstance(text, str)):
             _result = GeminiService._translate_text(text)
             
             assert not isinstance(_result, list) and hasattr(_result, "text"), EasyTLException("Malformed response received. Please try again.")
             
-            result = _result if response_type in ["raw", "raw_json"] else _result.text
+            result = _result if response_type in ["raw", "raw_json"] else _result.text # type: ignore
 
         elif(_is_iterable_of_strings(text)):
             
@@ -1120,7 +1156,7 @@ class EasyTL:
 
         result = translation if isinstance(text, typing.Iterable) and not isinstance(text, str) else translation[0]
 
-        return result
+        return result # type: ignore
     
 ##-------------------start-of-anthropic_translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

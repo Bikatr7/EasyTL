@@ -240,7 +240,7 @@ class GeminiService:
     
     @staticmethod
     @_redefine_client_decorator
-    def _translate_text(text_to_translate:str) -> GenerateContentResponse:
+    def _translate_text(text_to_translate:str) -> GenerateContentResponse | typing.Iterator[GenerateContentResponse]:
 
         """
 
@@ -251,7 +251,7 @@ class GeminiService:
         text_to_translate (string) : The text to translate.
 
         Returns:
-        GenerateContentResponse : The translation.
+        GenerateContentResponse | Iterator[GenerateContentResponse] : The translation. Returns an iterator if streaming is enabled.
 
         """
 
@@ -264,7 +264,7 @@ class GeminiService:
 ##-------------------start-of-__translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def __translate_text(text_to_translate:str) -> GenerateContentResponse:
+    def __translate_text(text_to_translate:str) -> GenerateContentResponse | typing.Iterator[GenerateContentResponse]:
 
         """
 
@@ -274,7 +274,7 @@ class GeminiService:
         text_to_translate (string) : The text to translate.
 
         Returns:
-        _response (GenerateContentResponse) : The translation.
+        GenerateContentResponse | Iterator[GenerateContentResponse] : The translation. Returns an iterator if streaming is enabled.
 
         """
 
