@@ -175,6 +175,20 @@ async def main():
             time.sleep(0.1)
     print()
 
+    print("Testing Gemini Async Streaming...")
+
+    async_stream_response = await EasyTL.gemini_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                                model="gemini-1.5-flash", 
+                                                                translation_instructions="Translate this to German. Take your time and translate word by word.",
+                                                                stream=True,
+                                                                decorator=decorator)
+    
+    async for chunk in async_stream_response: # type: ignore
+        if hasattr(chunk, 'text') and chunk.text is not None:
+            print(chunk.text, end="", flush=True)
+            await asyncio.sleep(0.1)
+    print()
+
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))
 
     ## print(EasyTL.azure_translate("Hello, world!", target_lang="de", logging_directory=logging_directory, decorator=decorator, azure_region=azure_region))

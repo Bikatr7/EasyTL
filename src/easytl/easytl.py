@@ -702,7 +702,9 @@ class EasyTL:
                                     top_p:float=0.9,
                                     top_k:int=40,
                                     stop_sequences:typing.List[str] | None=None,
-                                    max_output_tokens:int | None=None) -> typing.Union[typing.List[str], str, AsyncGenerateContentResponse, typing.List[AsyncGenerateContentResponse]]:
+                                    max_output_tokens:int | None=None,
+                                    stream:bool = False) -> typing.Union[typing.List[str], str, AsyncGenerateContentResponse, typing.List[AsyncGenerateContentResponse], 
+                                                                       typing.AsyncIterator[AsyncGenerateContentResponse]]:
         
         """
 
@@ -718,6 +720,28 @@ class EasyTL:
         This function is not for use for real-time translation, nor for generating multiple translation candidates. Another function may be implemented for this given demand.
 
         It is not known whether Gemini has backoff retrying implemented. Assume it does not exist.
+
+        Streaming Support:
+        - Streaming is only supported for single text inputs (not iterables)
+        - When streaming is enabled (stream=True):
+          - The response will be an async iterator of AsyncGenerateContentResponse chunks
+          - Each chunk contains a delta of the generated text
+          - JSON mode and other response types are not supported with streaming
+          - Typical usage is to iterate over chunks and print content as it arrives
+        
+        Example streaming usage:
+        async_stream_response = await EasyTL.gemini_translate_async(
+            "Hello, world! This is a longer message that we'll see stream in real time.", 
+            model="gemini-pro", 
+            translation_instructions="Translate this to German. Take your time and translate word by word.",
+            stream=True,
+            decorator=decorator
+        )
+        
+        async for chunk in async_stream_response: # type: ignore
+            if hasattr(chunk, 'text') and chunk.text is not None:
+                print(chunk.text, end="", flush=True)
+                await asyncio.sleep(0.1)
         
         Parameters:
         text (string or iterable) : The text to translate.
@@ -734,9 +758,13 @@ class EasyTL:
         top_k (int) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
         stop_sequences (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or None) : The maximum number of tokens to output.
+        stream (bool) : Whether to stream the response. If True, returns an async iterator that yields chunks of the response as they become available.
 
         Returns:
-        result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AsyncGenerateContentResponse objects if the response type is 'raw' and input was an iterable, a AsyncGenerateContentResponse object otherwise.
+        result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse or AsyncIterator[AsyncGenerateContentResponse]) : 
+            The translation result. A list of strings if the input was an iterable, a string otherwise. 
+            A list of AsyncGenerateContentResponse objects if the response type is 'raw' and input was an iterable, an AsyncGenerateContentResponse object otherwise.
+            An async iterator of AsyncGenerateContentResponse chunks if streaming is enabled.
 
         """
 
@@ -761,6 +789,12 @@ class EasyTL:
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
+        if(stream):
+            if(isinstance(text, typing.Iterable) and not isinstance(text, str)):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            if(json_mode):
+                raise ValueError("JSON mode is not supported with streaming")
+
         if(override_previous_settings == True):
             GeminiService._set_attributes(model=model,
                                           system_message=translation_instructions,
@@ -768,7 +802,7 @@ class EasyTL:
                                           top_p=top_p,
                                           top_k=top_k,
                                           candidate_count=1,
-                                          stream=False,
+                                          stream=stream,
                                           stop_sequences=stop_sequences,
                                           max_output_tokens=max_output_tokens,
                                           decorator=decorator,
@@ -780,6 +814,9 @@ class EasyTL:
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
             
+        if(stream):
+            return await GeminiService._translate_text_async(text) ## type: ignore
+
         if(isinstance(text, str)):
             _result = await GeminiService._translate_text_async(text)
 
