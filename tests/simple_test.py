@@ -161,32 +161,84 @@ async def main():
         "required": ["input", "output"]
     }
 
-    print("Testing Gemini Streaming...")
+    # print("Testing Gemini Streaming...")
 
-    stream_response = EasyTL.gemini_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
-                                              model="gemini-1.5-flash", 
-                                              translation_instructions="Translate this to German. Take your time and translate word by word.", 
-                                              stream=True,
-                                              decorator=decorator)
+    # stream_response = EasyTL.gemini_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+    #                                           model="gemini-1.5-flash", 
+    #                                           translation_instructions="Translate this to German. Take your time and translate word by word.", 
+    #                                           stream=True,
+    #                                           decorator=decorator)
     
-    for chunk in stream_response: # type: ignore
-        if hasattr(chunk, 'text') and chunk.text is not None:
-            print(chunk.text, end="", flush=True)
-            time.sleep(0.1)
+    # for chunk in stream_response: # type: ignore
+    #     if hasattr(chunk, 'text') and chunk.text is not None: # type: ignore
+    #         print(chunk.text, end="", flush=True) # type: ignore
+    #         time.sleep(0.1)
+    # print()
+
+    # print("Testing Gemini Async Streaming...")
+
+    # async_stream_response = await EasyTL.gemini_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+    #                                                             model="gemini-1.5-flash", 
+    #                                                             translation_instructions="Translate this to German. Take your time and translate word by word.",
+    #                                                             stream=True,
+    #                                                             decorator=decorator)
+    
+    # async for chunk in async_stream_response: # type: ignore
+    #     if hasattr(chunk, 'text') and chunk.text is not None: # type: ignore
+    #         print(chunk.text, end="", flush=True)
+    #         await asyncio.sleep(0.1)
+    # print()
+
+    print("Testing Anthropic Streaming...")
+
+    stream_response = EasyTL.anthropic_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.",
+                                                translation_instructions="Translate this to German.", 
+                                                stream=True, 
+                                                decorator=decorator)
+
+    for event in stream_response: # type: ignore
+        if event.type == "message_start":
+            print("Translation started...")
+        elif event.type == "content_block_start":
+            print("Content block started...")
+        elif event.type == "content_block_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                time.sleep(0.1)
+        elif event.type == "content_block_stop":
+            print("\nContent block finished...")
+        elif event.type == "message_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                time.sleep(0.1)
+        elif event.type == "message_stop":
+            print("\nTranslation completed.")
     print()
 
-    print("Testing Gemini Async Streaming...")
+    print("Testing Anthropic Async Streaming...")
 
-    async_stream_response = await EasyTL.gemini_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
-                                                                model="gemini-1.5-flash", 
-                                                                translation_instructions="Translate this to German. Take your time and translate word by word.",
-                                                                stream=True,
-                                                                decorator=decorator)
-    
-    async for chunk in async_stream_response: # type: ignore
-        if hasattr(chunk, 'text') and chunk.text is not None:
-            print(chunk.text, end="", flush=True)
-            await asyncio.sleep(0.1)
+    async_stream_response = await EasyTL.anthropic_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                                   translation_instructions="Translate this to German.", 
+                                                                   stream=True, 
+                                                                   decorator=decorator)
+
+    async for event in async_stream_response: # type: ignore
+        if event.type == "message_start":
+            print("Translation started...")
+        elif event.type == "content_block_start":
+            print("Content block started...")
+        elif event.type == "content_block_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                await asyncio.sleep(0.1)
+        elif event.type == "content_block_stop":
+            print("\nContent block finished...")
+        elif event.type == "message_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                await asyncio.sleep(0.1)
+        elif event.type == "message_stop":
+            print("\nTranslation completed.")
     print()
 
     # print(EasyTL.anthropic_translate("Hello, world!", translation_instructions="Translate this to German.", response_type="json", logging_directory=logging_directory,decorator=decorator, response_schema=schema))

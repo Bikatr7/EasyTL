@@ -29,7 +29,7 @@ class AnthropicService:
     _temperature:float | NotGiven = NOT_GIVEN
     _top_p:float | NotGiven = NOT_GIVEN
     _top_k:int | NotGiven = NOT_GIVEN
-    _stream:typing.Literal[False] | NotGiven = False
+    _stream:bool = False
     _stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN
     _max_tokens:int | NotGiven = NOT_GIVEN
 
@@ -90,7 +90,7 @@ class AnthropicService:
                         temperature:float | NotGiven = NOT_GIVEN,
                         top_p:float | NotGiven = NOT_GIVEN,
                         top_k:int | NotGiven = NOT_GIVEN,
-                        stream:typing.Literal[False] | NotGiven = False,
+                        stream:bool = False,
                         stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
                         max_tokens:int | NotGiven = NOT_GIVEN,
                         decorator:typing.Union[typing.Callable, None]=None,
@@ -186,7 +186,7 @@ class AnthropicService:
     @staticmethod
     def _translate_text(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> AnthropicMessage:
+                                ) -> AnthropicMessage | typing.Iterator[AnthropicMessage]:
         
         """
         
@@ -215,7 +215,7 @@ class AnthropicService:
     @staticmethod
     async def _translate_text_async(translation_instructions: typing.Optional[str],
                                 translation_prompt: ModelTranslationMessage
-                                ) -> AnthropicMessage:
+                                ) -> AnthropicMessage | typing.AsyncIterator[AnthropicMessage]:
         
         """
 
@@ -226,7 +226,7 @@ class AnthropicService:
         translation_prompt (ModelTranslationMessage) : The text to translate.
 
         Returns:
-        response (AnthropicMessage) : The response from the API.
+        response (AnthropicMessage | AsyncIterator[AnthropicMessage]) : The response from the API.
 
         """
         
@@ -242,7 +242,7 @@ class AnthropicService:
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    def __translate_text(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage | typing.Iterator[AnthropicMessage]:
 
         """
 
@@ -262,8 +262,8 @@ class AnthropicService:
             "model": AnthropicService._model,
             "system": instructions,
             "messages": [prompt.to_dict()],
-            ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
-            **{attr: getattr(AnthropicService, f"_{attr}") for attr in attributes if getattr(AnthropicService, f"_{attr}") != NOT_GIVEN}
+            "stream": AnthropicService._stream,
+            **{attr: getattr(AnthropicService, f"_{attr}") for attr in attributes if getattr(AnthropicService, f"_{attr}") != NOT_GIVEN and attr != "stream"}
         }
         
         ## Special case for max_tokens
@@ -276,13 +276,12 @@ class AnthropicService:
             })
         
         response = AnthropicService._sync_client.messages.create(**message_args)
-        
         return response
     
 ##-------------------start-of- __translate_text_async()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def __translate_text_async(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage:
+    async def __translate_text_async(instructions:str, prompt:ModelTranslationMessage) -> AnthropicMessage | typing.AsyncIterator[AnthropicMessage]:
 
         """
 
@@ -307,8 +306,8 @@ class AnthropicService:
                 "model": AnthropicService._model,
                 "system": instructions,
                 "messages": [prompt.to_dict()],
-                ## scary looking dict comprehension to get the attributes that are not NOT_GIVEN
-                **{attr: getattr(AnthropicService, f"_{attr}") for attr in attributes if getattr(AnthropicService, f"_{attr}") != NOT_GIVEN}
+                "stream": AnthropicService._stream,
+                **{attr: getattr(AnthropicService, f"_{attr}") for attr in attributes if getattr(AnthropicService, f"_{attr}") != NOT_GIVEN and attr != "stream"}
             }
             
             ## Special case for max_tokens

@@ -582,14 +582,14 @@ class EasyTL:
         
         Example streaming usage:
         stream_response = EasyTL.gemini_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
-                                                model="gemini-pro", 
+                                                model="gemini-1.5-flash", 
                                                 translation_instructions="Translate this to German. Take your time and translate word by word.", 
                                                 stream=True,
                                                 decorator=decorator)
         
         for chunk in stream_response: # type: ignore
-            if hasattr(chunk, 'text') and chunk.text is not None:
-                print(chunk.text, end="", flush=True)
+            if hasattr(chunk, 'text') and chunk.text is not None: # type: ignore
+                print(chunk.text, end="", flush=True) # type: ignore
                 time.sleep(0.1)
 
         Parameters:
@@ -731,15 +731,15 @@ class EasyTL:
         
         Example streaming usage:
         async_stream_response = await EasyTL.gemini_translate_async(
-            "Hello, world! This is a longer message that we'll see stream in real time.", 
-            model="gemini-pro", 
+            "Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+            model="gemini-1.5-flash", 
             translation_instructions="Translate this to German. Take your time and translate word by word.",
             stream=True,
             decorator=decorator
         )
         
         async for chunk in async_stream_response: # type: ignore
-            if hasattr(chunk, 'text') and chunk.text is not None:
+            if hasattr(chunk, 'text') and chunk.text is not None: # type: ignore
                 print(chunk.text, end="", flush=True)
                 await asyncio.sleep(0.1)
         
@@ -1211,8 +1211,10 @@ class EasyTL:
                             top_p:float | NotGiven = NOT_GIVEN,
                             top_k:int | NotGiven = NOT_GIVEN,
                             stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
-                            max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, 
-                                                                                          AnthropicMessage, typing.List[AnthropicMessage]]:
+                            max_output_tokens:int | NotGiven = NOT_GIVEN,
+                            stream:bool = False) -> typing.Union[typing.List[str], str, 
+                                                                  AnthropicMessage, typing.List[AnthropicMessage],
+                                                                  typing.Iterator[AnthropicMessage], typing.AsyncIterator[AnthropicMessage]]:
         
         """
 
@@ -1228,6 +1230,33 @@ class EasyTL:
 
         Anthropic's JSON response is quite unsophisticated, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
 
+        Streaming Support:
+        - Streaming is only supported for single text inputs (not iterables)
+        - When streaming is enabled (stream=True):
+          - The response will be an iterator of AnthropicMessage chunks
+          - Each chunk contains a delta of the generated text
+          - JSON mode and other response types are not supported with streaming
+          - Typical usage is to iterate over chunks and print content as it arrives
+        
+        Example streaming usage:
+        stream_response = EasyTL.anthropic_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                   model="claude-3-haiku-20240307", 
+                                                   translation_instructions="Translate this to German. Take your time and translate word by word.", 
+                                                   stream=True,
+                                                   decorator=decorator)
+        
+        for event in stream_response: # type: ignore
+            if event.type == "content_block_delta":
+                if hasattr(event.delta, 'text'):
+                    print(event.delta.text, end="", flush=True)
+                    time.sleep(0.1)
+            elif event.type == "message_delta":
+                if hasattr(event.delta, 'text'):
+                    print(event.delta.text, end="", flush=True)
+                    time.sleep(0.1)
+            elif event.type == "message_stop":
+                print("\nTranslation completed.")
+
         Parameters:
         text (string or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
@@ -1242,10 +1271,13 @@ class EasyTL:
         top_k (int or NotGiven) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
         stop_sequences (list or NotGiven) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
+        stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
 
         Returns:
-        result (string or list - string or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
-
+        result (string or list - string or AnthropicMessage or list - AnthropicMessage or Iterator[AnthropicMessage] or AsyncIterator[AnthropicMessage]) : 
+            The translation result. A list of strings if the input was an iterable, a string otherwise. 
+            A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise.
+            An iterator of AnthropicMessage chunks if streaming is enabled.
         """
 
         if(logging_directory is not None):
@@ -1269,6 +1301,12 @@ class EasyTL:
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
+        if(stream):
+            if(isinstance(text, typing.Iterable) and not isinstance(text, str)):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            if(json_mode):
+                raise ValueError("JSON mode is not supported with streaming")
+
         if(override_previous_settings == True):
             AnthropicService._set_attributes(model=model,
                                             system=translation_instructions,
@@ -1276,7 +1314,7 @@ class EasyTL:
                                             top_p=top_p,
                                             top_k=top_k,
                                             stop_sequences=stop_sequences,
-                                            stream=False,
+                                            stream=stream,
                                             max_tokens=max_output_tokens,
                                             decorator=decorator,
                                             semaphore=None,
@@ -1291,6 +1329,9 @@ class EasyTL:
 
         _translation_batches = AnthropicService._build_translation_batches(text)
 
+        if(stream):
+            return AnthropicService._translate_text(AnthropicService._system, _translation_batches[0])
+
         _translations = []
 
         for _text in _translation_batches:
@@ -1304,13 +1345,13 @@ class EasyTL:
 
             ## response structure is inconsistent, so we have to check for both types of responses
             else:
-                content = _result.content
+                content = _result.content # type: ignore
 
                 if(isinstance(content[0], AnthropicTextBlock)):
-                    translation = content[0].text
+                    translation = content[0].text # type: ignore
 
                 elif(isinstance(content[0], AnthropicToolUseBlock)):
-                    translation = content[0].input
+                    translation = content[0].input # type: ignore
                             
             _translations.append(translation)
 
@@ -1336,8 +1377,11 @@ class EasyTL:
                                         top_p:float | NotGiven = NOT_GIVEN,
                                         top_k:int | NotGiven = NOT_GIVEN,
                                         stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
-                                        max_output_tokens:int | NotGiven = NOT_GIVEN) -> typing.Union[typing.List[str], str, 
-                                                                                                    AnthropicMessage, typing.List[AnthropicMessage]]:
+                                        max_output_tokens:int | NotGiven = NOT_GIVEN,
+                                        stream:bool = False) -> typing.Union[typing.List[str], str, 
+                                                                          AnthropicMessage, typing.List[AnthropicMessage],
+                                                                          typing.Iterator[AnthropicMessage], typing.AsyncIterator[AnthropicMessage]]:
+
         """
 
         Asynchronous version of anthropic_translate().
@@ -1355,6 +1399,35 @@ class EasyTL:
 
         Anthropic's JSON response is quite unsophisticated, it costs a lot of extra tokens to return a json response. It's also inconsistent. Be careful when using it.
 
+        Streaming Support:
+        - Streaming is only supported for single text inputs (not iterables)
+        - When streaming is enabled (stream=True):
+          - The response will be an async iterator of AnthropicMessage chunks
+          - Each chunk contains a delta of the generated text
+          - JSON mode and other response types are not supported with streaming
+          - Typical usage is to iterate over chunks and print content as it arrives
+        
+        Example streaming usage:
+        async_stream_response = await EasyTL.anthropic_translate_async(
+            "Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+            model="claude-3-haiku-20240307", 
+            translation_instructions="Translate this to German. Take your time and translate word by word.",
+            stream=True,
+            decorator=decorator
+        )
+        
+        async for event in async_stream_response: # type: ignore
+            if event.type == "content_block_delta":
+                if hasattr(event.delta, 'text'):
+                    print(event.delta.text, end="", flush=True)
+                    await asyncio.sleep(0.1)
+            elif event.type == "message_delta":
+                if hasattr(event.delta, 'text'):
+                    print(event.delta.text, end="", flush=True)
+                    await asyncio.sleep(0.1)
+            elif event.type == "message_stop":
+                print("\nTranslation completed.")
+
         Parameters:
         text (string | ModelTranslationMessage or iterable) : The text to translate.
         override_previous_settings (bool) : Whether to override the previous settings that were used during the last call to an Anthropic translation function.
@@ -1370,10 +1443,13 @@ class EasyTL:
         top_k (int or NotGiven) : The top k tokens to consider. Generally, alter this or temperature or top_p, not all three.
         stop_sequences (list or NotGiven) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
+        stream (bool) : Whether to stream the response. If True, returns an async iterator that yields chunks of the response as they become available.
 
         Returns:
-        result (string or list - string or AnthropicMessage or list - AnthropicMessage or AnthropicToolsBetaMessage or list - AnthropicToolsBetaMessage) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise. A list of AnthropicToolsBetaMessage objects if the response type is 'raw' and input was an iterable, an AnthropicToolsBetaMessage object otherwise.
-
+        result (string or list - string or AnthropicMessage or list - AnthropicMessage or Iterator[AnthropicMessage] or AsyncIterator[AnthropicMessage]) : 
+            The translation result. A list of strings if the input was an iterable, a string otherwise. 
+            A list of AnthropicMessage objects if the response type is 'raw' and input was an iterable, an AnthropicMessage object otherwise.
+            An async iterator of AnthropicMessage chunks if streaming is enabled.
         """
 
         if(logging_directory is not None):
@@ -1397,6 +1473,12 @@ class EasyTL:
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
+        if(stream):
+            if(isinstance(text, typing.Iterable) and not isinstance(text, str)):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            if(json_mode):
+                raise ValueError("JSON mode is not supported with streaming")
+
         if(override_previous_settings == True):
             AnthropicService._set_attributes(model=model,
                                             system=translation_instructions,
@@ -1404,7 +1486,7 @@ class EasyTL:
                                             top_p=top_p,
                                             top_k=top_k,
                                             stop_sequences=stop_sequences,
-                                            stream=False,
+                                            stream=stream,
                                             max_tokens=max_output_tokens,
                                             decorator=decorator,
                                             semaphore=semaphore,
@@ -1419,13 +1501,18 @@ class EasyTL:
 
         _translation_batches = AnthropicService._build_translation_batches(text)
 
-        _translations_tasks = []
+        if(stream):
+            if(len(_translation_batches) > 1):
+                raise ValueError("Streaming is only supported for single text inputs, not iterables")
+            return await AnthropicService._translate_text_async(translation_instructions, _translation_batches[0])
+
+        _translation_tasks = []
 
         for _text in _translation_batches:
-            _task = AnthropicService._translate_text_async(AnthropicService._system, _text)
-            _translations_tasks.append(_task)
+            _task = AnthropicService._translate_text_async(translation_instructions, _text)
+            _translation_tasks.append(_task)
 
-        _results = await asyncio.gather(*_translations_tasks)
+        _results = await asyncio.gather(*_translation_tasks)
 
         _results:typing.List[AnthropicMessage] = _results
 

@@ -217,6 +217,34 @@ async def main():
     
     print(await EasyTL.gemini_translate_async("Hello, world!", model="gemini-1.5-pro-latest", translation_instructions="Format the response as JSON parseable string. It should have 2 keys, one for input titled input, and one called output, which is the translation.", response_type="json", decorator=decorator))
 
+    print("-----------------------------------------------Streaming response-----------------------------------------------")
+
+    print("Sync streaming:")
+    stream_response = EasyTL.gemini_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                            model="gemini-1.5-flash", 
+                                            translation_instructions="Translate this to German. Take your time and translate word by word.", 
+                                            stream=True,
+                                            decorator=decorator)
+
+    for chunk in stream_response: # type: ignore
+        if hasattr(chunk, 'text') and chunk.text is not None: # type: ignore
+            print(chunk.text, end="", flush=True) # type: ignore
+            time.sleep(0.1)
+    print()
+
+    print("\nAsync streaming:")
+    async_stream_response = await EasyTL.gemini_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                                model="gemini-1.5-flash", 
+                                                                translation_instructions="Translate this to German. Take your time and translate word by word.",
+                                                                stream=True,
+                                                                decorator=decorator)
+
+    async for chunk in async_stream_response: # type: ignore
+        if hasattr(chunk, 'text') and chunk.text is not None: # type: ignore
+            print(chunk.text, end="", flush=True)
+            await asyncio.sleep(0.1)
+    print()
+
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
     tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="gemini", model="gemini-pro", translation_instructions="Translate this to German.")
@@ -246,36 +274,32 @@ async def main():
     print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=ConvertToJson))
     print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=openai_schema))
 
-    print("------------------------------------------------Cost calculation------------------------------------------------")
-
-    tokens, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="openai", model="gpt-4o", translation_instructions="Translate this to German.")
-
-    print(f"Tokens: {tokens}, Cost: {cost}, Model: {model}")
-
     print("-----------------------------------------------Streaming response-----------------------------------------------")
 
     print("Sync streaming:")
-    stream_response = EasyTL.openai_translate("Hello, world!", 
+    stream_response = EasyTL.openai_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
                                             model="gpt-4", 
-                                            translation_instructions="Translate this to German.", 
+                                            translation_instructions="Translate this to German. Take your time and translate word by word.", 
                                             stream=True,
                                             decorator=decorator)
-    
+
     for chunk in stream_response: # type: ignore
         if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
-            print(chunk.choices[0].delta.content, end="")
+            print(chunk.choices[0].delta.content, end="", flush=True)
+            time.sleep(0.1)
     print()
 
     print("\nAsync streaming:")
-    async_stream_response = await EasyTL.openai_translate_async("Hello, world!", 
-                                                              model="gpt-4", 
-                                                              translation_instructions="Translate this to German.",
-                                                              stream=True,
-                                                              decorator=decorator)
-    
+    async_stream_response = await EasyTL.openai_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                                model="gpt-4", 
+                                                                translation_instructions="Translate this to German. Take your time and translate word by word.",
+                                                                stream=True,
+                                                                decorator=decorator)
+
     async for chunk in async_stream_response: # type: ignore
         if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
-            print(chunk.choices[0].delta.content, end="")
+            print(chunk.choices[0].delta.content, end="", flush=True)
+            await asyncio.sleep(0.1)
     print()
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
@@ -302,6 +326,58 @@ async def main():
 
     print(EasyTL.anthropic_translate("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=non_openai_schema))
     print(await EasyTL.anthropic_translate_async("Hello, world!", model="claude-3-haiku-20240307", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=non_openai_schema))
+
+    print("-----------------------------------------------Streaming response-----------------------------------------------")
+
+    print("Sync streaming:")
+    stream_response = EasyTL.anthropic_translate("Hello, world! This is a longer message to better demonstrate streaming capabilities.",
+                                                translation_instructions="Translate this to German.", 
+                                                stream=True, 
+                                                decorator=decorator)
+
+    for event in stream_response: # type: ignore
+        if event.type == "message_start":
+            print("Translation started...")
+        elif event.type == "content_block_start":
+            print("Content block started...")
+        elif event.type == "content_block_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                time.sleep(0.1)
+        elif event.type == "content_block_stop":
+            print("\nContent block finished...")
+        elif event.type == "message_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                time.sleep(0.1)
+        elif event.type == "message_stop":
+            print("\nTranslation completed.")
+    print()
+
+    print("\nAsync streaming:")
+    async_stream_response = await EasyTL.anthropic_translate_async("Hello, world! This is a longer message to better demonstrate streaming capabilities.", 
+                                                                   translation_instructions="Translate this to German.", 
+                                                                   stream=True, 
+                                                                   decorator=decorator)
+
+    async for event in async_stream_response: # type: ignore
+        if event.type == "message_start":
+            print("Translation started...")
+        elif event.type == "content_block_start":
+            print("Content block started...")
+        elif event.type == "content_block_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                await asyncio.sleep(0.1)
+        elif event.type == "content_block_stop":
+            print("\nContent block finished...")
+        elif event.type == "message_delta":
+            if hasattr(event.delta, 'text'):
+                print(event.delta.text, end="", flush=True)
+                await asyncio.sleep(0.1)
+        elif event.type == "message_stop":
+            print("\nTranslation completed.")
+    print()
 
     print("------------------------------------------------Cost calculation------------------------------------------------")
 
