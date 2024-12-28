@@ -129,9 +129,13 @@ class GeminiService:
 
         # if a semaphore is not provided, set it to the default value based on the model
         ## rate limits for 1.5 models are 2 requests per second
-        ## rate limits for 1.0B models are 15 requests per second
+        ## rate limits for 1.0B models are 5 requests per second
         semaphore_values = {"gemini-1.5-pro": 2,
+                            "gemini-1.5-pro-001": 2,
+                            "gemini-1.5-pro-002": 2,
                             "gemini-1.5-flash": 2,
+                            "gemini-1.5-flash-001": 2,
+                            "gemini-1.5-flash-002": 2,
                             "gemini-1.5-pro-latest": 2,
                             "gemini-1.5-flash-latest": 2,
                             }

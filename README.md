@@ -101,14 +101,15 @@ setuptools>=61.0
 wheel
 setuptools_scm>=6.0
 tomli
-google-generativeai==0.8.1
-deepl>=1.16.1
-openai==1.45.0
-backoff==2.2.1
-tiktoken==0.7.0
-google-cloud-translate==3.15.3
-anthropic==0.34.2
+google-generativeai>=0.8.3
+deepl>=1.20.0
+openai>=1.58.1
+backoff>=2.2.1
+tiktoken>=0.7.0
+google-cloud-translate>=3.15.3
+anthropic>=0.42.0
 requests>=2.31.0
+pydantic
 ```
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

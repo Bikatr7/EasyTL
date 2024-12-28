@@ -298,6 +298,10 @@ class OpenAIService:
             **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN and attr != "stream"}
         }
 
+        ## remove max_tokens from the message args if using o1 as it's not supported
+        if(OpenAIService._model in ["o1-2024-09-12", "o1"]):
+            message_args.pop("max_tokens", None)
+
         ## remove stream from the message args since it's not needed for the parse function (or at all really)
         if(calling_function == OpenAIService._sync_client.beta.chat.completions.parse):
             message_args.pop("stream", None)
@@ -365,6 +369,10 @@ class OpenAIService:
             **{attr: getattr(OpenAIService, f"_{attr}") for attr in attributes if getattr(OpenAIService, f"_{attr}") != NOT_GIVEN and attr != "stream"}
         }
 
+        ## remove max_tokens from the message args if using o1 as it's not supported
+        if(OpenAIService._model in ["o1-2024-09-12", "o1"]):
+            message_args.pop("max_tokens", None)
+
         ## remove stream from the message args since it's not needed for the parse function (or at all really)
         if(calling_function == OpenAIService._async_client.beta.chat.completions.parse):
             message_args.pop("stream")
@@ -392,7 +400,7 @@ class OpenAIService:
         try:
 
             OpenAIService._sync_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o",
                 messages=[{"role":"user","content":"This is a test."}],
                 max_tokens=1
             ) 

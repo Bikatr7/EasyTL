@@ -153,7 +153,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
     """
 
-    assert model in ALLOWED_OPENAI_MODELS + ALLOWED_GEMINI_MODELS + ALLOWED_ANTHROPIC_MODELS, f"""EasyTL does not support : {model}"""
+    assert model in ALLOWED_OPENAI_MODELS + ALLOWED_GEMINI_MODELS + ALLOWED_ANTHROPIC_MODELS, f"""EasyTL does not support : {model}, if you believe this is an error, please report it to the EasyTL GitHub repository (https://github.com/Bikatr7/EasyTL)."""
 
     ## default models are first, then the rest are sorted by price case
     if(price_case is None):
@@ -201,6 +201,10 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "o1-mini"):
             print("Warning: o1-mini may change over time. Estimating cost assuming o1-mini-2024-09-12 as it is the most recent version of o1-mini.")
             return _estimate_cost(text, model="o1-mini-2024-09-12")
+        
+        elif(model == "o1"):
+            print("Warning: o1 may change over time. Estimating cost assuming o1-2024-12-17 as it is the most recent version of o1.")
+            return _estimate_cost(text, model="o1-2024-12-17")
         
         elif(model == "gpt-3.5-turbo-0613"):
             print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-0125.")
@@ -256,10 +260,16 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "gpt-4o-2024-08-06"):
             return _estimate_cost(text, model=model, price_case=17)
         
+        elif(model == "gpt-4o-2024-11-15"):
+            return _estimate_cost(text, model=model, price_case=17)
+        
         elif(model == "o1-preview-2024-09-12"):
             return _estimate_cost(text, model=model, price_case=18)
         
         elif(model == "o1-mini-2024-09-12"):
+            return _estimate_cost(text, model=model, price_case=19)
+        
+        elif(model == "o1-2024-12-17"):
             return _estimate_cost(text, model=model, price_case=19)
         
         elif(model == "gemini-pro"):
@@ -280,16 +290,28 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "gemini-1.5-pro"):
             return _estimate_cost(text, model=model, price_case=14)
         
+        elif(model == "gemini-1.5-pro-001"):
+            return _estimate_cost(text, model=model, price_case=14)
+        
+        elif(model == "gemini-1.5-pro-002"):
+            return _estimate_cost(text, model=model, price_case=14)
+        
         elif(model == "gemini-1.5-flash"):
             return _estimate_cost(text, model=model, price_case=15)
 
+        elif(model == "gemini-1.5-flash-001"):
+            return _estimate_cost(text, model=model, price_case=15)
+
+        elif(model == "gemini-1.5-flash-002"):
+            return _estimate_cost(text, model=model, price_case=15)
+
         elif(model == "gemini-1.5-pro-latest"):
-            print("Warning: gemini-1.5-pro-latest may change over time. Estimating cost assuming gemini-1.5-pro as it is the most recent version of gemini-1.5-pro.")
-            return _estimate_cost(text, model="gemini-1.5-pro", price_case=14)
+            print("Warning: gemini-1.5-pro-latest may change over time. Estimating cost assuming gemini-1.5-pro-002 as it is the most recent version of gemini-1.5-pro.")
+            return _estimate_cost(text, model="gemini-1.5-pro-002", price_case=14)
         
         elif(model == "gemini-1.5-flash-latest"):
-            print("Warning: gemini-1.5-flash-latest may change over time. Estimating cost assuming gemini-1.5-flash as it is the most recent version of gemini-1.5-flash.")
-            return _estimate_cost(text, model="gemini-1.5-flash", price_case=15)
+            print("Warning: gemini-1.5-flash-latest may change over time. Estimating cost assuming gemini-1.5-flash-002 as it is the most recent version of gemini-1.5-flash.")
+            return _estimate_cost(text, model="gemini-1.5-flash-002", price_case=15)
         
   ##      elif(model == "gemini-1.0-ultra-latest"):
       ##      return _estimate_cost(text, model=model, price_case=8)
@@ -308,6 +330,9 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         
         elif(model == "claude-3-haiku-20240307"):
             return _estimate_cost(text, model=model, price_case=11)
+        
+        elif(model == "claude-3-5-haiku-20241022"):
+            return _estimate_cost(text, model=model, price_case=20)
         
     else:
 
@@ -382,7 +407,8 @@ def _update_model_name(model: str) -> str:
         "gpt-4o":"gpt-4o-2024-08-06",
         "gpt-4o-mini":"gpt-4o-mini-2024-07-18",
         "o1-preview":"o1-preview-2024-09-12",
-        "o1-mini":"o1-mini-2024-09-12"
+        "o1-mini":"o1-mini-2024-09-12",
+        "o1":"o1-2024-12-17"
     }
 
     if(model in model_updates):
