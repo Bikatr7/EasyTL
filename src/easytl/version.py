@@ -3,4 +3,4 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-VERSION = "v0.5.1"
+VERSION = "v0.6.0"

@@ -3,7 +3,7 @@
 ## Use of this source code is governed by an GNU Lesser General Public License v2.1
 ## license that can be found in the LICENSE file.
 
-## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2024-08-06
+## Costs & Models are determined and updated manually, listed in USD. Updated by Bikatr7 as of 2025-03-19
 ## https://platform.openai.com/docs/models/overview
 ALLOWED_OPENAI_MODELS  = [
     "gpt-3.5-turbo",
@@ -37,7 +37,9 @@ ALLOWED_OPENAI_MODELS  = [
     "o1-mini",
     "o1-mini-2024-09-12",
     "o1",
-    "o1-2024-09-12"
+    "o1-2024-09-12",
+    "o3-mini-2025-01-31",
+    "gpt-4.5-preview-2025-02-27"
 ]
 
 VALID_JSON_OPENAI_MODELS = [
@@ -55,7 +57,9 @@ VALID_JSON_OPENAI_MODELS = [
     "gpt-4o-2024-11-20",
     "gpt-4o",
     "gpt-4o-mini",
-    "gpt-4o-mini-2024-07-18"
+    "gpt-4o-mini-2024-07-18",
+    "gpt-4.5-preview-2025-02-27",
+    "o3-mini-2025-01-31"
 ]
 
 VALID_STRUCTURED_OUTPUT_OPENAI_MODELS = [
@@ -64,8 +68,9 @@ VALID_STRUCTURED_OUTPUT_OPENAI_MODELS = [
     "gpt-4o-mini",
     "gpt-4o-mini-2024-07-18",
     "o1",
-    "o1-2024-09-12"
-
+    "o1-2024-09-12",
+    "o3-mini-2025-01-31",
+    "gpt-4.5-preview-2025-02-27"
 ]
 
 ## https://ai.google.dev/models/gemini
@@ -103,6 +108,8 @@ ALLOWED_ANTHROPIC_MODELS = [
     "claude-3-opus-20240229",
     "claude-3-sonnet-20240229",
     "claude-3-5-sonnet-20240620",
+    "claude-3-5-sonnet-20241022", 
+    "claude-3-7-sonnet-20250219",
     "claude-3-haiku-20240307",
     "claude-3-5-haiku-20241022"
 ]
@@ -111,8 +118,10 @@ VALID_JSON_ANTHROPIC_MODELS = [
     "claude-3-opus-20240229",
     "claude-3-sonnet-20240229",
     "claude-3-5-sonnet-20240620",
+    "claude-3-5-sonnet-20241022",
     "claude-3-haiku-20240307",
-    "claude-3-5-haiku-20241022"
+    "claude-3-5-haiku-20241022",
+    "claude-3-7-sonnet-20250219"
 ]
 
 MODEL_COSTS = {
@@ -143,6 +152,12 @@ MODEL_COSTS = {
     "o1-preview-2024-09-12": {"price_case": 18, "_input_cost": 0.015, "_output_cost": 0.060},
     "o1-mini-2024-09-12": {"price_case": 19, "_input_cost": 0.003, "_output_cost": 0.012},
     "o1-2024-09-12": {"price_case": 18, "_input_cost": 0.015, "_output_cost": 0.060},
+
+    ## Grouping o3 models together
+    "o3-mini-2025-01-31": {"price_case": 20, "_input_cost": 0.0011, "_output_cost": 0.0044},
+
+    ## Grouping gpt-4.5-preview-2025-02-27 models together
+    "gpt-4.5-preview-2025-02-27": {"price_case": 21, "_input_cost": 0.0750, "_output_cost": 0.1500},
     
     ## Grouping Gemini models together
     "gemini-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
@@ -154,8 +169,6 @@ MODEL_COSTS = {
 
     "gemini-1.5-pro-latest": {"price_case": 14, "_input_cost": 0.0035, "_output_cost": 0.0105},
 
- ##   "gemini-1.0-ultra-latest": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0},
- ##   "gemini-ultra": {"price_case": 9, "_input_cost": 0.0, "_output_cost": 0.0}
 
     "gemini-1.5-pro": {"price_case": 14, "_input_cost": 0.0035, "_output_cost": 0.0105},
     "gemini-1.5-pro-001": {"price_case": 14, "_input_cost": 0.0035, "_output_cost": 0.0105},
@@ -167,11 +180,15 @@ MODEL_COSTS = {
     "gemini-1.5-flash-001": {"price_case": 15, "_input_cost": 0.00035, "_output_cost": 0.00105},
     "gemini-1.5-flash-002": {"price_case": 15, "_input_cost": 0.00035, "_output_cost": 0.00105},
 
+    "gemini-2.0-flash-latest": {"price_case": 15, "_input_cost": 0.00035, "_output_cost": 0.00105},
+
     ## grouping anthropic models together
     "claude-3-haiku-20240307": {"price_case": 20, "_input_cost": 0.0008, "_output_cost": 0.004},
     "claude-3-5-haiku-20241022": {"price_case": 11, "_input_cost": 0.00025, "_output_cost": 0.00125},
     "claude-3-sonnet-20240229": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
     "claude-3-5-sonnet-20240620": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
+    "claude-3-5-sonnet-20241022": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
+    "claude-3-7-sonnet-20250219": {"price_case": 12, "_input_cost": 0.003, "_output_cost": 0.015},
     "claude-3-opus-20240229": {"price_case": 13, "_input_cost": 0.015, "_output_cost": 0.075}
 
 }
@@ -196,16 +213,21 @@ MODEL_MAX_TOKENS = {
     "gpt-3.5-turbo-1106": {"max_input_tokens": 16385, "max_output_tokens": 4096},
     "gpt-3.5-turbo-0613": {"max_input_tokens": 4096, "max_output_tokens": 4096},
     "gpt-3.5-turbo-16k-0613": {"max_input_tokens": 16385, "max_output_tokens": 4096},
+    "gpt-4.5-preview-2025-02-27": {"max_input_tokens": 128000, "max_output_tokens": 16384},
+    "o3-mini-2025-01-31": {"max_input_tokens": 200000, "max_output_tokens": 100000},
 
     ## gemini models
     "gemini-1.5-pro": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
     "gemini-1.5-flash": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
     "gemini-1.0-pro-001": {"max_input_tokens": 12288, "max_output_tokens": 4096},
+    "gemini-2.0-flash-latest": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
 
     ## anthropic models
     "claude-3-opus-20240229": {"max_input_tokens": 200000, "max_output_tokens": 4096},
     "claude-3-sonnet-20240229": {"max_input_tokens": 200000, "max_output_tokens": 4096},
     "claude-3-5-sonnet-20240620": {"max_input_tokens": 200000, "max_output_tokens": 8192},
+    "claude-3-5-sonnet-20241022": {"max_input_tokens": 200000, "max_output_tokens": 8192},
+    "claude-3-7-sonnet-20250219": {"max_input_tokens": 200000, "max_output_tokens": 8192},
     "claude-3-haiku-20240307": {"max_input_tokens": 200000, "max_output_tokens": 4096},
     "claude-3-5-haiku-20241022": {"max_input_tokens": 200000, "max_output_tokens": 8192}
 
