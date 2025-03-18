@@ -52,6 +52,8 @@ class OpenAIService:
     _json_mode:bool = False
     _response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None
 
+    _do_validation:bool = True
+
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -181,7 +183,7 @@ class OpenAIService:
         if(isinstance(instructions, str)):
             instructions = SystemTranslationMessage(instructions)
 
-        elif(not isinstance(instructions, SystemTranslationMessage)):
+        elif(not isinstance(instructions, SystemTranslationMessage) and OpenAIService._do_validation):
             raise ValueError("Invalid type for instructions. Must either be a string or a pre-built SystemTranslationMessage object.")
 
         if(isinstance(text, str)):
@@ -192,13 +194,13 @@ class OpenAIService:
         
         elif(isinstance(text, typing.Iterable)):
             text = [ModelTranslationMessage(content=item) if isinstance(item, str) else item for item in text]
-        else:
+        elif(not OpenAIService._do_validation):
             raise ValueError("Invalid type for text. Must either be a string, ModelTranslationMessage, or an iterable of strings/ModelTranslationMessage.")
         
-        if(any(not isinstance(item, ModelTranslationMessage) for item in text)):
+        if(any(not isinstance(item, ModelTranslationMessage) for item in text) and OpenAIService._do_validation):
             raise ValueError("Invalid type in iterable. Must be either strings or ModelTranslationMessage objects.")
         
-        return [(item, instructions) for item in text]
+        return [(item, instructions) for item in text] ## type: ignore
 
 ##-------------------start-of-_translate_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

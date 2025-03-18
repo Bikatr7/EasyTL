@@ -1035,7 +1035,8 @@ class EasyTL:
                                     presence_penalty:float | None | NotGiven = NOT_GIVEN,
                                     frequency_penalty:float | None | NotGiven = NOT_GIVEN,
                                     stream:bool = False,
-                                    base_url:str | None = None
+                                    base_url:str | None = None,
+                                    skip_validation:bool = False
                                     ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
                                                     typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
@@ -1119,7 +1120,8 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
         base_url (string or None) : The base URL to use for the OpenAI API. If None, the default OpenAI API URL is used. This can be used for services like OpenRouter that are compatible with the OpenAI API.
-
+        skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL.
+        
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
             The translation result. A list of strings if the input was an iterable, a string otherwise. 
@@ -1131,18 +1133,22 @@ class EasyTL:
             print("Warning: logging_directory parameter is deprecated for openai_translate_async() and will be ignored")
             logging_directory = None
 
-        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
+        if(not skip_validation):
+            assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
-        _settings = _return_curated_openai_settings(locals())
+            _settings = _return_curated_openai_settings(locals())
 
-        _validate_easytl_llm_translation_settings(_settings, "openai")
+            _validate_easytl_llm_translation_settings(_settings, "openai")
 
-        _validate_stop_sequences(stop)
+            _validate_stop_sequences(stop)
 
-        _validate_text_length(text, model, service="openai")
+            _validate_text_length(text, model, service="openai")
 
-        if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
-            response_schema = _validate_response_schema(response_schema)
+            if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
+                response_schema = _validate_response_schema(response_schema)
+
+        else:
+            _settings = locals()
 
         ## Should be done after validating the settings to reduce cost to the user
         EasyTL.test_credentials("openai")
@@ -1173,13 +1179,13 @@ class EasyTL:
         else:
             translation_instructions = OpenAIService._system_message        
             
-        assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
+        if(not skip_validation):
+            assert isinstance(text, str) or _is_iterable_of_strings(text) or isinstance(text, ModelTranslationMessage) or _is_iterable_of_strings(text), InvalidTextInputException("text must be a string, an iterable of strings, a ModelTranslationMessage or an iterable of ModelTranslationMessages.")
 
         _translation_batches = OpenAIService._build_translation_batches(text, translation_instructions)
 
-
         if(stream):
-            if(len(_translation_batches) > 1):
+            if(len(_translation_batches) > 1 and not skip_validation):
                 raise ValueError("Streaming is only supported for single text inputs, not iterables")
             return await OpenAIService._translate_text_async(_translation_batches[0][1], _translation_batches[0][0])
 
@@ -1193,7 +1199,8 @@ class EasyTL:
 
         _results:typing.List[ChatCompletion] = _results
 
-        assert all([hasattr(_r, "choices") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
+        if(not skip_validation):
+            assert all([hasattr(_r, "choices") for _r in _results]), EasyTLException("Malformed response received. Please try again.")
 
         translation = _results if response_type in ["raw","raw_json"] else [result.choices[0].message.content for result in _results if result.choices[0].message.content is not None]
 
@@ -1529,7 +1536,7 @@ class EasyTL:
 
         ## response structure is different for beta
         else:
-            translations = [result.content[0].input if isinstance(result.content[0], AnthropicToolUseBlock) else result.content[0].text for result in _results]
+            translations = [result.content[0].input if isinstance(result.content[0], AnthropicToolUseBlock) else result.content[0].text for result in _results] ## type: ignore
         
         result = translations if isinstance(text, typing.Iterable) and not isinstance(text, str) else translations[0]
 
