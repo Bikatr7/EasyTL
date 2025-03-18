@@ -76,6 +76,7 @@ def _convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
         "openai_max_tokens": {"_type": int, "constraints": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0)},
         "openai_presence_penalty": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN},
         "openai_frequency_penalty": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN},
+        "openai_base_url": {"_type": str, "constraints": lambda x: isinstance(x, str) or x is None or x is NOT_GIVEN},
         "gemini_model": {"_type": str, "constraints": lambda x: x in ALLOWED_GEMINI_MODELS or x is None or x is NOT_GIVEN},
         ## "gemini_prompt": {"_type": str, "constraints": lambda x: x not in ["", "None", None, NOT_GIVEN]},
         "gemini_temperature": {"_type": float, "constraints": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN},

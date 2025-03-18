@@ -851,7 +851,8 @@ class EasyTL:
                         max_tokens:int | None | NotGiven = NOT_GIVEN,
                         presence_penalty:float | None | NotGiven = NOT_GIVEN,
                         frequency_penalty:float | None | NotGiven = NOT_GIVEN,
-                        stream:bool = False
+                        stream:bool = False,
+                        base_url:str | None = None
                         ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
                                         typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
@@ -928,6 +929,7 @@ class EasyTL:
         presence_penalty (float) : The presence penalty to use. This penalizes the model from repeating the same content in the output. Shouldn't be messed with for translation.
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
+        base_url (string or None) : The base URL to use for the OpenAI API. If None, the default OpenAI API URL is used. This can be used for services like OpenRouter that are compatible with the OpenAI API.
 
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
@@ -973,7 +975,8 @@ class EasyTL:
                                         semaphore=None,
                                         rate_limit_delay=translation_delay,
                                         json_mode=json_mode,
-                                        response_schema=response_schema)
+                                        response_schema=response_schema,
+                                        base_url=base_url)
 
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             translation_instructions = translation_instructions or OpenAIService._default_translation_instructions
@@ -1031,7 +1034,8 @@ class EasyTL:
                                     max_tokens:int | None | NotGiven = NOT_GIVEN,
                                     presence_penalty:float | None | NotGiven = NOT_GIVEN,
                                     frequency_penalty:float | None | NotGiven = NOT_GIVEN,
-                                    stream:bool = False
+                                    stream:bool = False,
+                                    base_url:str | None = None
                                     ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
                                                     typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
@@ -1114,6 +1118,7 @@ class EasyTL:
         presence_penalty (float) : The presence penalty to use. This penalizes the model from repeating the same content in the output. Shouldn't be messed with for translation.
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
+        base_url (string or None) : The base URL to use for the OpenAI API. If None, the default OpenAI API URL is used. This can be used for services like OpenRouter that are compatible with the OpenAI API.
 
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
@@ -1159,7 +1164,8 @@ class EasyTL:
                                         semaphore=semaphore,
                                         rate_limit_delay=translation_delay,
                                         json_mode=json_mode,
-                                        response_schema=response_schema)
+                                        response_schema=response_schema,
+                                        base_url=base_url)
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             translation_instructions = translation_instructions or OpenAIService._default_translation_instructions

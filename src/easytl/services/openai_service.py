@@ -41,6 +41,7 @@ class OpenAIService:
     _semaphore_value:int = 5
     _semaphore:asyncio.Semaphore = asyncio.Semaphore(_semaphore_value)
 
+    _base_url:str | None = None
     _sync_client = OpenAI(api_key="DummyKey")
     _async_client = AsyncOpenAI(api_key="DummyKey")
 
@@ -64,9 +65,13 @@ class OpenAIService:
         api_key (string) : The API key to set.
 
         """
-
-        OpenAIService._async_client.api_key = api_key
-        OpenAIService._sync_client.api_key = api_key
+        
+        if(OpenAIService._base_url):
+            OpenAIService._sync_client = OpenAI(api_key=api_key, base_url=OpenAIService._base_url)
+            OpenAIService._async_client = AsyncOpenAI(api_key=api_key, base_url=OpenAIService._base_url)
+        else:
+            OpenAIService._sync_client = OpenAI(api_key=api_key)
+            OpenAIService._async_client = AsyncOpenAI(api_key=api_key)
 
 ##-------------------start-of-set_attributes()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -85,7 +90,8 @@ class OpenAIService:
                         semaphore:int | None=None,
                         rate_limit_delay:float | None=None,
                         json_mode:bool=False,
-                        response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None
+                        response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None,
+                        base_url:str | None = None
                         ) -> None:
     
             """
@@ -111,6 +117,17 @@ class OpenAIService:
 
             OpenAIService._json_mode = json_mode
             OpenAIService._response_schema = response_schema
+            
+            if(base_url != OpenAIService._base_url):
+                OpenAIService._base_url = base_url
+                if(OpenAIService._sync_client.api_key != "DummyKey"):
+                    api_key = OpenAIService._sync_client.api_key
+                    if(base_url):
+                        OpenAIService._sync_client = OpenAI(api_key=api_key, base_url=base_url)
+                        OpenAIService._async_client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+                    else:
+                        OpenAIService._sync_client = OpenAI(api_key=api_key)
+                        OpenAIService._async_client = AsyncOpenAI(api_key=api_key)
 
             ## if a decorator is used, we want to disable retries, otherwise set it to the default value which is 2
             if(OpenAIService._decorator_to_use is not None):

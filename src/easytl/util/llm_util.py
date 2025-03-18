@@ -99,7 +99,8 @@ def _return_curated_openai_settings(local_settings:dict[str, typing.Any]) -> dic
         "openai_stop": "",
         "openai_max_tokens": "",
         "openai_presence_penalty": "",
-        "openai_frequency_penalty": ""
+        "openai_frequency_penalty": "",
+        "openai_base_url": ""
         }
 
         _non_openai_params = ["text", "override_previous_settings", "decorator", "translation_instructions", "response_type", "response_schema", "semaphore", "translation_delay"]
@@ -235,7 +236,8 @@ def _validate_easytl_llm_translation_settings(settings:dict, type:typing.Literal
       ##  "openai_logit_bias",
         "openai_max_tokens",
         "openai_presence_penalty",
-        "openai_frequency_penalty"
+        "openai_frequency_penalty",
+        "openai_base_url"
     ]
 
     _gemini_keys = [
@@ -266,6 +268,7 @@ def _validate_easytl_llm_translation_settings(settings:dict, type:typing.Literal
         "openai_max_tokens": lambda x: x is None or x is NOT_GIVEN or (isinstance(x, int) and x > 0),
         "openai_presence_penalty": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN,
         "openai_frequency_penalty": lambda x: isinstance(x, (int, float)) and -2 <= x <= 2 or x is None or x is NOT_GIVEN,
+        "openai_base_url": lambda x: isinstance(x, str) or x is None or x is NOT_GIVEN,
         "gemini_model": lambda x: isinstance(x, str) and x in ALLOWED_GEMINI_MODELS or x is None or x is NOT_GIVEN,
         "gemini_prompt": lambda x: x not in ["", "None", None, NOT_GIVEN],
         "gemini_temperature": lambda x: isinstance(x, (int, float)) and 0 <= x <= 2 or x is None or x is NOT_GIVEN,
