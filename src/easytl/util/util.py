@@ -334,6 +334,24 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
         elif(model == "claude-3-5-haiku-20241022"):
             return _estimate_cost(text, model=model, price_case=20)
         
+        elif(model == "claude-3-5-sonnet-20241022"):
+            return _estimate_cost(text, model=model, price_case=12)
+            
+        elif(model == "claude-3-7-sonnet-20250219"):
+            return _estimate_cost(text, model=model, price_case=12)
+        
+        elif(model == "gpt-4o-2024-11-20"):
+            return _estimate_cost(text, model=model, price_case=17)
+        
+        elif(model == "o1-2024-09-12"):
+            return _estimate_cost(text, model=model, price_case=18)
+        
+        elif(model == "o3-mini-2025-01-31"):
+            return _estimate_cost(text, model=model, price_case=20)
+        
+        elif(model == "gpt-4.5-preview-2025-02-27"):
+            return _estimate_cost(text, model=model, price_case=21)
+        
     else:
 
         _cost_details = MODEL_COSTS.get(model)
@@ -408,7 +426,7 @@ def _update_model_name(model: str) -> str:
         "gpt-4o-mini":"gpt-4o-mini-2024-07-18",
         "o1-preview":"o1-preview-2024-09-12",
         "o1-mini":"o1-mini-2024-09-12",
-        "o1":"o1-2024-12-17"
+        "o1":"o1-2024-09-12"
     }
 
     if(model in model_updates):
