@@ -36,6 +36,7 @@ def setup_preconditions():
     ## default values, assuming github actions environment, because i ain't paying shit
     gemini_time_delay = 65 
 
+    groq_api_key = os.environ.get('GROQ_API_KEY')
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -64,6 +65,8 @@ def setup_preconditions():
         azure_api_key = read_api_key("tests/azure.txt")
     if(azure_region is None):
         azure_region = read_api_key("tests/azure_region.txt")
+    if(groq_api_key is None):
+        groq_api_key = read_api_key("tests/groq.txt")
 
     ## last json failure clarifies that this is not a github actions environment
     if(json_value is None):
@@ -78,6 +81,7 @@ def setup_preconditions():
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
     assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
+    assert groq_api_key is not None, "GROQ_API_KEY environment variable must be set"
     #assert azure_region is not None, "AZURE_REGION environment variable must be set" 
     # we can set a default for the region
     if(azure_region is None):
@@ -128,7 +132,7 @@ def setup_preconditions():
         }
     }
 
-    return gemini_time_delay, non_openai_schema, openai_schema, azure_region
+    return gemini_time_delay, non_openai_schema, openai_schema, azure_region, groq_api_key
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class ConvertToJson(BaseModel):
@@ -137,7 +141,7 @@ class ConvertToJson(BaseModel):
 
 async def main():
 
-    gemini_time_delay, non_openai_schema, openai_schema, azure_region = setup_preconditions()
+    gemini_time_delay, non_openai_schema, openai_schema, azure_region, groq_api_key = setup_preconditions()
 
     ## probably self explanatory from this point on
 
@@ -401,7 +405,17 @@ async def main():
 
     characters, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="azure", model=None, translation_instructions=None)
 
-    print(f"Characters: {characters}, Cost: {cost}, Model: {model}")   
+    print(f"Characters: {characters}, Cost: {cost}, Model: {model}")
+
+    print("------------------------------------------------Groq------------------------------------------------")
+
+    print("-----------------------------------------------Text response-----------------------------------------------")
+
+    EasyTL.set_credentials("openai", groq_api_key)
+
+    print(EasyTL.openai_translate("Hello, world!", model="llama-3.3-70b-versatile", translation_instructions="Translate this to German.", decorator=decorator, base_url="https://api.groq.com/openai/v1", skip_validation = True))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="llama-3.3-70b-versatile", translation_instructions="Translate this to German.", decorator=decorator, base_url="https://api.groq.com/openai/v1", skip_validation = True))
+    
 
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
