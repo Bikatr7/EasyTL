@@ -79,11 +79,9 @@ class EasyTL:
 
         assert api_type in service_map, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
 
-        # If credentials are not passed, check the environment variables
         if(credentials is None and os.environ.get(environment_map[api_type]) is not None):
             credentials = os.environ.get(environment_map[api_type])
 
-        # If credentials are still None, raise an exception
         assert credentials is not None, InvalidAPIKeyException(f"No credentials provided for {api_type}. Please provide the credentials or set the environment variable {environment_map[api_type]} with the credentials.")
 
         service_map[api_type](credentials)
@@ -91,7 +89,7 @@ class EasyTL:
 ##-------------------start-of-test_credentials()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def test_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], azure_region:str = "westus") -> typing.Tuple[bool, typing.Optional[Exception]]:
+    def test_credentials(api_type:typing.Literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"], azure_region:str = "westus", base_url:str | None = None) -> typing.Tuple[bool, typing.Optional[Exception]]:
 
         """
 
@@ -100,6 +98,7 @@ class EasyTL:
         Parameters:
         api_type (literal["deepl", "gemini", "openai", "google translate", "anthropic", "azure"]) : The API type to test the credentials for.
         azure_region (string) : The Azure region to test the credentials for. Default is 'westus'. Can be omitted for other services.
+        base_url (string or None) : The base URL to use for the API. If not provided, the base URL will be retrieved from the environment variable OPENAI_BASE_URL.
 
         Returns:
         (bool) : Whether the credentials are valid.
@@ -110,13 +109,24 @@ class EasyTL:
         api_services = {
             "deepl": {"service": DeepLService, "test_func": DeepLService._test_api_key_validity},
             "gemini": {"service": GeminiService, "test_func": GeminiService._test_api_key_validity},
-            "openai": {"service": OpenAIService, "test_func": OpenAIService._test_api_key_validity},
+            "openai": {"service": OpenAIService, "test_func": OpenAIService._test_api_key_validity}, ## OpenAI needs a base url
             "google translate": {"service": GoogleTLService, "test_func": GoogleTLService._test_credentials},
             "anthropic": {"service": AnthropicService, "test_func": AnthropicService._test_api_key_validity},
             "azure": {"service": AzureService, "test_func": AzureService._test_credentials}
         }
 
         assert api_type in api_services, InvalidAPITypeException("Invalid API type specified. Supported types are 'deepl', 'gemini', 'openai', 'google translate', 'anthropic' and 'azure'.")
+
+        if(api_type == "openai"):
+            if(base_url is None):
+                _base_url = os.environ.get("OPENAI_BASE_URL")
+
+                if(_base_url is not None):
+                    base_url = _base_url
+                else:
+                    base_url = "https://api.openai.com/v1"
+
+            OpenAIService._set_base_url(base_url)
 
         if(api_type == "azure"):
             _region = azure_region
@@ -146,7 +156,8 @@ class EasyTL:
                            response_type:typing.Literal["text", "raw"] | None = "text",
                            translation_delay:float | None = None,
                            format:typing.Literal["text", "html"] = "text",
-                           source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
+                           source_lang:str | None = None,
+                           skip_validation:bool = False) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
         
         if(logging_directory is not None):
             print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
@@ -171,18 +182,20 @@ class EasyTL:
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
         source_lang (string or None) : The source language to translate from.
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
 
         """
 
-        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+        if(not skip_validation):
+            assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
+            assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
 
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("google translate")
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("google translate")
 
         if(override_previous_settings == True):
             GoogleTLService._set_attributes(target_language=target_lang, 
@@ -236,7 +249,8 @@ class EasyTL:
                                        semaphore:int | None = 15,
                                        translation_delay:float | None = None,
                                        format:typing.Literal["text", "html"] = "text",
-                                       source_lang:str | None = None) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
+                                       source_lang:str | None = None,
+                                       skip_validation:bool = False) -> typing.Union[typing.List[str], str, typing.List[typing.Any], typing.Any]:
         
         if(logging_directory is not None):
             print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
@@ -265,18 +279,20 @@ class EasyTL:
         translation_delay (float or None) : If text is an iterable, the delay between each translation. Default is none. This is more important for asynchronous translations where a semaphore alone may not be sufficient.
         format (string or None) : The format of the text. Can be 'text' or 'html'. Default is 'text'. Google Translate appears to be able to translate html but this has not been tested thoroughly by EasyTL.
         source_lang (string or None) : The source language to translate from.
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string or any or list - any) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of any objects if the response type is 'raw' and input was an iterable, an any object otherwise.
 
         """
 
-        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+        if(not skip_validation):
+            assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
+            assert format in ["text", "html"], InvalidResponseFormatException("Invalid format specified. Must be 'text' or 'html'.")
 
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("google translate")
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("google translate")
 
         if(override_previous_settings == True):
             GoogleTLService._set_attributes(target_language=target_lang, 
@@ -337,7 +353,13 @@ class EasyTL:
                         outline_detection:bool | None = None,
                         non_splitting_tags:str | typing.List[str] | None = None,
                         splitting_tags:str | typing.List[str] | None = None,
-                        ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
+                        ignore_tags:str | typing.List[str] | None = None,
+                        skip_validation:bool = False) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
+        
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
         
         """
 
@@ -363,36 +385,34 @@ class EasyTL:
         non_splitting_tags (string or list or None) : Tags that should not be split.
         splitting_tags (string or list or None) : Tags that should be split.
         ignore_tags (string or list or None) : Tags that should be ignored.
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise.
 
         """
 
-        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+        if(not skip_validation):
+            assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
-            logging_directory = None
+            EasyTL.test_credentials("deepl")
 
-        EasyTL.test_credentials("deepl")
-
-        if(override_previous_settings == True):
-            DeepLService._set_attributes(target_lang = target_lang, 
-                                        source_lang = source_lang, 
-                                        context = context, 
-                                        split_sentences = split_sentences,
-                                        preserve_formatting = preserve_formatting, 
-                                        formality = formality, 
-                                        glossary = glossary, 
-                                        tag_handling = tag_handling, 
-                                        outline_detection = outline_detection, 
-                                        non_splitting_tags = non_splitting_tags, 
-                                        splitting_tags = splitting_tags, 
-                                        ignore_tags = ignore_tags,
-                                        decorator=decorator,
-                                        semaphore=None,
-                                        rate_limit_delay=translation_delay)
+            if(override_previous_settings == True):
+                DeepLService._set_attributes(target_lang = target_lang, 
+                                            source_lang = source_lang, 
+                                            context = context, 
+                                            split_sentences = split_sentences,
+                                            preserve_formatting = preserve_formatting, 
+                                            formality = formality, 
+                                            glossary = glossary, 
+                                            tag_handling = tag_handling, 
+                                            outline_detection = outline_detection, 
+                                            non_splitting_tags = non_splitting_tags, 
+                                            splitting_tags = splitting_tags, 
+                                            ignore_tags = ignore_tags,
+                                            decorator=decorator,
+                                            semaphore=None,
+                                            rate_limit_delay=translation_delay)
             
         ## This section may seem overly complex, but it is necessary to apply the decorator outside of the function call to avoid infinite recursion.
         ## Attempting to dynamically apply the decorator within the function leads to unexpected behavior, where this function's arguments are passed to the function instead of the intended translation function.
@@ -446,7 +466,12 @@ class EasyTL:
                             outline_detection:bool | None = None,
                             non_splitting_tags:str | typing.List[str] | None = None,
                             splitting_tags:str | typing.List[str] | None = None,
-                            ignore_tags:str | typing.List[str] | None = None) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
+                            ignore_tags:str | typing.List[str] | None = None,
+                            skip_validation:bool = False) -> typing.Union[typing.List[str], str, typing.List[TextResult], TextResult]:
+        
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
 
         """
 
@@ -477,20 +502,16 @@ class EasyTL:
         non_splitting_tags (string or list or None) : Tags that should not be split.
         splitting_tags (string or list or None) : Tags that should be split.
         ignore_tags (string or list or None) : Tags that should be ignored.
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string or TextResult or list - TextResult) : The translation result. A list of strings if the input was an iterable, a string otherwise. A list of TextResult objects if the response type is 'raw' and input was an iterable, a TextResult object otherwise.
 
         """
 
-        assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
-
-        
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
-            logging_directory = None
-
-        EasyTL.test_credentials("deepl")
+        if(not skip_validation):
+            assert response_type in ["text", "raw"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'raw'.")
+            EasyTL.test_credentials("deepl")
 
         if(override_previous_settings == True):
             DeepLService._set_attributes(target_lang=target_lang, 
@@ -551,14 +572,20 @@ class EasyTL:
                         response_schema:str | typing.Mapping[str, typing.Any] | None = None,
                         translation_delay:float | None = None,
                         translation_instructions:str | None = None,
-                        model:str="gemini-pro",
+                        model:str="gemini-2.0-flash",
                         temperature:float=0.5,
                         top_p:float=0.9,
                         top_k:int=40,
                         stop_sequences:typing.List[str] | None=None,
                         max_output_tokens:int | None=None,
-                        stream:bool = False) -> typing.Union[typing.List[str], str, GenerateContentResponse, typing.List[GenerateContentResponse], 
+                        stream:bool = False,
+                        skip_validation:bool = False) -> typing.Union[typing.List[str], str, GenerateContentResponse, typing.List[GenerateContentResponse], 
                                                            typing.Iterator[GenerateContentResponse]]:
+        
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for gemini_translate() and will be ignored")
+            logging_directory = None
     
         """
 
@@ -607,7 +634,8 @@ class EasyTL:
         stop_sequences (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or None) : The maximum number of tokens to output.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
-
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
+        
         Returns:
         result (string or list - string or GenerateContentResponse or list - GenerateContentResponse or Iterator[GenerateContentResponse]) : 
             The translation result. A list of strings if the input was an iterable, a string otherwise. 
@@ -616,24 +644,21 @@ class EasyTL:
 
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for gemini_translate() and will be ignored")
-            logging_directory = None
+        if(not skip_validation):
+            assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
-        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
+            _settings = _return_curated_gemini_settings(locals())
 
-        _settings = _return_curated_gemini_settings(locals())
+            _validate_easytl_llm_translation_settings(_settings, "gemini")
 
-        _validate_easytl_llm_translation_settings(_settings, "gemini")
+            _validate_stop_sequences(stop_sequences)
 
-        _validate_stop_sequences(stop_sequences)
+            _validate_text_length(text, model, service="gemini")
 
-        _validate_text_length(text, model, service="gemini")
+            response_schema = _validate_response_schema(response_schema)
 
-        response_schema = _validate_response_schema(response_schema)
-
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("gemini")
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("gemini")
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
@@ -657,7 +682,7 @@ class EasyTL:
                                           semaphore=None,
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode,
-                                          response_schema=response_schema)
+                                          response_schema=response_schema) ## type: ignore
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()       
             GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
@@ -697,15 +722,20 @@ class EasyTL:
                                     semaphore:int | None = 5,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | None = None,
-                                    model:str="gemini-pro",
+                                    model:str="gemini-2.0-flash",
                                     temperature:float=0.5,
                                     top_p:float=0.9,
                                     top_k:int=40,
                                     stop_sequences:typing.List[str] | None=None,
                                     max_output_tokens:int | None=None,
-                                    stream:bool = False) -> typing.Union[typing.List[str], str, AsyncGenerateContentResponse, typing.List[AsyncGenerateContentResponse], 
+                                    stream:bool = False,
+                                    skip_validation:bool = False) -> typing.Union[typing.List[str], str, AsyncGenerateContentResponse, typing.List[AsyncGenerateContentResponse], 
                                                                        typing.AsyncIterator[AsyncGenerateContentResponse]]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for gemini_translate_async() and will be ignored")
+            logging_directory = None
+
         """
 
         Asynchronous version of gemini_translate().
@@ -759,6 +789,7 @@ class EasyTL:
         stop_sequences (list or None) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or None) : The maximum number of tokens to output.
         stream (bool) : Whether to stream the response. If True, returns an async iterator that yields chunks of the response as they become available.
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string or AsyncGenerateContentResponse or list - AsyncGenerateContentResponse or AsyncIterator[AsyncGenerateContentResponse]) : 
@@ -768,24 +799,21 @@ class EasyTL:
 
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for gemini_translate_async() and will be ignored")
-            logging_directory = None
+        if(not skip_validation):
+            assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
-        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
+            _settings = _return_curated_gemini_settings(locals())
 
-        _settings = _return_curated_gemini_settings(locals())
+            _validate_easytl_llm_translation_settings(_settings, "gemini")
 
-        _validate_easytl_llm_translation_settings(_settings, "gemini")
+            _validate_stop_sequences(stop_sequences)
 
-        _validate_stop_sequences(stop_sequences)
+            _validate_text_length(text, model, service="gemini")
 
-        _validate_text_length(text, model, service="gemini")
+            response_schema = _validate_response_schema(response_schema)
 
-        response_schema = _validate_response_schema(response_schema)
-
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("gemini")
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("gemini")
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
@@ -809,7 +837,7 @@ class EasyTL:
                                           semaphore=semaphore,
                                           rate_limit_delay=translation_delay,
                                           json_mode=json_mode,
-                                          response_schema=response_schema)
+                                          response_schema=response_schema) ## type: ignore
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             GeminiService._system_message = translation_instructions or GeminiService._default_translation_instructions
@@ -844,7 +872,7 @@ class EasyTL:
                         response_schema:typing.Union[typing.Mapping[str, typing.Any], typing.Type[BaseModel], None] = None,
                         translation_delay:float | None = None,
                         translation_instructions:str | SystemTranslationMessage | None = None,
-                        model:str="gpt-4",
+                        model:str="gpt-4o",
                         temperature:float | None | NotGiven = NOT_GIVEN,
                         top_p:float | None | NotGiven = NOT_GIVEN,
                         stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
@@ -852,10 +880,14 @@ class EasyTL:
                         presence_penalty:float | None | NotGiven = NOT_GIVEN,
                         frequency_penalty:float | None | NotGiven = NOT_GIVEN,
                         stream:bool = False,
-                        base_url:str | None = None
-                        ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
+                        base_url:str | None = None,
+                        skip_validation:bool = False) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
                                         typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for openai_translate() and will be ignored")
+            logging_directory = None
+
         """
 
         Translates the given text using OpenAI.
@@ -930,7 +962,8 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
         base_url (string or None) : The base URL to use for the OpenAI API. If None, the default OpenAI API URL is used. This can be used for services like OpenRouter that are compatible with the OpenAI API.
-
+                skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
+        
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
             The translation result. A list of strings if the input was an iterable, a string otherwise. 
@@ -938,28 +971,31 @@ class EasyTL:
             An iterator of ChatCompletion chunks if streaming is enabled.
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for openai_translate() and will be ignored")
-            logging_directory = None
+        if(base_url is None):
+            base_url = "https://api.openai.com/v1"
 
-        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
+        OpenAIService._set_base_url(base_url)
 
-        _settings = _return_curated_openai_settings(locals())
+        if(not skip_validation):
+            assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
-        _validate_easytl_llm_translation_settings(_settings, "openai")
+            _settings = _return_curated_openai_settings(locals())
 
-        _validate_stop_sequences(stop)
+            _validate_easytl_llm_translation_settings(_settings, "openai")
 
-        _validate_text_length(text, model, service="openai")
+            _validate_stop_sequences(stop)
 
-        if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
-            response_schema = _validate_response_schema(response_schema)
+            _validate_text_length(text, model, service="openai")
 
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("openai")
+            if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
+                response_schema = _validate_response_schema(response_schema)
+
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("openai", base_url=base_url)
 
         json_mode = True if response_type in ["json", "raw_json"] else False
-        
+
+    
         if(override_previous_settings == True):
             OpenAIService._set_attributes(model=model,
                                         temperature=temperature,
@@ -1027,7 +1063,7 @@ class EasyTL:
                                     semaphore:int | None = 5,
                                     translation_delay:float | None = None,
                                     translation_instructions:str | SystemTranslationMessage | None = None,
-                                    model:str="gpt-4",
+                                    model:str="gpt-4o",
                                     temperature:float | None | NotGiven = NOT_GIVEN,
                                     top_p:float | None | NotGiven = NOT_GIVEN,
                                     stop:typing.List[str] | None | NotGiven = NOT_GIVEN,
@@ -1040,6 +1076,11 @@ class EasyTL:
                                     ) -> typing.Union[typing.List[str], str, typing.List[ChatCompletion], ChatCompletion, 
                                                     typing.Iterator[ChatCompletion], typing.AsyncIterator[ChatCompletion]]:
         
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for openai_translate_async() and will be ignored")
+            logging_directory = None
+
         """
 
         Asynchronous version of openai_translate().
@@ -1120,7 +1161,7 @@ class EasyTL:
         frequency_penalty (float) : The frequency penalty to use. This penalizes the model from using the same words too frequently in the output. Shouldn't be messed with for translation.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
         base_url (string or None) : The base URL to use for the OpenAI API. If None, the default OpenAI API URL is used. This can be used for services like OpenRouter that are compatible with the OpenAI API.
-        skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL.
+        skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
         
         Returns:
         result (string or list - string or ChatCompletion or list - ChatCompletion or Iterator[ChatCompletion] or AsyncIterator[ChatCompletion]) : 
@@ -1129,9 +1170,10 @@ class EasyTL:
             An iterator of ChatCompletion chunks if streaming is enabled.
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for openai_translate_async() and will be ignored")
-            logging_directory = None
+        if(base_url is None):
+            base_url = "https://api.openai.com/v1"
+
+        OpenAIService._set_base_url(base_url)
 
         if(not skip_validation):
             assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
@@ -1147,11 +1189,11 @@ class EasyTL:
             if not (isinstance(response_schema, type) and issubclass(response_schema, BaseModel)):
                 response_schema = _validate_response_schema(response_schema)
 
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("openai", base_url=base_url)
+
         else:
             _settings = locals()
-
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("openai")
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
@@ -1225,9 +1267,14 @@ class EasyTL:
                             top_k:int | NotGiven = NOT_GIVEN,
                             stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
                             max_output_tokens:int | NotGiven = NOT_GIVEN,
-                            stream:bool = False) -> typing.Union[typing.List[str], str, 
-                                                                  AnthropicMessage, typing.List[AnthropicMessage],
-                                                                  typing.Iterator[AnthropicMessage], typing.AsyncIterator[AnthropicMessage]]:
+                            stream:bool = False,
+                            skip_validation:bool = False) -> typing.Union[typing.List[str], str, 
+                                                                          AnthropicMessage, typing.List[AnthropicMessage],
+                                                                          typing.Iterator[AnthropicMessage], typing.AsyncIterator[AnthropicMessage]]:
+        
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for anthropic_translate() and will be ignored")
+            logging_directory = None
         
         """
 
@@ -1285,6 +1332,7 @@ class EasyTL:
         stop_sequences (list or NotGiven) : String sequences that will cause the model to stop translating if encountered, generally useless.
         max_output_tokens (int or NotGiven) : The maximum number of tokens to output.
         stream (bool) : Whether to stream the response. If True, returns an iterator that yields chunks of the response as they become available.
+        skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string or AnthropicMessage or list - AnthropicMessage or Iterator[AnthropicMessage] or AsyncIterator[AnthropicMessage]) : 
@@ -1293,24 +1341,22 @@ class EasyTL:
             An iterator of AnthropicMessage chunks if streaming is enabled.
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for anthropic_translate() and will be ignored")
-            logging_directory = None
+        if(not skip_validation):
 
-        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
+            assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
-        _settings = _return_curated_anthropic_settings(locals())
+            _settings = _return_curated_anthropic_settings(locals())
 
-        _validate_easytl_llm_translation_settings(_settings, "anthropic")
+            _validate_easytl_llm_translation_settings(_settings, "anthropic")
 
-        _validate_stop_sequences(stop_sequences)
+            _validate_stop_sequences(stop_sequences)
 
-        _validate_text_length(text, model, service="anthropic")
+            _validate_text_length(text, model, service="anthropic")
 
-        response_schema = _validate_response_schema(response_schema)
+            response_schema = _validate_response_schema(response_schema)
 
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("anthropic")
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("anthropic")
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
@@ -1333,7 +1379,7 @@ class EasyTL:
                                             semaphore=None,
                                             rate_limit_delay=translation_delay,
                                             json_mode=json_mode,
-                                            response_schema=response_schema)
+                                            response_schema=response_schema) # type: ignore
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             AnthropicService._system = translation_instructions or AnthropicService._default_translation_instructions
@@ -1391,9 +1437,14 @@ class EasyTL:
                                         top_k:int | NotGiven = NOT_GIVEN,
                                         stop_sequences:typing.List[str] | NotGiven = NOT_GIVEN,
                                         max_output_tokens:int | NotGiven = NOT_GIVEN,
-                                        stream:bool = False) -> typing.Union[typing.List[str], str, 
+                                        stream:bool = False,
+                                        skip_validation:bool = False) -> typing.Union[typing.List[str], str, 
                                                                           AnthropicMessage, typing.List[AnthropicMessage],
                                                                           typing.Iterator[AnthropicMessage], typing.AsyncIterator[AnthropicMessage]]:
+
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for anthropic_translate_async() and will be ignored")
+            logging_directory = None
 
         """
 
@@ -1465,24 +1516,22 @@ class EasyTL:
             An async iterator of AnthropicMessage chunks if streaming is enabled.
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for anthropic_translate_async() and will be ignored")
-            logging_directory = None
+        if(not skip_validation):
 
-        assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
+            assert response_type in ["text", "raw", "json", "raw_json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text', 'raw', 'json' or 'raw_json'.")
 
-        _settings = _return_curated_anthropic_settings(locals())
+            _settings = _return_curated_anthropic_settings(locals())
 
-        _validate_easytl_llm_translation_settings(_settings, "anthropic")
+            _validate_easytl_llm_translation_settings(_settings, "anthropic")
 
-        _validate_stop_sequences(stop_sequences)
+            _validate_stop_sequences(stop_sequences)
 
-        _validate_text_length(text, model, service="anthropic")
+            _validate_text_length(text, model, service="anthropic")
 
-        response_schema = _validate_response_schema(response_schema)
+            response_schema = _validate_response_schema(response_schema)
 
-        ## Should be done after validating the settings to reduce cost to the user
-        EasyTL.test_credentials("anthropic")
+            ## Should be done after validating the settings to reduce cost to the user
+            EasyTL.test_credentials("anthropic")
 
         json_mode = True if response_type in ["json", "raw_json"] else False
 
@@ -1505,7 +1554,7 @@ class EasyTL:
                                             semaphore=semaphore,
                                             rate_limit_delay=translation_delay,
                                             json_mode=json_mode,
-                                            response_schema=response_schema)
+                                            response_schema=response_schema) ## type: ignore
             
             ## Done afterwards, cause default translation instructions can change based on set_attributes()
             AnthropicService._system = translation_instructions or AnthropicService._default_translation_instructions
@@ -1555,7 +1604,8 @@ class EasyTL:
                         api_version:str = '3.0',
                         azure_region:str = "global",
                         azure_endpoint:str = "https://api.cognitive.microsofttranslator.com/",
-                        source_lang:str | None = None) -> typing.Union[typing.List[str], str]:
+                        source_lang:str | None = None,
+                        skip_validation:bool = False) -> typing.Union[typing.List[str], str]:
         
         if(logging_directory is not None):
             print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
@@ -1582,16 +1632,18 @@ class EasyTL:
         azure_region (string) : The Azure region to use for translation. Default is 'global'.
         azure_endpoint (string) : The Azure Translator API endpoint. Default is 'https://api.cognitive.microsofttranslator.com/'.
         source_lang (string or None) : The source language of the text. If None, the service will attempt to detect the language.
-
+        skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
+        
         Returns:
         result (string or list - string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
 
         """
 
-        assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
+        if(not skip_validation):
 
+            assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
 
-        EasyTL.test_credentials("azure", azure_region=azure_region)
+            EasyTL.test_credentials("azure", azure_region=azure_region)
 
         if(override_previous_settings == True):
             AzureService._set_attributes(target_language=target_lang,
@@ -1650,7 +1702,13 @@ class EasyTL:
                                     api_version:str = '3.0',
                                     azure_region:str = "global",
                                     azure_endpoint:str = "https://api.cognitive.microsofttranslator.com/",
-                                    source_lang:str | None = None) -> typing.Union[typing.List[str], str]:
+                                    source_lang:str | None = None,
+                                    skip_validation:bool = False) -> typing.Union[typing.List[str], str]:
+        
+        if(logging_directory is not None):
+            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
+            logging_directory = None
+
         """
 
         Asynchronous version of azure_translate().
@@ -1676,19 +1734,18 @@ class EasyTL:
         azure_region (string) : The Azure region to use for translation. Default is 'global'.
         azure_endpoint (string) : The Azure Translator API endpoint. Default is 'https://api.cognitive.microsofttranslator.com/'.
         source_lang (string or None) : The source language of the text. If None, the service will attempt to detect the language.
+        skip_validation (bool) : Whether to skip validation of the API key, model, parameters, and text length. Use this when working with custom models or API endpoints not officially supported by EasyTL or just yoloing.
 
         Returns:
         result (string or list - string) : The translation result. A list of strings if the input was an iterable, a string otherwise.
         
         """
 
-        if(logging_directory is not None):
-            print("Warning: logging_directory parameter is deprecated for specific translation functions and will be ignored")
-            logging_directory = None
+        if(not skip_validation):
 
-        assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
+            assert response_type in ["text", "json"], InvalidResponseFormatException("Invalid response type specified. Must be 'text' or 'json'.")
 
-        EasyTL.test_credentials("azure", azure_region=azure_region)
+            EasyTL.test_credentials("azure", azure_region=azure_region)
 
         if(override_previous_settings == True):
             AzureService._set_attributes(target_language=target_lang,

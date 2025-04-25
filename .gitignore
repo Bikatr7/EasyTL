@@ -168,6 +168,7 @@ tests/easytl-log.txt
 tests/google_translate_key.json
 tests/anthropic.txt
 tests/azure.txt
+tests/openrouter.txt
 tests/azure_region.txt
 
 ## For MacOS

@@ -36,7 +36,7 @@ def setup_preconditions():
     ## default values, assuming github actions environment, because i ain't paying shit
     gemini_time_delay = 65 
 
-    groq_api_key = os.environ.get('GROQ_API_KEY')
+    openrouter_api_key = os.environ.get('GROQ_API_KEY')
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -65,8 +65,8 @@ def setup_preconditions():
         azure_api_key = read_api_key("tests/azure.txt")
     if(azure_region is None):
         azure_region = read_api_key("tests/azure_region.txt")
-    if(groq_api_key is None):
-        groq_api_key = read_api_key("tests/groq.txt")
+    if(openrouter_api_key is None):
+        openrouter_api_key = read_api_key("tests/openrouter.txt")
 
     ## last json failure clarifies that this is not a github actions environment
     if(json_value is None):
@@ -81,7 +81,7 @@ def setup_preconditions():
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
     assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
-    assert groq_api_key is not None, "GROQ_API_KEY environment variable must be set"
+    assert openrouter_api_key is not None, "GROQ_API_KEY environment variable must be set"
     #assert azure_region is not None, "AZURE_REGION environment variable must be set" 
     # we can set a default for the region
     if(azure_region is None):
@@ -132,7 +132,7 @@ def setup_preconditions():
         }
     }
 
-    return gemini_time_delay, non_openai_schema, openai_schema, azure_region, groq_api_key
+    return gemini_time_delay, non_openai_schema, openai_schema, azure_region, openrouter_api_key, openai_api_key
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class ConvertToJson(BaseModel):
@@ -141,11 +141,21 @@ class ConvertToJson(BaseModel):
 
 async def main():
 
-    gemini_time_delay, non_openai_schema, openai_schema, azure_region, groq_api_key = setup_preconditions()
-
     ## probably self explanatory from this point on
 
     decorator = backoff.on_exception(backoff.expo, exception=(DeepLException, GoogleAPIError, OpenAIError, AnthropicAPIError), logger=logging.getLogger())
+
+    gemini_time_delay, non_openai_schema, openai_schema, azure_region, openrouter_api_key, openai_api_key = setup_preconditions()
+
+    print("------------------------------------------------OpenRouter------------------------------------------------")
+
+    print("-----------------------------------------------Text response-----------------------------------------------")
+
+    EasyTL.set_credentials("openai", openrouter_api_key)
+
+    print(EasyTL.openai_translate("Hello, world!", model="microsoft/mai-ds-r1:free", translation_instructions="Translate this to German.", decorator=decorator, base_url="https://openrouter.ai/api/v1", skip_validation = True))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="microsoft/mai-ds-r1:free", translation_instructions="Translate this to German.", decorator=decorator, base_url="https://openrouter.ai/api/v1", skip_validation = True))
+
 
     print("------------------------------------------------Deepl------------------------------------------------")
 
@@ -259,13 +269,16 @@ async def main():
 
     print("-----------------------------------------------Text response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", decorator=decorator, response_schema=openai_schema))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", decorator=decorator, response_schema=openai_schema))
+    EasyTL.set_credentials("openai", openai_api_key)
+    EasyTL.test_credentials("openai", base_url="https://api.openai.com/v1")
+
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", decorator=decorator, response_schema=openai_schema, base_url="https://api.openai.com/v1"))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o", translation_instructions="Translate this to German.", decorator=decorator, response_schema=openai_schema, base_url="https://api.openai.com/v1"))
 
     print("-----------------------------------------------Raw response-----------------------------------------------")
 
-    results = EasyTL.openai_translate(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
-    async_results = await EasyTL.openai_translate_async(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator)
+    results = EasyTL.openai_translate(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator, base_url="https://api.openai.com/v1")
+    async_results = await EasyTL.openai_translate_async(text=["Hello, world!", "Goodbye, world!"], model="gpt-4o", translation_instructions="Translate this to German.", response_type="raw", decorator=decorator, base_url="https://api.openai.com/v1")
 
     for result in results: # type: ignore
         print(result.choices[0].message.content) # type: ignore
@@ -275,8 +288,8 @@ async def main():
 
     print("-----------------------------------------------JSON response-----------------------------------------------")
 
-    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=ConvertToJson))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=openai_schema))
+    print(EasyTL.openai_translate("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=ConvertToJson, base_url="https://api.openai.com/v1"))
+    print(await EasyTL.openai_translate_async("Hello, world!", model="gpt-4o-2024-08-06", translation_instructions="Translate this to German. Format the response as JSON parseable string.", response_type="json", decorator=decorator, response_schema=openai_schema, base_url="https://api.openai.com/v1"))
 
     print("-----------------------------------------------Streaming response-----------------------------------------------")
 
@@ -285,7 +298,7 @@ async def main():
                                             model="gpt-4", 
                                             translation_instructions="Translate this to German. Take your time and translate word by word.", 
                                             stream=True,
-                                            decorator=decorator)
+                                            decorator=decorator, base_url="https://api.openai.com/v1")
 
     for chunk in stream_response: # type: ignore
         if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
@@ -298,7 +311,7 @@ async def main():
                                                                 model="gpt-4", 
                                                                 translation_instructions="Translate this to German. Take your time and translate word by word.",
                                                                 stream=True,
-                                                                decorator=decorator)
+                                                                decorator=decorator, base_url="https://api.openai.com/v1")
 
     async for chunk in async_stream_response: # type: ignore
         if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
@@ -406,15 +419,6 @@ async def main():
     characters, cost, model = EasyTL.calculate_cost(text="Hello, world!", service="azure", model=None, translation_instructions=None)
 
     print(f"Characters: {characters}, Cost: {cost}, Model: {model}")
-
-    print("------------------------------------------------Groq------------------------------------------------")
-
-    print("-----------------------------------------------Text response-----------------------------------------------")
-
-    EasyTL.set_credentials("openai", groq_api_key)
-
-    print(EasyTL.openai_translate("Hello, world!", model="llama-3.3-70b-versatile", translation_instructions="Translate this to German.", decorator=decorator, base_url="https://api.groq.com/openai/v1", skip_validation = True))
-    print(await EasyTL.openai_translate_async("Hello, world!", model="llama-3.3-70b-versatile", translation_instructions="Translate this to German.", decorator=decorator, base_url="https://api.groq.com/openai/v1", skip_validation = True))
     
 
 ##-------------------end-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

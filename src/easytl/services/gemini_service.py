@@ -19,7 +19,7 @@ from ..exceptions import EasyTLException, InvalidTextInputException
 class GeminiService:
 
     _default_translation_instructions:str = "Please translate the following text into English."
-    _default_model:str = "gemini-pro"
+    _default_model:str = "gemini-2.0-flash"
 
     _system_message = _default_translation_instructions
 

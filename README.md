@@ -23,8 +23,6 @@ Seamless Multi-API Translation: Simplifying Language Barriers with DeepL, OpenAI
 
 EasyTL allows for the overriding of the default base URL for the OpenAI API. This is useful for services like OpenRouter that are compatible with the OpenAI API to use custom LLMs not explicitly supported by EasyTL.
 
-EasyTL has a [Trello board](https://trello.com/b/Td555CoW/easytl) for tracking planned features and issues:
-
 We've compiled a repository of examples and use cases for EasyTL at this [GitHub repository](https://github.com/Bikatr7/easytl-demo)
 
 > [!TIP]
