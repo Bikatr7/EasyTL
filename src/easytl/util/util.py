@@ -375,43 +375,23 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
         elif(model == "computer-use-preview-2025-03-11"):
             return _estimate_cost(text, model=model, price_case=19)
-        
-        elif(model == "gemini-pro"):
-            print(f"Warning: gemini-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=9)
-        
-        elif(model == "gemini-1.0-pro"):
-            print(f"Warning: gemini-1.0-pro may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=9)
                 
-        elif(model == "gemini-1.0-pro-latest"):
-            print(f"Warning: gemini-1.0-pro-latest may change over time. Estimating cost assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-            return _estimate_cost(text, model="gemini-1.0-pro-001", price_case=9)
-        
+        elif(model == "gemini-pro"):
+             print(f"Warning: gemini-pro alias used. Routing to gemini-1.5-pro-002.")
+             return _estimate_cost(text, model="gemini-1.5-pro-002", price_case=14)
+
         elif(model == "gemini-1.5-pro"):
             print("Warning: gemini-1.5-pro may change over time. Using latest known version gemini-1.5-pro-002.")
             return _estimate_cost(text, model="gemini-1.5-pro-002", price_case=14)
         
-        elif(model == "gemini-1.5-pro-001"):
-            return _estimate_cost(text, model=model, price_case=14)
-        
-        elif(model == "gemini-1.5-pro-002"):
-            return _estimate_cost(text, model=model, price_case=14)
+        elif(model == "gemini-1.5-pro-latest"):
+            print("Warning: gemini-1.5-pro-latest may change over time. Estimating cost assuming gemini-1.5-pro-002 as it is the most recent version of gemini-1.5-pro.")
+            return _estimate_cost(text, model="gemini-1.5-pro-002", price_case=14)
         
         elif(model == "gemini-1.5-flash"):
             print("Warning: gemini-1.5-flash may change over time. Using latest known version gemini-1.5-flash-002.")
             return _estimate_cost(text, model="gemini-1.5-flash-002", price_case=16)
 
-        elif(model == "gemini-1.5-flash-001"):
-            return _estimate_cost(text, model=model, price_case=16)
-
-        elif(model == "gemini-1.5-flash-002"):
-            return _estimate_cost(text, model=model, price_case=16)
-
-        elif(model == "gemini-1.5-pro-latest"):
-            print("Warning: gemini-1.5-pro-latest may change over time. Estimating cost assuming gemini-1.5-pro-002 as it is the most recent version of gemini-1.5-pro.")
-            return _estimate_cost(text, model="gemini-1.5-pro-002", price_case=14)
-        
         elif(model == "gemini-1.5-flash-latest"):
             print("Warning: gemini-1.5-flash-latest may change over time. Estimating cost assuming gemini-1.5-flash-002 as it is the most recent version of gemini-1.5-flash.")
             return _estimate_cost(text, model="gemini-1.5-flash-002", price_case=16)
@@ -437,10 +417,7 @@ def _estimate_cost(text:str | typing.Iterable, model:str, price_case:int | None 
 
         elif(model == "gemini-2.5-flash-preview-04-17"):
              return _estimate_cost(text, model=model, price_case=16)
-        
-        elif(model == "gemini-1.0-pro-001"):
-            return _estimate_cost(text, model=model, price_case=9)
-        
+                
         elif(model == "claude-3-opus-20240229"):
             return _estimate_cost(text, model=model, price_case=13)
         
@@ -577,9 +554,7 @@ def _update_model_name(model: str) -> str:
         "o4-mini": "o4-mini-2025-04-16",
         "computer-use-preview": "computer-use-preview-2025-03-11",
         ## Gemini Aliases (assuming 'latest' points to the most recent dated one, adjust if needed)
-        "gemini-pro": "gemini-1.0-pro-001", ## Assuming 1.0 pro is the target for the alias
-        "gemini-1.0-pro": "gemini-1.0-pro-001",
-        "gemini-1.0-pro-latest": "gemini-1.0-pro-001",
+        "gemini-pro": "gemini-1.5-pro-002",
         "gemini-1.5-pro": "gemini-1.5-pro-002", ## Assuming latest known dated version
         "gemini-1.5-pro-latest": "gemini-1.5-pro-002",
         "gemini-1.5-flash": "gemini-1.5-flash-002", ## Assuming latest known dated version

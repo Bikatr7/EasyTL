@@ -219,17 +219,10 @@ MODEL_COSTS = {
     "gemini-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
     "gemini-pro-vision": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
 
-    "gemini-1.0-pro-001": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
-    "gemini-1.0-pro-vision-001": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
-    "gemini-1.0-pro": {"price_case": 9, "_input_cost": 0.0005, "_output_cost": 0.0015},
-
     "gemini-1.5-pro-latest": {"price_case": 14, "_input_cost": 0.00125, "_output_cost": 0.005},
-
-
     "gemini-1.5-pro": {"price_case": 14, "_input_cost": 0.00125, "_output_cost": 0.005},
     "gemini-1.5-pro-001": {"price_case": 14, "_input_cost": 0.00125, "_output_cost": 0.005},
     "gemini-1.5-pro-002": {"price_case": 14, "_input_cost": 0.00125, "_output_cost": 0.005},
-
 
     "gemini-1.5-flash-latest": {"price_case": 16, "_input_cost": 0.00015, "_output_cost": 0.0006},
     "gemini-1.5-flash": {"price_case": 16, "_input_cost": 0.00015, "_output_cost": 0.0006},
@@ -277,7 +270,6 @@ MODEL_MAX_TOKENS = {
     ## gemini models
     "gemini-1.5-pro": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
     "gemini-1.5-flash": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
-    "gemini-1.0-pro-001": {"max_input_tokens": 12288, "max_output_tokens": 4096},
     "gemini-2.0-flash-latest": {"max_input_tokens": 1048576, "max_output_tokens": 8192},
 
     ## anthropic models
