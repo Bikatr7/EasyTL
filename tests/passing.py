@@ -36,7 +36,7 @@ def setup_preconditions():
     ## default values, assuming github actions environment, because i ain't paying shit
     gemini_time_delay = 65 
 
-    openrouter_api_key = os.environ.get('GROQ_API_KEY')
+    openrouter_api_key = os.environ.get('OPENROUTER_API_KEY')
     deepl_api_key = os.environ.get('DEEPL_API_KEY')
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -81,7 +81,7 @@ def setup_preconditions():
     assert openai_api_key is not None, "OPENAI_API_KEY environment variable must be set"
     assert anthropic_api_key is not None, "ANTHROPIC_API_KEY environment variable must be set"
     assert azure_api_key is not None, "AZURE_API_KEY environment variable must be set"
-    assert openrouter_api_key is not None, "GROQ_API_KEY environment variable must be set"
+    assert openrouter_api_key is not None, "OPENROUTER_API_KEY environment variable must be set"
     #assert azure_region is not None, "AZURE_REGION environment variable must be set" 
     # we can set a default for the region
     if(azure_region is None):
